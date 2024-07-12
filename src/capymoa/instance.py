@@ -1,3 +1,5 @@
+"""A module for creating and accessing instances in CapyMOA.
+"""
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,8 +16,10 @@ if TYPE_CHECKING:
 
 
 class Instance:
-    """An instance is a single data point in a stream. It contains a feature vector
-    and a schema that describes the datastream it belongs to.
+    """A single data point in a stream.
+
+    An instance contains a feature vector and a schema that describes the datastream
+    it belongs to.
 
     In supervised learning, your more likely to encounter :class:`LabeledInstance`
     or :class:`RegressionInstance` which are subclasses of :class:`Instance` with
@@ -50,6 +54,7 @@ class Instance:
     def from_java_instance(
         cls, schema: "Schema", java_instance: InstanceExample
     ) -> "Instance":
+        """Create an instance from a schema and a Java instance."""
         return cls(schema, java_instance)
 
     @classmethod
@@ -154,6 +159,7 @@ class LabeledInstance(Instance):
 
     The label and index are NOT the same. One is a human-readable string
     and the other is a integer representation of the class label.
+
     >>> instance.y_index
     1
     >>> instance.x
@@ -174,7 +180,7 @@ class LabeledInstance(Instance):
     def from_array(
         cls, schema: "Schema", x: FeatureVector, y_index: LabelIndex
     ) -> "LabeledInstance":
-        """Creates a new labeled instance from a schema, feature vector, and class index.
+        """Create an instance represented by an array of features and a class label index.
 
         This is useful in the rare cases you need to create custom labeled instances
         from scratch. In most cases, your datastream will automatically create
@@ -203,10 +209,12 @@ class LabeledInstance(Instance):
         >>> instance.java_instance.toString()
         '0.1,0.2,yes,'
 
-        :param schema: _description_
-        :param x: _description_
-        :param y_index: _description_
-        :return: _description_
+        :param schema: A schema describing the datastream the instance belongs to.
+        :param x: A vector of features containing float values.
+            (See: :class:`capymoa.type_alias.FeatureVector`)
+        :param y_index: An integer representing the class label's index.
+            (See: :class:`capymoa.type_alias.LabelIndex`)
+        :return: A new :class:`LabeledInstance` object.
         """
         return cls(schema, (x, y_index))
 
