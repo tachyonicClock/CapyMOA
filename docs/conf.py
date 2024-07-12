@@ -20,14 +20,15 @@ html_title = f"{project}"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx.ext.linkcode",
-    "sphinx.ext.autodoc",
-    "sphinx.ext.intersphinx",
-    "nbsphinx",
-    "sphinx.ext.mathjax",
-    "sphinx.ext.extlinks",
-    "sphinx.ext.doctest",
     "myst_parser",
+    "nbsphinx",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.doctest",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.linkcode",
+    "sphinx.ext.mathjax",
 ]
 
 nitpick_ignore_regex = [
@@ -42,10 +43,9 @@ nitpick_ignore_regex = [
     ('py:class', r'torch\..*'),
 
 ]
-bibtex_bibfiles = ['references.bib']
-
-autoclass_content = 'class'
-autodoc_class_signature = 'separated'
+toc_object_entries_show_parents = "hide"
+autosummary_ignore_module_all = False
+autosummary_generate = True
 autodoc_member_order = 'bysource'
 
 templates_path = ['_templates']
@@ -99,6 +99,7 @@ linkcode_resolve = make_linkcode_resolve(
 """ Options for the Theme ---------------------------------------------------
 """
 html_theme_options = {
+    "show_toc_level": 3,
     "icon_links": [
         {
             "name": "GitHub",
