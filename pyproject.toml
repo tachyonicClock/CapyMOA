@@ -81,7 +81,7 @@ doc=[
     "myst-parser",
     # Adds design elements to the documentation
     "sphinx_design",
-    "interrogate"
+    "interrogate",
 ]
 
 [project.urls]

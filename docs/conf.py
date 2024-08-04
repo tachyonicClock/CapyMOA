@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.linkcode",
     "sphinx.ext.mathjax",
     "sphinx_design",
+    "sphinxcontrib.programoutput"
 ]
 
 nitpick_ignore_regex = [
