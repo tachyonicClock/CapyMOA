@@ -45,7 +45,7 @@ import os
 class ClassifierTestCase:
     test_name: str
     """A unique name to identify your test case. Usually the name of the learner."""
-    learner_constructor: Callable[[Schema], Classifier]
+    learner: Classifier
     """A function that returns a new instance of the learner."""
     accuracy: float
     """The expected accuracy of the learner."""
@@ -67,134 +67,132 @@ for different learners with different hyperparameters.
 test_cases = [
     ClassifierTestCase(
         "OnlineBagging",
-        partial(OnlineBagging, ensemble_size=5),
+        OnlineBagging(ensemble_size=5),
         84.6,
         89.0,
     ),
     ClassifierTestCase(
         "AdaptiveRandomForestClassifier",
-        partial(AdaptiveRandomForestClassifier),
+        AdaptiveRandomForestClassifier(),
         89.0,
         91.0,
     ),
     ClassifierTestCase(
         "HoeffdingTree",
-        partial(HoeffdingTree),
+        HoeffdingTree(),
         82.65,
         83.0,
     ),
     ClassifierTestCase(
         "EFDT",
-        partial(EFDT),
+        EFDT(),
         82.69,
         82.0,
     ),
     ClassifierTestCase(
         "EFDT",
-        partial(
-            EFDT,
-            grace_period=10,
+        EFDT(grace_period=10,
             split_criterion=GiniSplitCriterion(),
             leaf_prediction="NaiveBayes",
         ),
         87.8,
         85.0,
-        cli_string="trees.EFDT -R 200 -m 33554433 -g 10 -s GiniSplitCriterion -c 0.001 -z -p -l NB",
+        cli_string="moa.classifiers.trees.EFDT -R 200 -m 33554433 -g 10 -s GiniSplitCriterion -c 0.001 -z -p -l NB",
     ),
     ClassifierTestCase(
         "NaiveBayes",
-        partial(NaiveBayes),
+        NaiveBayes(),
         84.0,
         91.0,
     ),
     ClassifierTestCase(
         "KNN",
-        partial(KNN),
+        KNN(),
         81.6,
         74.0,
     ),
     ClassifierTestCase(
         "PassiveAggressiveClassifier",
-        partial(PassiveAggressiveClassifier),
+        PassiveAggressiveClassifier(),
         84.7,
         81.0,
     ),
     ClassifierTestCase(
         "SGDClassifier",
-        partial(SGDClassifier),
+        SGDClassifier(),
         84.7,
         83.0,
     ),
     ClassifierTestCase(
         "StreamingGradientBoostedTrees",
-        partial(StreamingGradientBoostedTrees),
+        StreamingGradientBoostedTrees(),
         88.75,
         88.0,
     ),
     ClassifierTestCase(
         "OzaBoost",
-        partial(OzaBoost),
+        OzaBoost(),
         89.95,
         89.0,
     ),
     ClassifierTestCase(
         "MajorityClass",
-        partial(MajorityClass),
+        MajorityClass(),
         60.199999999999996,
         66.0,
     ),
     ClassifierTestCase(
         "NoChange",
-        partial(NoChange),
+        NoChange(),
         85.95,
         81.0,
     ),
     ClassifierTestCase(
         "OnlineSmoothBoost",
-        partial(OnlineSmoothBoost),
+        OnlineSmoothBoost(),
         87.85,
         90.0,
     ),
     ClassifierTestCase(
         "StreamingRandomPatches",
-        partial(StreamingRandomPatches),
+        StreamingRandomPatches(),
         90.2,
         89.0,
         is_serializable=False,
     ),
     ClassifierTestCase(
         "HoeffdingAdaptiveTree",
-        partial(HoeffdingAdaptiveTree),
+        HoeffdingAdaptiveTree(),
         84.15,
         92.0,
     ),
     ClassifierTestCase(
         "SAMkNN",
-        partial(SAMkNN),
-        82.65,
+        SAMkNN(),
+        82.5,
         82.0,
     ),
     ClassifierTestCase(
         "DynamicWeightedMajority",
-        partial(DynamicWeightedMajority),
+        DynamicWeightedMajority(),
         84.05,
         89.0,
     ),
     ClassifierTestCase(
         "CSMOTE",
-        partial(CSMOTE),
+        CSMOTE(),
         80.55,
         79.0,
     ),
     ClassifierTestCase(
         "LeveragingBagging",
-        partial(LeveragingBagging),
+        LeveragingBagging(),
         86.7,
         91.0,
     ),
     ClassifierTestCase(
         "OnlineAdwinBagging",
-        partial(OnlineAdwinBagging),
+        OnlineAdwinBagging(),
         85.25,
         92.0,
     ),
@@ -266,7 +264,7 @@ def test_classifiers(test_case: ClassifierTestCase, subtests: SubTests):
     win_evaluator = ClassificationWindowedEvaluator(
         schema=stream.get_schema(), window_size=100
     )
-    learner: Classifier = test_case.learner_constructor(schema=stream.get_schema())
+    learner: Classifier = test_case.learner
 
     while stream.has_more_instances():
         instance = stream.next_instance()
@@ -291,6 +289,8 @@ def test_classifiers(test_case: ClassifierTestCase, subtests: SubTests):
 
     # Optionally check the CLI string if it was provided
     if isinstance(learner, MOAClassifier) and test_case.cli_string is not None:
-        cli_str = _extract_moa_learner_CLI(learner).strip("()")
-        assert cli_str == test_case.cli_string, "CLI does not match expected value"
+        capymoa_cli_str = learner.get_moa_cli().strip("()")
+        assert capymoa_cli_str == test_case.cli_string, "CLI does not match expected value"
+
+
 

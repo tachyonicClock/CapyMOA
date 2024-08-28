@@ -3,7 +3,6 @@ from capymoa.base import SKClassifier
 from sklearn.linear_model import (
     PassiveAggressiveClassifier as _SKPassiveAggressiveClassifier,
 )
-from capymoa.stream._stream import Schema
 
 
 class PassiveAggressiveClassifier(SKClassifier):
@@ -33,7 +32,6 @@ class PassiveAggressiveClassifier(SKClassifier):
 
     def __init__(
         self,
-        schema: Schema,
         max_step_size: float = 1.0,
         fit_intercept: bool = True,
         loss: str = "hinge",
@@ -83,7 +81,6 @@ class PassiveAggressiveClassifier(SKClassifier):
                 average=average,
                 random_state=random_seed,
             ),
-            schema,
             random_seed,
         )
 

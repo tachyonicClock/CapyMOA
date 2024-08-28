@@ -1,10 +1,7 @@
 from capymoa.base import (
     MOAClassifier,
-    _extract_moa_learner_CLI,
 )
-from capymoa.stream import Schema
 from capymoa._utils import build_cli_str_from_mapping_and_locals
-from moa.classifiers.meta.imbalanced import CSMOTE as _MOA_CSMOTE
 
 
 class CSMOTE(MOAClassifier):
@@ -37,17 +34,15 @@ class CSMOTE(MOAClassifier):
 
     def __init__(
         self,
-        schema: Schema = None,
         random_seed: int = 0,
-        base_learner = 'trees.HoeffdingTree',
+        base_learner="trees.HoeffdingTree",
         neighbors: int = 10,
         threshold: float = 0.5,
         min_size_allowed: int = 100,
-        disable_drift_detection: bool = False
+        disable_drift_detection: bool = False,
     ):
         """Continuous Synthetic Minority Oversampling (C-SMOTE) by Bernardo et al.
 
-        :param schema: The schema of the stream.
         :param random_seed: The random seed passed to the MOA learner.
         :param base_learner: The base learner to be trained. Default AdaptiveRandomForestClassifier.
         :param neighbors: Number of neighbors for SMOTE.
@@ -64,13 +59,13 @@ class CSMOTE(MOAClassifier):
             "disable_drift_detection": "-d",
         }
 
-        assert (type(base_learner) == str
-                ), "Only MOA CLI strings are supported for CSMOTE base_learner, at the moment."
+        assert (
+            type(base_learner) is str
+        ), "Only MOA CLI strings are supported for CSMOTE base_learner, at the moment."
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         super(CSMOTE, self).__init__(
-            moa_learner=_MOA_CSMOTE,
-            schema=schema,
+            java_learner_class="moa.classifiers.meta.imbalanced.CSMOTE",
             CLI=config_str,
             random_seed=random_seed,
         )

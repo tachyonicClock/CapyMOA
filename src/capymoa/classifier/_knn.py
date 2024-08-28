@@ -1,5 +1,4 @@
 from capymoa.base import MOAClassifier
-from moa.classifiers.lazy import kNN as _moa_kNN
 
 
 class KNN(MOAClassifier):
@@ -7,28 +6,15 @@ class KNN(MOAClassifier):
     The default number of neighbors (k) is set to 3 instead of 10 (as in MOA)
     """
 
-    def __init__(
-        self, schema=None, CLI=None, random_seed=1, k=3, window_size=1000
-    ):
-        # Important, should create the MOA object before invoking the super class __init__
-        self.moa_learner = _moa_kNN()
+    def __init__(self, k: int = 3, window_size: int = 1000):
+        """Construct a k-Nearest Neighbors (kNN) Classifier
+
+        :param k: Number of neighbors to consider, defaults to 3
+        :param window_size: The size of the window for the kNN classifier, defaults to 1000
+        """
+        cli = [f"-k {k}", f"-w {window_size}"]
         super().__init__(
-            schema=schema,
-            CLI=CLI,
-            random_seed=random_seed,
-            moa_learner=self.moa_learner,
+            java_learner_class="moa.classifiers.lazy.kNN",
+            random_seed=0,
+            CLI=" ".join(cli),
         )
-
-        # Initialize instance attributes with default values, CLI was not set.
-        if self.CLI is None:
-            self.k = k
-            self.window_size = window_size
-            self.moa_learner.getOptions().setViaCLIString(
-                f"-k {self.k} -w {self.window_size}"
-            )
-            self.moa_learner.prepareForUse()
-            self.moa_learner.resetLearning()
-
-    def __str__(self):
-        # Overrides the default class name from MOA
-        return "kNN"

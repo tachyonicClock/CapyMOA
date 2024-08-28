@@ -9,8 +9,7 @@ import os
 def test_save_and_load_model():
    
     stream = ElectricityTiny()
-    schema = stream.get_schema()
-    learner = AdaptiveRandomForestClassifier(schema)
+    learner = AdaptiveRandomForestClassifier()
     prequential_evaluation(stream, learner, max_instances=1000)
     filename = 'test_model.pkl'
 

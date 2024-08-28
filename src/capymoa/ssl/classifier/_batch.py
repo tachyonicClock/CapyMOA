@@ -11,7 +11,7 @@ from capymoa.type_alias import FeatureVector
 
 class BatchClassifierSSL(ClassifierSSL, ABC):
     def __init__(self, batch_size: int, schema: Schema = None, random_seed=1):
-        super().__init__(schema=schema, random_seed=random_seed)
+        super().__init__()
         self.batch_size = batch_size
         self._features_batch: NDArray[np.double] = np.zeros(
             (batch_size, schema.get_num_attributes())

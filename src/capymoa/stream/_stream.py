@@ -1,6 +1,6 @@
 import typing
 import warnings
-from typing import Dict, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 import numpy as np
 from numpy.lib import recfunctions as rfn
@@ -21,6 +21,8 @@ from capymoa.instance import (
     LabeledInstance,
     RegressionInstance,
 )
+
+from hashlib import md5
 
 
 # Private functions
@@ -69,6 +71,7 @@ class Schema:
         ), "Only one output attribute is supported."
 
         self._moa_header = moa_header
+        self._header_hash = md5(str(moa_header.toString()).encode()).hexdigest()
         # Internally, we store the number of attributes + the class/target.
         # This is because MOA methods expect the numAttributes to also account for the class/target.
         self._regression = not self._moa_header.outputAttribute(1).isNominal()
@@ -140,6 +143,19 @@ class Schema:
     def is_y_index_in_range(self, y_index: int) -> bool:
         """Return True if the y_index is in the range of the class label indexes."""
         return 0 <= y_index < self.get_num_classes()
+    
+    def __eq__(self, value: object) -> bool:
+        """Return True if the schema is equal to another schema.
+        
+        This is useful for identifying if an instance has a compatible schema.
+        """
+        if not isinstance(value, Schema):
+            return False
+        # TODO: It might be useful to have a granular comparison of the schema.
+        # For example, a change to the relation name may not be relevant for the
+        # compatibility of the schema. Alternatively, a new category might be
+        # handled gracefully by the learner.
+        return self._header_hash == value._header_hash
 
     @property
     def dataset_name(self) -> str:

@@ -4,10 +4,8 @@ from typing import Union
 # from capymoa.base import MOAClassifier
 from capymoa.classifier import HoeffdingTree
 from capymoa.splitcriteria import SplitCriterion, _split_criterion_to_cli_str
-from capymoa.stream import Schema
 from capymoa._utils import build_cli_str_from_mapping_and_locals, _leaf_prediction
 
-import moa.classifiers.trees as moa_trees
 
 
 class HoeffdingAdaptiveTree(HoeffdingTree):
@@ -33,7 +31,6 @@ class HoeffdingAdaptiveTree(HoeffdingTree):
 
     def __init__(
         self,
-        schema: Schema,
         random_seed: int = 0,
         grace_period: int = 200,
         split_criterion: Union[str, SplitCriterion] = "InfoGainSplitCriterion",
@@ -49,10 +46,8 @@ class HoeffdingAdaptiveTree(HoeffdingTree):
         remove_poor_attrs: bool = False,
         disable_prepruning: bool = True,
     ):
+        """Hoeffding Adaptive Tree (HAT) classifier.
 
-        """ Hoeffding Adaptive Tree (HAT) classifier.
-
-        :param schema: the schema of the stream.
         :param random_seed: the random seed passed to the moa learner.
         :param grace_period: the number of instances a leaf should observe between split attempts.
         :param split_criterion: the split criterion to use. Defaults to `InfoGainSplitCriterion`.
@@ -93,8 +88,7 @@ class HoeffdingAdaptiveTree(HoeffdingTree):
         leaf_prediction = _leaf_prediction(leaf_prediction)
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         super(HoeffdingTree, self).__init__(
-            moa_learner=moa_trees.HoeffdingAdaptiveTree,
-            schema=schema,
+            java_learner_class="moa.classifiers.trees.HoeffdingAdaptiveTree",
             CLI=config_str,
             random_seed=random_seed,
         )

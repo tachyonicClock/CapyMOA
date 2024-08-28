@@ -1,13 +1,9 @@
 from __future__ import annotations
-from typing import Union
 
 from capymoa.base import (
     MOAClassifier,
 )
-from capymoa.stream import Schema
 from capymoa._utils import build_cli_str_from_mapping_and_locals
-
-from moa.classifiers.meta import OnlineSmoothBoost as _MOA_OnlineSmoothBoost
 
 
 class OnlineSmoothBoost(MOAClassifier):
@@ -37,11 +33,10 @@ class OnlineSmoothBoost(MOAClassifier):
 
     def __init__(
         self,
-        schema: Schema | None = None,
         random_seed: int = 0,
-        base_learner = 'trees.HoeffdingTree',
+        base_learner="trees.HoeffdingTree",
         boosting_iterations: int = 100,
-        gamma = 0.1,
+        gamma=0.1,
     ):
         """OnlineSmoothBoost Classifier
 
@@ -58,13 +53,13 @@ class OnlineSmoothBoost(MOAClassifier):
             "gamma": "-g",
         }
 
-        assert (type(base_learner) == str
-                ), "Only MOA CLI strings are supported for OnlineSmoothBoost base_learner, at the moment."
+        assert (
+            type(base_learner) is str
+        ), "Only MOA CLI strings are supported for OnlineSmoothBoost base_learner, at the moment."
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         super(OnlineSmoothBoost, self).__init__(
-            moa_learner=_MOA_OnlineSmoothBoost,
-            schema=schema,
+            java_learner_class="moa.classifiers.meta.OnlineSmoothBoost",
             CLI=config_str,
             random_seed=random_seed,
         )

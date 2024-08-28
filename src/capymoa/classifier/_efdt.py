@@ -3,10 +3,7 @@ from typing import Union
 
 from capymoa.base import MOAClassifier
 from capymoa.splitcriteria import SplitCriterion, _split_criterion_to_cli_str
-from capymoa.stream import Schema
 from capymoa._utils import build_cli_str_from_mapping_and_locals, _leaf_prediction
-
-import moa.classifiers.trees as moa_trees
 
 
 class EFDT(MOAClassifier):
@@ -46,7 +43,6 @@ class EFDT(MOAClassifier):
 
     def __init__(
         self,
-        schema: Schema | None = None,
         random_seed: int = 0,
         grace_period: int = 200,
         min_samples_reevaluate: int = 200,
@@ -65,7 +61,6 @@ class EFDT(MOAClassifier):
     ):
         """Construct an Extremely Fast Decision Tree (EFDT) Classifier
 
-        :param schema: The schema of the stream.
         :param random_seed: The random seed passed to the MOA learner.
         :param grace_period: Number of instances a leaf should observe between split attempts.
         :param min_samples_reevaluate: Number of instances a node should observe before re-evaluating the best split.
@@ -106,8 +101,7 @@ class EFDT(MOAClassifier):
         leaf_prediction = _leaf_prediction(leaf_prediction)
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         super(EFDT, self).__init__(
-            moa_learner=moa_trees.EFDT,
-            schema=schema,
+            java_learner_class="moa.classifiers.trees.EFDT",
             CLI=config_str,
             random_seed=random_seed,
         )

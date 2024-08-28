@@ -1,13 +1,10 @@
 from __future__ import annotations
-from typing import Union
 
 from capymoa.base import (
     MOAClassifier,
 )
-from capymoa.stream import Schema
 from capymoa._utils import build_cli_str_from_mapping_and_locals
 
-from moa.classifiers.meta import OzaBoost as _MOA_OzaBoost
 
 
 class OzaBoost(MOAClassifier):
@@ -44,15 +41,13 @@ class OzaBoost(MOAClassifier):
 
     def __init__(
         self,
-        schema: Schema | None = None,
         random_seed: int = 0,
-        base_learner = 'trees.HoeffdingTree',
+        base_learner="trees.HoeffdingTree",
         boosting_iterations: int = 10,
         use_pure_boost: bool = False,
     ):
         """Incremental on-line boosting classifier of Oza and Russell.
 
-        :param schema: The schema of the stream.
         :param random_seed: The random seed passed to the MOA learner.
         :param base_learner: The base learner to be trained. Default trees.HoeffdingTree.
         :param boosting_iterations: The number of boosting iterations.
@@ -65,13 +60,13 @@ class OzaBoost(MOAClassifier):
             "use_pure_boost": "-p",
         }
 
-        assert (type(base_learner) == str
-                ), "Only MOA CLI strings are supported for OzaBoost base_learner, at the moment."
+        assert (
+            type(base_learner) is str
+        ), "Only MOA CLI strings are supported for OzaBoost base_learner, at the moment."
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         super(OzaBoost, self).__init__(
-            moa_learner=_MOA_OzaBoost,
-            schema=schema,
+            java_learner_class="moa.classifiers.meta.OzaBoost",
             CLI=config_str,
             random_seed=random_seed,
         )

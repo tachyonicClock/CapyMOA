@@ -3,10 +3,7 @@ from typing import Union
 
 from capymoa.base import MOAClassifier
 from capymoa.splitcriteria import SplitCriterion, _split_criterion_to_cli_str
-from capymoa.stream import Schema
 from capymoa._utils import build_cli_str_from_mapping_and_locals, _leaf_prediction
-
-import moa.classifiers.trees as moa_trees
 
 
 class HoeffdingTree(MOAClassifier):
@@ -53,7 +50,6 @@ class HoeffdingTree(MOAClassifier):
 
     def __init__(
         self,
-        schema: Schema | None = None,
         random_seed: int = 0,
         grace_period: int = 200,
         split_criterion: Union[str, SplitCriterion] = "InfoGainSplitCriterion",
@@ -88,8 +84,7 @@ class HoeffdingTree(MOAClassifier):
         leaf_prediction = _leaf_prediction(leaf_prediction)
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         super(HoeffdingTree, self).__init__(
-            moa_learner=moa_trees.HoeffdingTree,
-            schema=schema,
+            java_learner_class="moa.classifiers.trees.HoeffdingTree",
             CLI=config_str,
             random_seed=random_seed,
         )

@@ -21,8 +21,8 @@ def test_prequential_evaluation():
         the accuracy of models from the same learner (but different models) should be the same
     """
     stream = SEA(function=1)
-    model1 = NaiveBayes(schema=stream.get_schema())
-    model2 = NaiveBayes(schema=stream.get_schema())
+    model1 = NaiveBayes()
+    model2 = NaiveBayes()
 
     results_1st_run = prequential_evaluation(stream=stream, learner=model1, max_instances=10)
     eleventh_instance_1st_run = results_1st_run.stream.next_instance().x
@@ -42,10 +42,10 @@ def test_prequential_evaluation_multiple_learners():
         the accuracy of models from the same learner (but different models) should be the same
     """
     stream = SEA(function=1)
-    model11 = NaiveBayes(schema=stream.get_schema())
-    model12 = HoeffdingTree(schema=stream.get_schema())
-    model21 = NaiveBayes(schema=stream.get_schema())
-    model22 = HoeffdingTree(schema=stream.get_schema())
+    model11 = NaiveBayes()
+    model12 = HoeffdingTree()
+    model21 = NaiveBayes()
+    model22 = HoeffdingTree()
 
     results_1st_run = prequential_evaluation_multiple_learners(stream=stream,
                                                                learners={'model11': model11, 'model12': model12},
@@ -77,8 +77,8 @@ def test_prequential_ssl_evaluation():
         the accuracy of models from the same learner (but different models) should be the same
     """
     stream = SEA(function=1)
-    model1 = NaiveBayes(schema=stream.get_schema())
-    model2 = NaiveBayes(schema=stream.get_schema())
+    model1 = NaiveBayes()
+    model2 = NaiveBayes()
 
     results_1st_run = prequential_ssl_evaluation(stream=stream, learner=model1, max_instances=10)
     eleventh_instance_1st_run = results_1st_run.stream.next_instance().x
@@ -132,7 +132,7 @@ def test_evaluation_api():
     ]
 
     stream = ElectricityTiny()
-    ht = HoeffdingTree(schema=stream.get_schema(), grace_period=50)
+    ht = HoeffdingTree(grace_period=50)
 
     results_ht = prequential_evaluation(stream=stream, learner=ht, window_size=50, optimise=True,
                                         store_predictions=True, store_y=True)
@@ -209,9 +209,7 @@ def test_restart_stream_flag(restart_stream, optimise, regression, evaluation):
         expect_error = True
 
     if not regression:
-        learner = NaiveBayes(
-            schema=stream.get_schema()
-        )  # The type of model is not important
+        learner = NaiveBayes()  # The type of model is not important
     else:
         learner = KNNRegressor(schema=stream.get_schema())
     assert _is_fast_mode_compilable(

@@ -6,10 +6,12 @@ split.
 """
 
 from typing import Optional, Union
+from typing_extensions import override
+from capymoa.base import SupportsMOACLI
 import moa.classifiers.core.splitcriteria as moa_split
 
 
-class SplitCriterion:
+class SplitCriterion(SupportsMOACLI):
     """Split criteria are used to evaluate the quality of a split in a decision tree."""
 
     _java_object: Optional[moa_split.SplitCriterion] = None
@@ -19,6 +21,12 @@ class SplitCriterion:
         if self._java_object is None:
             raise RuntimeError("No Java object has been created.")
         return self._java_object
+    
+    @override
+    def get_moa_cli(self) -> str:
+        """Return the CLI string for the split criterion."""
+        java_object = self.java_object()
+        return str(java_object.getCLICreationString(type(java_object)))
 
 
 class VarianceReductionSplitCriterion(SplitCriterion):
@@ -65,11 +73,9 @@ def _split_criterion_to_cli_str(split_criterion: Union[str, SplitCriterion]) -> 
     :return: A CLI string representing the split criterion
     """
     if isinstance(split_criterion, SplitCriterion):
-        java_object = split_criterion.java_object()
-        cli_options = java_object.getOptions().getAsCLIString()
-        return f"{java_object.getClass().getSimpleName()} {cli_options}"
+        return split_criterion.get_moa_cli()
     elif isinstance(split_criterion, str):
-        return split_criterion.strip().strip("() ")
+        return split_criterion
     else:
         raise TypeError(
             f"Expected a string or SplitCriterion, got {type(split_criterion)}"

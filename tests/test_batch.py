@@ -16,6 +16,7 @@ class _DummyBatchClassifierSSL(BatchClassifierSSL):
         super().__init__(batch_size, schema, random_seed)
         self.instance_counter = 0
         self.batch_counter = 0
+        self.schema = schema
         self.class_value_type = class_value_type
 
     def train_on_batch(
@@ -68,7 +69,7 @@ def test_batch_basic():
     assert x.shape == (n, feature_count)
 
     stream = NumpyStream(x, y, target_type='categorical')
-    learner = _DummyBatchClassifierSSL(batch_size, stream.schema, class_value_type=str)
+    learner = _DummyBatchClassifierSSL(batch_size, stream.get_schema(), class_value_type=str)
     prequential_ssl_evaluation(
         stream=stream, learner=learner, label_probability=0.01, window_size=100
     )
@@ -82,7 +83,7 @@ def test_batch_real():
     assert stream.schema.get_label_values() == ["0", "1"]
     assert stream.schema.get_num_attributes() == 6
 
-    learner = _DummyBatchClassifierSSL(128, stream.schema, class_value_type=str)
+    learner = _DummyBatchClassifierSSL(128, stream.get_schema(), class_value_type=str)
     prequential_ssl_evaluation(
         stream=stream,
         learner=learner,

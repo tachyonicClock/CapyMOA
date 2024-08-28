@@ -1,7 +1,5 @@
 from capymoa.base import MOAClassifier
-from moa.classifiers.lazy import SAMkNN as _MOA_SAMkNN
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals
 
 
 class SAMkNN(MOAClassifier):
@@ -40,7 +38,6 @@ class SAMkNN(MOAClassifier):
 
     def __init__(
         self,
-        schema: Schema,
         random_seed: int = 1,
         k: int = 5,
         limit: int = 5000,
@@ -48,9 +45,8 @@ class SAMkNN(MOAClassifier):
         relative_ltm_size: float = 0.4,
         recalculate_stm_error: bool = False,
     ):
-        """ Self Adjusted Memory k Nearest Neighbor (SAMkNN) Classifier
+        """Self Adjusted Memory k Nearest Neighbor (SAMkNN) Classifier
 
-        :param schema: The schema of the stream.
         :param random_seed: The random seed passed to the MOA learner.
         :param k: The number of nearest neighbors.
         :param limit: The maximum number of instances to store.
@@ -59,20 +55,22 @@ class SAMkNN(MOAClassifier):
         :param recalculate_stm_error: Recalculates the error rate of the STM for size adaption (Costly operation).
             Otherwise, an approximation is used.
         """
-
-        mapping = {
-            "k": "-k",
-            "limit": "-w",
-            "min_stm_size": "-m",
-            "relative_ltm_size": "-p",
-            "recalculate_stm_error": "-r",
-        }
-
-        config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
-        self.moa_learner = _MOA_SAMkNN()
+        cli = []
+        cli.append(f"-k {k}")
+        cli.append(f"-w {limit}")
+        cli.append(f"-m {min_stm_size}")
+        cli.append(f"-p {relative_ltm_size}")
+        if recalculate_stm_error:
+            cli.append("-r")
         super(SAMkNN, self).__init__(
-            schema=schema,
+            java_learner_class="moa.classifiers.lazy.SAMkNN",
             random_seed=random_seed,
-            CLI=config_str,
-            moa_learner=self.moa_learner,
+            CLI=" ".join(cli),
         )
+
+    def _initialize(self, new_schema: Schema) -> None:
+        self.moa_learner.setRandomSeed(self._random_seed)
+        # TODO: SAMkNN needs to be initialized in this exact order or it will
+        # throw a null pointer exception for some unknown reason.
+        self.moa_learner.prepareForUse()
+        self.moa_learner.setModelContext(new_schema.get_moa_header())

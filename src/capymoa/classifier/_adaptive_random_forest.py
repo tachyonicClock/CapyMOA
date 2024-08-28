@@ -4,15 +4,8 @@ from capymoa.base import (
     _extract_moa_drift_detector_CLI
 )
 
-
-from capymoa.drift.detectors import (
-    ADWIN,
-)
-
-
-from moa.classifiers.meta import AdaptiveRandomForest as _MOA_AdaptiveRandomForest
-from moa.classifiers.meta.minibatch import AdaptiveRandomForestMB as _MOA_AdaptiveRandomForestMB
 import os
+
 
 class AdaptiveRandomForestClassifier(MOAClassifier):
     """Adaptive Random Forest Classifier
@@ -48,8 +41,6 @@ class AdaptiveRandomForestClassifier(MOAClassifier):
 
     def __init__(
         self,
-        schema=None,
-        CLI=None,
         random_seed=1,
         base_learner=None,
         ensemble_size=100,
@@ -65,7 +56,6 @@ class AdaptiveRandomForestClassifier(MOAClassifier):
     ):
         """Construct an Adaptive Random Forest Classifier
 
-        :param schema: The schema of the stream. If not provided, it will be inferred from the data.
         :param CLI: Command Line Interface (CLI) options for configuring the ARF algorithm.
             If not provided, default options will be used.
         :param random_seed: Seed for the random number generator.
@@ -92,91 +82,95 @@ class AdaptiveRandomForestClassifier(MOAClassifier):
         :param disable_drift_detection: Whether to disable drift detection.
         :param disable_background_learner: Whether to disable background learning.
         """
+        java_learner_class = "moa.classifiers.meta.AdaptiveRandomForest"
 
-        if CLI is None:
-            self.base_learner = (
-                "(ARFHoeffdingTree -e 2000000 -g 50 -c 0.01)"
-                if base_learner is None
-                else _extract_moa_learner_CLI(base_learner)
-            )
-            self.base_learner = self.base_learner.replace("trees.", "")
-            self.ensemble_size = ensemble_size
+        self.base_learner = (
+            "(ARFHoeffdingTree -e 2000000 -g 50 -c 0.01)"
+            if base_learner is None
+            else _extract_moa_learner_CLI(base_learner)
+        )
+        self.base_learner = self.base_learner.replace("trees.", "")
+        self.ensemble_size = ensemble_size
 
-            self.max_features = max_features
-            if isinstance(self.max_features, float) and 0.0 <= self.max_features <= 1.0:
-                self.m_features_mode = "(Percentage (M * (m / 100)))"
-                self.m_features_per_tree_size = int(self.max_features * 100)
-            elif isinstance(self.max_features, int):
-                self.m_features_mode = "(Specified m (integer value))"
-                self.m_features_per_tree_size = max_features
-            elif self.max_features in ["sqrt"]:
-                self.m_features_mode = "(sqrt(M)+1)"
-                self.m_features_per_tree_size = -1  # or leave it unchanged
-            elif self.max_features is None:
-                self.m_features_mode = "(Percentage (M * (m / 100)))"
-                self.m_features_per_tree_size = 60
-            else:
-                # Raise an exception with information about valid options for max_features
-                raise ValueError("Invalid value for max_features. Valid options: float between 0.0 and 1.0 "
-                                 "representing percentage, integer specifying exact number, or 'sqrt' for "
-                                 "square root of total features.")
+        self.max_features = max_features
+        if isinstance(self.max_features, float) and 0.0 <= self.max_features <= 1.0:
+            self.m_features_mode = "(Percentage (M * (m / 100)))"
+            self.m_features_per_tree_size = int(self.max_features * 100)
+        elif isinstance(self.max_features, int):
+            self.m_features_mode = "(Specified m (integer value))"
+            self.m_features_per_tree_size = max_features
+        elif self.max_features in ["sqrt"]:
+            self.m_features_mode = "(sqrt(M)+1)"
+            self.m_features_per_tree_size = -1  # or leave it unchanged
+        elif self.max_features is None:
+            self.m_features_mode = "(Percentage (M * (m / 100)))"
+            self.m_features_per_tree_size = 60
+        else:
+            # Raise an exception with information about valid options for max_features
+            raise ValueError(
+                "Invalid value for max_features. Valid options: float between 0.0 and 1.0 "
+                "representing percentage, integer specifying exact number, or 'sqrt' for "
+                "square root of total features."
+            )
 
-            self.lambda_param = lambda_param
-            # old
-            # self.number_of_jobs = number_of_jobs
-            self.drift_detection_method = (
-                _extract_moa_drift_detector_CLI(ADWIN(delta=0.001))
-                if drift_detection_method is None
-                else _extract_moa_drift_detector_CLI(drift_detection_method)
-            )
-            self.warning_detection_method = (
-                _extract_moa_drift_detector_CLI(ADWIN(delta=0.01))
-                if warning_detection_method is None
-                else _extract_moa_drift_detector_CLI(warning_detection_method)
-            )
-            self.disable_weighted_vote = disable_weighted_vote
-            self.disable_drift_detection = disable_drift_detection
-            self.disable_background_learner = disable_background_learner
-# new
-# ----------
-            if (number_of_jobs is None or number_of_jobs == 0 or number_of_jobs == 1) and (minibatch_size is None or minibatch_size <= 0 or minibatch_size == 1):
-                #run the sequential version by default or when both parameters are None | 0 | 1
+        self.lambda_param = lambda_param
+        # old
+        # self.number_of_jobs = number_of_jobs
+        self.drift_detection_method = (
+            "(ADWINChangeDetector -a 1.0E-3)"
+            if drift_detection_method is None
+            else drift_detection_method
+        )
+        self.warning_detection_method = (
+            "(ADWINChangeDetector -a 1.0E-2)"
+            if warning_detection_method is None
+            else warning_detection_method
+        )
+        self.disable_weighted_vote = disable_weighted_vote
+        self.disable_drift_detection = disable_drift_detection
+        self.disable_background_learner = disable_background_learner
+        # new
+        # ----------
+        if (
+            number_of_jobs is None or number_of_jobs == 0 or number_of_jobs == 1
+        ) and (
+            minibatch_size is None or minibatch_size <= 0 or minibatch_size == 1
+        ):
+            # run the sequential version by default or when both parameters are None | 0 | 1
+            self.number_of_jobs = 1
+            self.minibatch_size = 1
+            CLI = f"-l {self.base_learner} -s {self.ensemble_size} -o {self.m_features_mode} -m \
+                {self.m_features_per_tree_size} -a {self.lambda_param} -j {self.number_of_jobs} -x {self.drift_detection_method} -p \
+                {self.warning_detection_method} {'-w' if self.disable_weighted_vote else ''} {'-u' if self.disable_drift_detection else ''}  \
+                {'-q' if self.disable_background_learner else ''}"
+        else:
+            # run the minibatch parallel version when at least one of the number of jobs or the minibatch size parameters are greater than 1
+            if number_of_jobs == 0 or number_of_jobs is None:
                 self.number_of_jobs = 1
-                self.minibatch_size = 1
-                moa_learner = _MOA_AdaptiveRandomForest()
-                CLI = f"-l {self.base_learner} -s {self.ensemble_size} -o {self.m_features_mode} -m \
-                    {self.m_features_per_tree_size} -a {self.lambda_param} -j {self.number_of_jobs} -x {self.drift_detection_method} -p \
-                    {self.warning_detection_method} {'-w' if self.disable_weighted_vote else ''} {'-u' if self.disable_drift_detection else ''}  \
-                    {'-q' if self.disable_background_learner else ''}"
+            elif number_of_jobs < 0:
+                self.number_of_jobs = os.cpu_count()
             else:
-                #run the minibatch parallel version when at least one of the number of jobs or the minibatch size parameters are greater than 1
-                if number_of_jobs == 0 or number_of_jobs is None:
-                    self.number_of_jobs = 1
-                elif number_of_jobs < 0:
-                    self.number_of_jobs = os.cpu_count()
-                else:
-                    self.number_of_jobs = int(min(number_of_jobs, os.cpu_count()))
-                if minibatch_size is None:
-                    # if the user sets only the number_of_jobs, we assume he wants the parallel minibatch version and initialize minibatch_size to the default 25
-                    self.minibatch_size = 25
-                elif minibatch_size <= 1:
-                    # if the user sets the number of jobs and the minibatch_size less than 1 it is considered that the user wants a parallel execution of a single instance at a time
-                    self.minibatch_size = 1
-                else:
-                    # if the user sets both parameters to values greater than 1, we initialize the minibatch_size to the user's choice
-                    self.minibatch_size = int(minibatch_size)
-                moa_learner = _MOA_AdaptiveRandomForestMB()
-                CLI = f"-l {self.base_learner} -s {self.ensemble_size} -o {self.m_features_mode} -m \
-                    {self.m_features_per_tree_size} -a {self.lambda_param} -x {self.drift_detection_method} -p \
-                    {self.warning_detection_method} {'-w' if self.disable_weighted_vote else ''} {'-u' if self.disable_drift_detection else ''}  \
-                    {'-q' if self.disable_background_learner else ''}\
-                        -c {self.number_of_jobs} -b {self.minibatch_size}"
-# ----------
-# new end
+                self.number_of_jobs = int(min(number_of_jobs, os.cpu_count()))
+            if minibatch_size is None:
+                # if the user sets only the number_of_jobs, we assume he wants the parallel minibatch version and initialize minibatch_size to the default 25
+                self.minibatch_size = 25
+            elif minibatch_size <= 1:
+                # if the user sets the number of jobs and the minibatch_size less than 1 it is considered that the user wants a parallel execution of a single instance at a time
+                self.minibatch_size = 1
+            else:
+                # if the user sets both parameters to values greater than 1, we initialize the minibatch_size to the user's choice
+                self.minibatch_size = int(minibatch_size)
+            java_learner_class = "moa.classifiers.meta.minibatch.AdaptiveRandomForestMB"
+            CLI = f"-l {self.base_learner} -s {self.ensemble_size} -o {self.m_features_mode} -m \
+                {self.m_features_per_tree_size} -a {self.lambda_param} -x {self.drift_detection_method} -p \
+                {self.warning_detection_method} {'-w' if self.disable_weighted_vote else ''} {'-u' if self.disable_drift_detection else ''}  \
+                {'-q' if self.disable_background_learner else ''}\
+                    -c {self.number_of_jobs} -b {self.minibatch_size}"
+        # ----------
+        # new end
 
         super().__init__(
-            schema=schema,
             CLI=CLI,
             random_seed=random_seed,
-            moa_learner=moa_learner,
+            java_learner_class=java_learner_class,
         )

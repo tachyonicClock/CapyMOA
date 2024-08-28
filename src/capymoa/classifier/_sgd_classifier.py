@@ -3,7 +3,6 @@ from capymoa.base import SKClassifier
 from sklearn.linear_model import (
     SGDClassifier as _SKSGDClassifier,
 )
-from capymoa.stream._stream import Schema
 
 
 class SGDClassifier(SKClassifier):
@@ -30,7 +29,6 @@ class SGDClassifier(SKClassifier):
 
     def __init__(
         self,
-        schema: Schema,
         loss: Literal[
             "hinge",
             "log_loss",
@@ -98,7 +96,6 @@ class SGDClassifier(SKClassifier):
                 eta0=eta0,
                 random_state=random_seed,
             ),
-            schema,
             random_seed,
         )
 

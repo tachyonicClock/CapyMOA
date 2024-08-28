@@ -14,6 +14,7 @@ from capymoa.stream import Schema, Stream
 from capymoa.base import (
     AnomalyDetector,
     ClassifierSSL,
+    MOAClassifier,
     MOAPredictionIntervalLearner,
     Clusterer
 )
@@ -1335,6 +1336,11 @@ def _prequential_evaluation_fast(stream, learner,
             windowed_evaluator = PredictionIntervalWindowedEvaluator(
                 schema=stream.get_schema(), window_size=window_size
             )
+
+    # Setup the learner if needed
+    if isinstance(learner, MOAClassifier) and not learner.is_ready:
+        learner._initialize(stream.get_schema())
+    
     moa_results = EfficientEvaluationLoops.PrequentialEvaluation(
         stream.moa_stream,
         learner.moa_learner,
@@ -1420,6 +1426,10 @@ def _prequential_ssl_evaluation_fast(
     windowed_evaluator = ClassificationWindowedEvaluator(
         schema=stream.get_schema(), window_size=window_size
     )
+
+    # If not initialized, initialize the learner
+    if isinstance(learner, MOAClassifier) and not learner.is_ready:
+        learner._initialize(stream.get_schema())
 
     # TODO: requires update to MOA to include store_y and store_predictions
     moa_results = EfficientEvaluationLoops.PrequentialSSLEvaluation(

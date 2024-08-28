@@ -1,16 +1,19 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Optional
+from typing_extensions import override
 
 from jpype import _jpype
 import jpype
 from moa.classifiers import (
-    Classifier as MOA_Classifier_Interface,
+    Classifier as _MOA_Classifier_Interface,
     Regressor as MOA_Regressor_Interface,
 )
-from moa.classifiers.predictioninterval import PredictionIntervalLearner as MOA_PredictionInterval_Interface
+from moa.classifiers.predictioninterval import (
+    PredictionIntervalLearner as MOA_PredictionInterval_Interface,
+)
 from moa.classifiers.trees import (
-ARFFIMTDD as MOA_ARFFIMTDD,
-SelfOptimisingBaseTree as MOA_SOKNLBT,
+    ARFFIMTDD as MOA_ARFFIMTDD,
+    SelfOptimisingBaseTree as MOA_SOKNLBT,
 )
 from moa.core import Utils
 
@@ -26,60 +29,6 @@ from sklearn.base import RegressorMixin as _SKRegressorMixin
 ##############################################################
 
 
-def _extract_moa_drift_detector_CLI(drift_detector):
-    """
-    Auxiliary function to retrieve the command-line interface (CLI)
-    creation command for a MOA Drift Detector.
-
-    Parameters:
-    - drift_detector: The drift detector class for which the CLI command is needed
-
-    Returns:
-    A string representing the CLI command for creating a Drift Detector.
-    """
-
-    CLI = drift_detector.CLI
-
-    moa_detector = drift_detector.moa_detector
-    moa_detector_class_id = str(moa_detector.getClass().getName())
-    moa_detector_class_id_parts = moa_detector_class_id.split(".")
-
-    moa_detector_str = (
-        f"{moa_detector_class_id_parts[-1]}"
-    )
-    moa_detector_str = f"({moa_detector_str} {CLI})"
-
-    return moa_detector_str
-
-def _get_moa_creation_CLI(moa_learner):
-    """
-    Auxiliary function to retrieve the command-line interface (CLI)
-    creation command for a MOA learner.
-
-    Parameters:
-    - moa_learner: The MOA learner for which the CLI command is needed,
-    it must be a MOA learner object
-
-    Returns:
-    A string representing the CLI command for creating the MOA learner.
-    """
-    moa_learner_class_id = str(moa_learner.getClass().getName())
-    moa_learner_class_id_parts = moa_learner_class_id.split(".")
-
-    moa_learner_str = (
-        f"{moa_learner_class_id_parts[-1]}" if isinstance(moa_learner, MOA_ARFFIMTDD) or isinstance(moa_learner, MOA_SOKNLBT)
-        else f"{moa_learner_class_id_parts[-2]}.{moa_learner_class_id_parts[-1]}"
-    )
-
-    moa_cli_creation = str(moa_learner.getCLICreationString(moa_learner.__class__))
-    CLI = moa_cli_creation.split(" ", 1)
-
-    if len(CLI) > 1 and len(CLI[1]) > 1:
-        moa_learner_str = f"({moa_learner_str} {CLI[1]})"
-
-    return moa_learner_str
-
-
 def _extract_moa_learner_CLI(learner):
     """
     Auxiliary function to extract the command-line interface (CLI)
@@ -93,23 +42,67 @@ def _extract_moa_learner_CLI(learner):
     A string representing the CLI command for creating the MOA learner.
     """
 
-    # Check if the base_learner is a MOAClassifie or a MOARegressor
-    if isinstance(learner, MOAClassifier) or isinstance(learner, MOARegressor) or isinstance(learner, MOAPredictionIntervalLearner):
-        learner = _get_moa_creation_CLI(learner.moa_learner)
+    def __get_moa_creation_CLI(moa_learner):
+        moa_learner_class_id = str(moa_learner.getClass().getName())
+        moa_learner_class_id_parts = moa_learner_class_id.split(".")
 
-    # ... or a Classifier or a Regressor (Interfaces from MOA) type
-    if isinstance(learner, MOA_Classifier_Interface) or isinstance(learner, MOA_Regressor_Interface) or isinstance(learner, MOA_PredictionInterval_Interface):
-        learner = _get_moa_creation_CLI(learner)
+        moa_learner_str = (
+            f"{moa_learner_class_id_parts[-1]}"
+            if isinstance(moa_learner, MOA_ARFFIMTDD)
+            or isinstance(moa_learner, MOA_SOKNLBT)
+            else f"{moa_learner_class_id_parts[-2]}.{moa_learner_class_id_parts[-1]}"
+        )
 
-    # ... or a java object, which we presume is a MOA object (if it is not, MOA will raise the error)
-    if type(learner) == _jpype._JClass:
-        learner = _get_moa_creation_CLI(learner())
+        moa_cli_creation = str(moa_learner.getCLICreationString(moa_learner.__class__))
+        CLI = moa_cli_creation.split(" ", 1)
+
+        if len(CLI) > 1 and len(CLI[1]) > 1:
+            moa_learner_str = f"({moa_learner_str} {CLI[1]})"
+
+        return moa_learner_str
+
+    if isinstance(learner, SupportsMOACLI):
+        return learner.get_moa_cli()
+
+    elif (
+        isinstance(learner, MOAClassifier)
+        or isinstance(learner, MOARegressor)
+        or isinstance(learner, MOAPredictionIntervalLearner)
+    ):
+        # Check if the base_learner is a MOAClassifie or a MOARegressor
+        return __get_moa_creation_CLI(learner.moa_learner)
+    elif (
+        isinstance(learner, _MOA_Classifier_Interface)
+        or isinstance(learner, MOA_Regressor_Interface)
+        or isinstance(learner, MOA_PredictionInterval_Interface)
+    ):
+        # ... or a Classifier or a Regressor (Interfaces from MOA) type
+        raise ValueError("Invalid MOA learner provided.")
+    elif type(learner) is _jpype._JClass:
+        # ... or a java object, which we presume is a MOA object (if it is not, MOA will raise the error)
+        learner = __get_moa_creation_CLI(learner())
     return learner
+
+
+class SupportsMOACLI(ABC):
+    """MOA commonly uses a command-line interface (CLI) to configure learners.
+
+    This interface provides a method to retrieve the CLI configuration for a learner.
+    """
+
+    @abstractmethod
+    def get_moa_cli(self) -> str:
+        """Get the MOA command-line interface (CLI) configuration for the learner."""
+        pass
 
 
 ##############################################################
 ######################### CLASSIFIERS ########################
 ##############################################################
+
+
+class UnsupportedSchemaChange(RuntimeError):
+    pass
 
 
 class Classifier(ABC):
@@ -120,12 +113,6 @@ class Classifier(ABC):
     - schema: The schema representing the instances. Defaults to None.
     - random_seed: The random seed for reproducibility. Defaults to 1.
     """
-
-    def __init__(self, schema: Schema, random_seed=1):
-        self.random_seed = random_seed
-        self.schema = schema
-        if self.schema is None:
-            raise ValueError("Schema must be initialised")
 
     @abstractmethod
     def __str__(self):
@@ -140,11 +127,73 @@ class Classifier(ABC):
         pass
 
     @abstractmethod
-    def predict_proba(self, instance: Instance) -> LabelProbabilities:
+    def predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
         pass
 
 
-class MOAClassifier(Classifier):
+class CommonClassifier(Classifier):
+    def __init__(self) -> None:
+        super().__init__()
+        self._is_ready: bool = False
+        self._schema: Optional[Schema] = None
+
+    @property
+    def is_ready(self) -> bool:
+        return self._is_ready
+
+    @property
+    def schema(self) -> Optional[Schema]:
+        return self._schema
+
+    @abstractmethod
+    def _predict(self, instance: Instance) -> Optional[int]:
+        """Like `predict` but the model state must be initialized."""
+        pass
+
+    @abstractmethod
+    def _predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
+        """Like `predict_proba` but the model state must be initialized."""
+        pass
+
+    @abstractmethod
+    def _train(self, instance: LabeledInstance) -> None:
+        """Like `train` but the model state must be initialized."""
+        pass
+
+    @abstractmethod
+    def _initialize(self, new_schema: Schema) -> None:
+        """Initialize the model state with the given schema"""
+        pass
+
+    def _on_schema_change(self, new_schema: Schema) -> None:
+        """Handle the case where the schema of the data changes"""
+        raise UnsupportedSchemaChange("Learner does not support schema changes")
+
+    @override
+    def predict(self, instance: Instance) -> Optional[LabelIndex]:
+        if not self.is_ready:
+            return None
+        return self._predict(instance)
+
+    @override
+    def predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
+        if not self.is_ready:
+            return None
+        return self._predict_proba(instance)
+
+    @override
+    def train(self, instance: LabeledInstance) -> None:
+        if not self.is_ready:
+            self._initialize(instance.schema)
+            self._is_ready = True
+            self._schema = instance.schema
+        if self.schema != instance.schema:
+            self._on_schema_change(instance.schema)
+            self._schema = instance.schema
+        self._train(instance)
+
+
+class MOAClassifier(CommonClassifier, SupportsMOACLI):
     """
     A wrapper class for using MOA (Massive Online Analysis) classifiers in CapyMOA.
 
@@ -155,58 +204,65 @@ class MOAClassifier(Classifier):
     - moa_learner: The MOA learner object or class identifier.
     """
 
-    def __init__(self, moa_learner, schema=None, CLI=None, random_seed=1):
-        super().__init__(schema=schema, random_seed=random_seed)
-        self.CLI = CLI
-        # If moa_learner is a class identifier instead of an object
-        if isinstance(moa_learner, type):
-            if type(moa_learner) == _jpype._JClass:
-                moa_learner = moa_learner()
-            else:  # this is not a Java object, thus it certainly isn't a MOA learner
-                raise ValueError("Invalid MOA classifier provided.")
-        self.moa_learner = moa_learner
-
-        self.moa_learner.setRandomSeed(self.random_seed)
-
-        if self.schema is not None:
-            self.moa_learner.setModelContext(self.schema.get_moa_header())
-
-        # If the CLI is None, we assume the object has already been configured
-        # or that default values should be used.
-        if self.CLI is not None:
-            self.moa_learner.getOptions().setViaCLIString(CLI)
-
-        self.moa_learner.prepareForUse()
-        self.moa_learner.resetLearningImpl()
-        self.moa_learner.setModelContext(schema.get_moa_header())
-
-
-    def __str__(self):
-        # Removes the package information from the name of the learner.
-        full_name = str(self.moa_learner.getClass().getCanonicalName())
-        return full_name.rsplit(".", 1)[1] if "." in full_name else full_name
+    def __init__(
+        self,
+        java_learner_class: str,
+        CLI: str,
+        random_seed: int = 1,
+    ):
+        super().__init__()
+        # HACK: Using string instead of the class itself to avoid issues when pickling
+        self._java_learner_class: str = java_learner_class
+        self._random_seed: int = random_seed
+        self.moa_learner: _MOA_Classifier_Interface = jpype.JClass(
+            self._java_learner_class
+        )()
+        self.moa_learner.getOptions().setViaCLIString(CLI)
 
     def CLI_help(self):
         return str(self.moa_learner.getOptions().getHelpString())
 
-    def train(self, instance):
-        self.moa_learner.trainOnInstance(instance.java_instance)
+    @override
+    def get_moa_cli(self) -> str:
+        return f"({self._java_learner_class} {self.moa_learner.getOptions().getAsCLIString()})"
 
-    def predict(self, instance):
+    @override
+    def __str__(self):
+        return self._java_learner_class
+
+    @override
+    def _predict(self, instance: Instance) -> Optional[LabelIndex]:
+        """Like `predict` but the model state must be initialized."""
         return Utils.maxIndex(
             self.moa_learner.getVotesForInstance(instance.java_instance)
         )
 
-    def predict_proba(self, instance):
+    @override
+    def _predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
+        """Like `predict_proba` but the model state must be initialized."""
         return self.moa_learner.getVotesForInstance(instance.java_instance)
+
+    @override
+    def _train(self, instance: LabeledInstance) -> None:
+        """Like `train` but the model state must be initialized."""
+        # import pdb
+        # pdb.set_trace()
+        return self.moa_learner.trainOnInstance(instance.java_instance)
+
+    @override
+    def _initialize(self, new_schema: Schema) -> None:
+        """Initialize the model state with the given schema"""
+        self.moa_learner.setRandomSeed(self._random_seed)
+        self.moa_learner.setModelContext(new_schema.get_moa_header())
+        self.moa_learner.prepareForUse()
 
 
 class SKClassifier(Classifier):
     """A wrapper class for using scikit-learn classifiers in CapyMOA.
 
     Some of scikit-learn's classifiers that are compatible with online learning
-    have been wrapped and tested already in CapyMOA (See :mod:`capymoa.classifier`). 
-    
+    have been wrapped and tested already in CapyMOA (See :mod:`capymoa.classifier`).
+
     However, if you want to use a scikit-learn classifier that has not been
     wrapped yet, you can use this class to wrap it yourself. This requires
     that the scikit-learn classifier implements the ``partial_fit`` and
@@ -247,7 +303,7 @@ class SKClassifier(Classifier):
     sklearner: _SKClassifierMixin
     """The underlying scikit-learn object."""
 
-    def __init__(self, sklearner: _SKClassifierMixin, schema: Schema = None, random_seed: int = 1):
+    def __init__(self, sklearner: _SKClassifierMixin, random_seed: int = 1):
         """Construct a scikit-learn classifier wrapper.
 
         :param sklearner: A scikit-learn classifier object to wrap that must
@@ -256,8 +312,9 @@ class SKClassifier(Classifier):
         :param random_seed: Random seed for reproducibility.
         :raises ValueError: If the scikit-learn algorithm does not implement
             ``partial_fit`` or ``predict``.
-        """        
-        super().__init__(schema=schema, random_seed=random_seed)
+        """
+        super().__init__()
+        # TODO: Support random seed in SKClassifier
 
         # Checks if it implements partial_fit and predict
         if not hasattr(sklearner, "partial_fit") or not hasattr(sklearner, "predict"):
@@ -275,7 +332,7 @@ class SKClassifier(Classifier):
         self.sklearner.partial_fit(
             [instance.x],
             [instance.y_index],
-            classes=self.schema.get_label_indexes(),
+            classes=instance.schema.get_label_indexes(),
         )
         self._trained_at_least_once = True
 
@@ -298,11 +355,9 @@ class SKClassifier(Classifier):
 
 
 class ClassifierSSL(Classifier):
-    def __init__(self, schema=None, random_seed=1):
-        super().__init__(schema=schema, random_seed=random_seed)
 
     @abstractmethod
-    def train_on_unlabeled(self, instance):
+    def train_on_unlabeled(self, instance: Instance):
         pass
 
 
@@ -378,8 +433,8 @@ class SKRegressor(Regressor):
     """A wrapper class for using scikit-learn regressors in CapyMOA.
 
     Some of scikit-learn's regressors that are compatible with online learning
-    have been wrapped and tested already in CapyMOA (See :mod:`capymoa.regressor`). 
-    
+    have been wrapped and tested already in CapyMOA (See :mod:`capymoa.regressor`).
+
     However, if you want to use a scikit-learn regressor that has not been
     wrapped yet, you can use this class to wrap it yourself. This requires
     that the scikit-learn regressor implements the ``partial_fit`` and
@@ -422,7 +477,9 @@ class SKRegressor(Regressor):
     sklearner: _SKRegressorMixin
     """The underlying scikit-learn object."""
 
-    def __init__(self, sklearner: _SKRegressorMixin, schema: Schema = None, random_seed: int = 1):
+    def __init__(
+        self, sklearner: _SKRegressorMixin, schema: Schema = None, random_seed: int = 1
+    ):
         """Construct a scikit-learn regressor wrapper.
 
         :param sklearner: A scikit-learn classifier object to wrap that must
@@ -431,7 +488,7 @@ class SKRegressor(Regressor):
         :param random_seed: Random seed for reproducibility.
         :raises ValueError: If the scikit-learn algorithm does not implement
             ``partial_fit`` or ``predict``.
-        """        
+        """
         super().__init__(schema=schema, random_seed=random_seed)
 
         # Checks if it implements partial_fit and predict
@@ -468,15 +525,16 @@ class PredictionIntervalLearner(Regressor):
     @abstractmethod
     def train(self, instance):
         pass
+
     @abstractmethod
     def predict(self, instance):
         pass
 
 
 class MOAPredictionIntervalLearner(MOARegressor, PredictionIntervalLearner):
-
     def train(self, instance):
         self.moa_learner.trainOnInstance(instance.java_instance)
+
     def predict(self, instance):
         prediction_PI = self.moa_learner.getVotesForInstance(instance.java_instance)
         if len(prediction_PI) != 3:
@@ -557,6 +615,7 @@ class MOAAnomalyDetector(AnomalyDetector):
         # However, if it is not the case for a MOA learner, this method should be overridden.
         prediction_array = self.moa_learner.getVotesForInstance(instance.java_instance)
         return prediction_array[0]
+
 
 ##############################################################
 ######################### Clustering #########################
@@ -650,6 +709,7 @@ class Clusterer(ABC):
     # def predict_proba(self, instance: Instance) -> LabelProbabilities:
     #     pass
 
+
 class MOAClusterer(Clusterer):
     """
     A wrapper class for using MOA (Massive Online Analysis) clusterers in CapyMOA.
@@ -666,14 +726,14 @@ class MOAClusterer(Clusterer):
         self.CLI = CLI
         # If moa_learner is a class identifier instead of an object
         if isinstance(moa_learner, type):
-            if type(moa_learner) == _jpype._JClass:
+            if type(moa_learner) is _jpype._JClass:
                 moa_learner = moa_learner()
             else:  # this is not a Java object, thus it certainly isn't a MOA learner
                 raise ValueError("Invalid MOA clusterer provided.")
         self.moa_learner = moa_learner
 
         # self.moa_learner.setRandomSeed(self.random_seed)
-        
+
         if self.schema is not None:
             self.moa_learner.setModelContext(self.schema.get_moa_header())
 
@@ -701,7 +761,9 @@ class MOAClusterer(Clusterer):
         ret = []
         for c in self.moa_learner.getMicroClusteringResult().getClustering():
             java_array = c.getCenter()[:-1]
-            python_array = [java_array[i] for i in range(len(java_array))]  # Convert to Python list
+            python_array = [
+                java_array[i] for i in range(len(java_array))
+            ]  # Convert to Python list
             ret.append(python_array)
         return ret
 
@@ -721,7 +783,9 @@ class MOAClusterer(Clusterer):
         ret = []
         for c in self.moa_learner.getClusteringResult().getClustering():
             java_array = c.getCenter()[:-1]
-            python_array = [java_array[i] for i in range(len(java_array))]  # Convert to Python list
+            python_array = [
+                java_array[i] for i in range(len(java_array))
+            ]  # Convert to Python list
             ret.append(python_array)
         return ret
 
@@ -758,4 +822,3 @@ class MOAClusterer(Clusterer):
 
     # def predict_proba(self, instance):
     #     return self.moa_learner.getVotesForInstance(instance.java_instance)
-    
