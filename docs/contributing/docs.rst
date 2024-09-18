@@ -25,9 +25,11 @@ Prerequisites
 
             Follow the instructions on the `Pandoc website <https://pandoc.org/installing.html>`_.
 
-    .. .. code-block:: bash
+        .. tab-item:: conda
 
-    ..     sudo apt-get install -y pandoc
+            .. code-block:: bash
+
+                conda install -c conda-forge pandoc
 
 #.  Install the documentation dependencies by running the following command in
     the root directory of the repository (make sure you are in the correct
@@ -101,15 +103,12 @@ use Python-type hints.
             :raises ValueError: If command line arguments are provided without a moa_stream.
             """
 
-Juptyer Notebooks
+Jupyter Notebooks
 ~~~~~~~~~~~~~~~~~
 
-Juptyer notebooks in the ``/notebooks`` directory are converted to markdown
-files and included in the documentation with ``nbsphinx``
-(https://nbsphinx.readthedocs.io).
+Parts of CapyMOA's documentation is written as Jupyter Notebooks. See
+:doc:`/contributing/notebooks`.
 
-To add a notebook to the documentation, add the notebook to the ``/notebooks``
-directory and add the filename to the ``toctree`` in ``notebooks/index.rst``.
 
 Manual Documentation
 ~~~~~~~~~~~~~~~~~~~~

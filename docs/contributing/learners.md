@@ -68,7 +68,7 @@ See the [testing guide](tests.md) for more information.
 ## How do I document my new learner?
 You should add a docstring to your learner that describes the learner and its
 parameters. The docstring should be in the Sphinx format. Check the 
-[documenation guide](docs.md) for more information and an example.
+[documentation guide](docs.rst) for more information and an example.
 
 ## How to debug failed GitHub Actions?
 Before submitting your pull request, you may wish to run all tests to
@@ -76,5 +76,7 @@ ensure your changes will succeed in GitHub Actions. You can run all tests with:
 ```bash
 invoke test
 ```
-If you run into issues with GitHub actions failing to build documentation. Follow
-the instructions in the [documentation guide](docs.md) to build the documentation locally. The documentation build settings are intentionally strict to ensure the documentation builds correctly.
+If you run into issues with GitHub actions failing to build documentation.
+Follow the instructions in the [documentation guide](docs.rst) to build the
+documentation locally. The documentation build settings are intentionally strict
+to ensure the documentation builds correctly.

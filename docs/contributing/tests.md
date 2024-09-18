@@ -61,23 +61,3 @@ invoke test.unit
 
 
 ## Notebooks
-Tests can be added to the `notebooks` directory. These tests are written in the form of
-[Jupyter Notebooks](https://jupyter.org) and are run using the `nbmake`
-extension for PyTest.
-
-Use this type of test for tests that provide tutorials, documentation, and
-examples. They should be easy to read and understand.
-
-Just these tests can be run with:
-```bash
-invoke test.nb
-```
-
-If you need to overwrite the notebooks with the output, use:
-
-```bash
-invoke test.nb --overwrite
-```
-
-
-

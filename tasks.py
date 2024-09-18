@@ -168,7 +168,9 @@ def clean(ctx: Context):
 @task(
     help={
         "parallel": "Run the notebooks in parallel.",
-        "overwrite": "Overwrite the notebooks with the executed output. Requires ``--slow``.",
+        "overwrite": (
+            "Overwrite the notebooks with the executed output. Requires ``--slow``."
+        ),
         "k_pattern": "Run only the notebooks that match the pattern. Same as `pytest -k`",
         "slow": (
             "Run the notebooks in slow mode by setting the environment variable "
@@ -187,10 +189,11 @@ def test_notebooks(
 ):
     """Run the notebooks and check for errors.
 
-    Uses nbmake https://github.com/treebeardtech/nbmake to execute the notebooks and
-    check for errors. The `--overwrite` flag can be used to overwrite the notebooks
-    with the executed output.
-
+    Uses nbmake https://github.com/treebeardtech/nbmake to execute the notebooks
+    and check for errors.
+    
+    The `--overwrite` flag can be used to overwrite the notebooks with the
+    executed output.
     """
     assert not (not slow and overwrite), "You cannot use `--overwrite` with `--fast`."
 
