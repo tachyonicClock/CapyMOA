@@ -7,12 +7,11 @@ import os
 
 
 def test_save_and_load_model():
-   
     stream = ElectricityTiny()
     schema = stream.get_schema()
     learner = AdaptiveRandomForestClassifier(schema)
     prequential_evaluation(stream, learner, max_instances=1000)
-    filename = 'test_model.pkl'
+    filename = "test_model.pkl"
 
     save_model(learner, filename)
     loaded_model = load_model(filename)
@@ -24,8 +23,7 @@ def test_save_and_load_model():
 
 
 def test_load_model_missing_file():
-    filename = 'non_existent_file.pkl'
+    filename = "non_existent_file.pkl"
 
     with pytest.raises(FileNotFoundError):
         load_model(filename)
-
