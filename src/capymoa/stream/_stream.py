@@ -260,6 +260,19 @@ class Schema:
             target_type=target_type,
         )
         return Schema(moa_header=moa_header)
+    
+    @staticmethod
+    def from_basic_classify(features: int, num_classes: int, dataset_name: str = "Unknown"):
+        return Schema.from_custom(
+            feature_names=[f"x_{i:02d}" for i in range(features)],
+            values_for_nominal_features={},
+            values_for_class_label=[str(i) for i in range(num_classes)],
+            dataset_name=dataset_name,
+            target_attribute_name="class",
+            target_type="categorical",
+        )
+
+
 
     def __repr__(self) -> str:
         """Return a string representation of the schema as an ARFF header."""

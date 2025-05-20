@@ -76,6 +76,7 @@ class Finetune(BatchClassifier):
         torch.manual_seed(random_seed)
         #: The model to be trained.
         self.model: nn.Module = model if isinstance(model, nn.Module) else model(schema)
+        self.model.to(device)
         #: The optimizer to be used for training.
         self.optimizer: Optimizer = (
             optimizer
