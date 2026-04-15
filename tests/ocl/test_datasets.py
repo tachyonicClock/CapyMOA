@@ -20,7 +20,8 @@ def test_ocl_split_datamodule_constructors(
     scenario_type: Type[datasets._BuiltInCIScenario],
 ):
     # Skip all except MNIST since downloading datasets can be slow on CI
-    if scenario_type != datasets.TinySplitMNIST:
+    tiny_mnist_scenarios = {datasets.TinySplitMNIST, datasets.RotatedTinyMNIST}
+    if scenario_type not in tiny_mnist_scenarios:
         pytest.skip("Skipping non-MNIST scenarios")
 
     scenario: datasets._BuiltInCIScenario = scenario_type()

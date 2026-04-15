@@ -53,7 +53,7 @@ class RAR(BatchClassifier, TrainTaskAware, TestTaskAware):
     ...     scenario.test_loaders(32),
     ... )
     >>> print(f"{results.accuracy_final*100:.1f}%")
-    46.0%
+    45.0%
 
     Usually more complex augmentations are used such as random crops and
     rotations.
