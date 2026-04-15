@@ -111,7 +111,7 @@ jobs:
 
   documentation:
     name: "Documentation"
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
