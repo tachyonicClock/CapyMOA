@@ -1,3 +1,4 @@
+from capymoa.base._base import _extract_moa_learner_CLI
 from capymoa.stream import Schema
 from capymoa.base import MOAClassifier
 from typing import Literal
@@ -36,10 +37,20 @@ class {{j_class}}(MOAClassifier):
         {%- endfor %}
         """
 
+        {% for option in options if option.option_type == "MoaClassOption" %}
+        if isinstance({{option.name}}, MOAClassifier):
+            {{option.name}} = _extract_moa_learner_CLI({{option.name}})
+        {%- endfor %}
+
         cli = []
         {% for option in options -%}
-        {% if option.type == "bool" -%}
+        {%- if option.type == "bool" -%}
         cli += ["-{{option.cli_char}}"] if {{option.name}} else []
+        {%- elif option.option_type == "MoaClassOption" -%}
+        cli += [f"-{{option.cli_char}} {{'({' ~ option.name ~ '})'}}"]
+        {%- elif option.option_type == "MultiChoiceOption" -%}
+        cli += [f"-{{option.cli_char}} '{{'{' ~ option.name ~ '}'}}'"]
+         {%- elif option.option_type == "FlagOption" -%}
         {%- else -%}
         cli += [f"-{{option.cli_char}} {{'{' ~ option.name ~ '}'}}"]
         {%- endif %}

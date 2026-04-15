@@ -1,12 +1,13 @@
 import click
 from jinja2 import Environment, FileSystemLoader
 import capymoa  # Needed to initialize JPype with MOA #noqa: F401
-from typing import Sequence
+from typing import Literal, Sequence
 from moa.options import AbstractOptionHandler, ClassOption as MoaClassOption
 from com.github import javacliparser
 import jpype
 from dataclasses import dataclass
 import re
+from keyword import iskeyword
 
 
 def camel_to_snake(name: str) -> str:
@@ -24,6 +25,17 @@ class Option:
     """Command line interface character for the option."""
     type: str
     """Python type of the option."""
+    option_type: (
+        None
+        | Literal[
+            "IntOption",
+            "FloatOption",
+            "FlagOption",
+            "MultiChoiceOption",
+            "MoaClassOption",
+        ]
+    )
+    """The type of the option in javacliparser."""
     default: str
     """Default value of the option as a string."""
 
@@ -35,16 +47,20 @@ class Option:
         cli_char = str(option.getCLIChar())
         type_ = "Any"
         default = "None"
+        option_type = None
 
         if isinstance(option, javacliparser.IntOption):
             type_ = "int"
             default = f"{option.getValue()}"
+            option_type = "IntOption"
         elif isinstance(option, javacliparser.FloatOption):
             type_ = "float"
             default = f"{option.getValue()}"
+            option_type = "FloatOption"
         elif isinstance(option, javacliparser.FlagOption):
             type_ = "bool"
             default = "False"
+            option_type = "FlagOption"
         elif isinstance(option, javacliparser.MultiChoiceOption):
             choices = ", ".join(f'"{choice}"' for choice in option.getOptionLabels())
             type_ = f"Literal[{choices}]"
@@ -55,14 +71,25 @@ class Option:
             ):
                 definition_list.append(f"* ``{label}``: {description}")
             doc += "\n\n" + "\n".join(definition_list)
+            option_type = "MultiChoiceOption"
         elif isinstance(option, MoaClassOption):
-            type_ = "str"
+            type_ = "str | MOAClassifier"
             default = f'"{option.getValueAsCLIString()}"'
+            option_type = "MoaClassOption"
         else:
             raise NotImplementedError(f"Option type {type(option)} not implemented")
 
+        # If the name is a Python keyword, append an underscore to avoid syntax errors.
+        if iskeyword(name):
+            name += "_"
+
         return Option(
-            name=name, cli_char=cli_char, doc=doc, type=type_, default=default
+            name=name,
+            cli_char=cli_char,
+            doc=doc,
+            type=type_,
+            default=default,
+            option_type=option_type,
         )
 
 
