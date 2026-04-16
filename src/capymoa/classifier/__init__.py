@@ -22,6 +22,7 @@ from ._csmote import CSMOTE
 from ._weightedknn import WeightedkNN
 from ._shrubs_classifier import ShrubsClassifier
 from ._finetune import Finetune
+from ._dems import DynamicEnsembleMemberSelection
 from ._plastic import PLASTIC
 
 __all__ = [
@@ -49,5 +50,6 @@ __all__ = [
     "StreamingGradientBoostedTrees",
     "StreamingRandomPatches",
     "WeightedkNN",
+    "DynamicEnsembleMemberSelection",
     "PLASTIC",
 ]

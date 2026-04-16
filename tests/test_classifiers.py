@@ -37,6 +37,7 @@ from capymoa.classifier import (
     StreamingGradientBoostedTrees,
     StreamingRandomPatches,
     WeightedkNN,
+    DynamicEnsembleMemberSelection,
     PLASTIC,
 )
 from capymoa.datasets import ElectricityTiny
@@ -241,6 +242,13 @@ test_cases = [
         66.0,
         batch_size=32,
         skip_prediction_check_before_training=True,
+    ),
+    ClassifierTestCase(
+        "DynamicEnsembleMemberSelection",
+        partial(DynamicEnsembleMemberSelection),
+        92.7,
+        90,
+        is_serializable=False,
     ),
 ]
 
