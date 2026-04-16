@@ -44,17 +44,18 @@ extensions = [
 nitpick_ignore_regex = [
     ("py:class", r".*\._[\w_]*"),  # Ignore private classes from nitpick errors
     ("py:obj", r".*\._[\w_]*"),  # Ignore private objects from nitpick errors
-    ("py:class", r"abc\..*"),
-    ("py:class", r"com\..*"),
-    ("py:class", r"java\..*"),
-    ("py:class", r"moa\..*"),
-    ("py:class", r"numpy\..*"),
-    ("py:class", r"org\..*"),
-    ("py:class", r"pandas\..*"),
-    ("py:class", r"pathlib\..*"),
-    ("py:class", r"sklearn\..*"),
-    ("py:class", r"torch\..*"),
-    ("py:class", r"tqdm\..*"),
+
+    # Java modules that we can't link to the documentation for
+    ("py:mod", "moa"),
+    ("py:mod", "java"),
+    ("py:mod", "org"),
+
+    # Python modules that we use but don't want to link to in the documentation
+    ("py:mod", "pandas"),
+    ("py:mod", "sklearn"),
+    ("py:mod", "torch"),
+    ("py:mod", "torchvision"),
+    ("py:mod", "tqdm"),
 ]
 
 # These warnings are usually false positives.
