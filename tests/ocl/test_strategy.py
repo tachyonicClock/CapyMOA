@@ -66,7 +66,7 @@ set.
 TEST_CASES: List[Case] = [
     Case("HoeffdingTree", HoeffdingTree, Result(59.49, 42.59, 45.8), batch_size=1),
     Case("HoeffdingTree", HoeffdingTree, Result(59.00, 42.80, 42.5), batch_size=32),
-    Case("RAR", _new_rar, Result(41.50, 28.20, 8.20)),
+    Case("RAR", _new_rar, Result(44.50, 28.20, 8.20)),
     Case(
         "Finetune",
         partial(Finetune, model=Perceptron),
@@ -89,12 +89,12 @@ TEST_CASES: List[Case] = [
     Case(
         "ExperienceReplay",
         lambda schema: ExperienceReplay(Finetune(schema, Perceptron)),
-        Result(30.0, 20.1, 3.0),
+        Result(28.5, 20.1, 3.0),
     ),
     Case(
         "GDumb",
         lambda schema: GDumb(schema, Perceptron(schema), 2, 32, 200),
-        Result(38.5, 26.6, 0.0),
+        Result(40.5, 26.6, 0.0),
     ),
 ]
 

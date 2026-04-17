@@ -55,6 +55,8 @@ nitpick_ignore_regex = [
     ("py:class", r"sklearn\..*"),
     ("py:class", r"torch\..*"),
     ("py:class", r"tqdm\..*"),
+    ("py:class", r"torchvision\..*"),
+    ("py:class", r"Tensor"),
 ]
 
 # These warnings are usually false positives.
