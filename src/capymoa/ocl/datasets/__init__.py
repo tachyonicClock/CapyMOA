@@ -59,6 +59,7 @@ from ._vision import (
     SplitMNIST,
 )
 from ._vit import DomainCIFAR100ViT, SplitCIFAR10ViT, SplitCIFAR100ViT
+from . import gradual
 
 __all__ = [
     "_BuiltInCIScenario",
@@ -74,4 +75,5 @@ __all__ = [
     "SplitCIFAR10",
     "SplitCIFAR100",
     "DomainCIFAR100",
+    "gradual"
 ]
