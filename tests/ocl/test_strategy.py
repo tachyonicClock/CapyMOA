@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
 from functools import partial
-from typing import Callable, List
+from typing import Callable, List, Type
 import os
 
 import numpy as np
@@ -11,7 +11,7 @@ from capymoa.base import Classifier
 from capymoa.classifier import Finetune, HoeffdingTree
 from capymoa.ocl.datasets import TinySplitMNIST
 from capymoa.ocl.evaluation import ocl_train_eval_loop
-from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR
+from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC
 from capymoa.stream import Schema
 
 import torch
@@ -37,6 +37,7 @@ class Case:
     batch_size: int = 32
     epochs: int = 1
     continual_evaluations: int = 1
+    task_mask: bool = False
 
 
 def pre_processor() -> nn.Module:
@@ -46,6 +47,25 @@ def pre_processor() -> nn.Module:
         nn.Linear(256, 512),
         nn.ReLU(),
     )
+
+
+def new_constructor(
+    learner: Type[Classifier], lr: float, **kwargs
+) -> Callable[[Schema], Classifier]:
+    """Create a new learner instance with the given hyperparameters."""
+
+    def constructor(schema: Schema, **extra_kwargs) -> Classifier:
+        model = Perceptron(schema)
+        optimiser = torch.optim.SGD(model.parameters(), lr=lr)
+        return learner(
+            schema,
+            model,
+            optimiser=optimiser,  # type: ignore
+            **kwargs,
+            **extra_kwargs,
+        )
+
+    return constructor
 
 
 def _new_rar(schema):
@@ -96,6 +116,17 @@ TEST_CASES: List[Case] = [
         lambda schema: GDumb(schema, Perceptron(schema), 2, 32, 200),
         Result(40.5, 26.6, 0.0),
     ),
+    Case(
+        "EWC",
+        new_constructor(EWC, lr=0.06, lambda_=313, gamma=0.91),
+        Result(24.5, 18.8, 14.6),
+    ),
+    Case(
+        "EWC(mask_test=True)",
+        new_constructor(EWC, lr=0.06, lambda_=168.69, mask_test=True),
+        Result(71.99, 47.20, 25.3),
+        task_mask=True,
+    ),
 ]
 
 
@@ -110,7 +141,10 @@ def test_ocl_classifier(case: Case):
     np.random.seed(0)
     torch.use_deterministic_algorithms(True)
 
-    learner = case.constructor(scenario.schema)
+    kwargs = {}
+    if case.task_mask:
+        kwargs["task_mask"] = scenario.task_mask
+    learner = case.constructor(scenario.schema, **kwargs)  # type: ignore
     r = ocl_train_eval_loop(
         learner,
         scenario.train_loaders(case.batch_size),

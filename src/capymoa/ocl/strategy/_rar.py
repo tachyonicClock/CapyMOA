@@ -2,7 +2,7 @@ import torch
 from torch import Tensor
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.util._coreset import ReservoirSampler
+from capymoa.ocl.util._replay import ReservoirSampler
 from capymoa.ocl.base import TrainTaskAware, TestTaskAware
 
 from typing import Callable
