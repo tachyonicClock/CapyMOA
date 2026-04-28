@@ -3,7 +3,7 @@ from torch import Tensor
 
 from capymoa.base import BatchClassifier
 from capymoa.ocl.base import TrainTaskAware, TestTaskAware
-from capymoa.ocl.util._coreset import ReservoirSampler
+from capymoa.ocl.util._replay import ReservoirSampler
 
 
 class ExperienceReplay(BatchClassifier, TrainTaskAware, TestTaskAware):
