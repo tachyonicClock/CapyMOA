@@ -66,7 +66,7 @@ dependencies = [
 # Development dependencies
 dev=[
     "commitizen~=3.24",
-    "invoke~=2.2",
+    "invoke~=3.0",
     "jupyter~=1.1",
     "nbmake~=1.5",
     "pytest-cov~=7.0",

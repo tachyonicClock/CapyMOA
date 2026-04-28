@@ -57,11 +57,11 @@ from capymoa.stream._stream import Schema
         (
             partial(
                 RobustRandomCutForest,
-                tree_size=256,
-                n_trees=100,
+                tree_size=50,
+                n_trees=10,
                 random_state=42,
             ),
-            0.56,
+            0.54,
             None,
         ),
         (

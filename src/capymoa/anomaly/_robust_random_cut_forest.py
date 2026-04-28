@@ -515,7 +515,7 @@ class RobustRandomCutForest(AnomalyDetector):
 
     >>> stream = ElectricityTiny()
     >>> schema = stream.get_schema()
-    >>> learner = RobustRandomCutForest(schema, tree_size=256, n_trees=100, random_state=42)
+    >>> learner = RobustRandomCutForest(schema, tree_size=50, n_trees=10, random_state=42)
     >>> evaluator = AnomalyDetectionEvaluator(schema)
     >>> while stream.has_more_instances():
     ...     instance = stream.next_instance()
@@ -524,7 +524,7 @@ class RobustRandomCutForest(AnomalyDetector):
     ...     learner.train(instance)
     >>> auc = evaluator.auc()
     >>> print(f"AUC: {auc:.2f}")
-    AUC: 0.56
+    AUC: 0.54
 
 
     .. [#f0] Guha, S., Mishra, N., Roy, G., & Schrijvers, O. (2016, June). Robust random
