@@ -11,7 +11,7 @@ from capymoa.base import Classifier
 from capymoa.classifier import Finetune, HoeffdingTree
 from capymoa.ocl.datasets import TinySplitMNIST
 from capymoa.ocl.evaluation import ocl_train_eval_loop
-from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC
+from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC, LWF
 from capymoa.stream import Schema
 
 import torch
@@ -126,6 +126,11 @@ TEST_CASES: List[Case] = [
         new_constructor(EWC, lr=0.06, lambda_=168.69, mask_test=True),
         Result(71.99, 47.20, 25.3),
         task_mask=True,
+    ),
+    Case(
+        "LWF",
+        new_constructor(LWF, lr=0.10, alpha=4.66, temperature=1.67),
+        Result(36.49, 25.09, 17.59),
     ),
 ]
 
