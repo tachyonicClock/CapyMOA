@@ -11,7 +11,7 @@ from capymoa.base import Classifier
 from capymoa.classifier import Finetune, HoeffdingTree
 from capymoa.ocl.datasets import TinySplitMNIST
 from capymoa.ocl.evaluation import ocl_train_eval_loop
-from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC, LWF
+from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC, LWF, DER
 from capymoa.stream import Schema
 
 import torch
@@ -44,6 +44,7 @@ def pre_processor() -> nn.Module:
     """Create a pre-processor for the schema."""
     torch.manual_seed(0)
     return nn.Sequential(
+        nn.Flatten(),
         nn.Linear(256, 512),
         nn.ReLU(),
     )
@@ -131,6 +132,18 @@ TEST_CASES: List[Case] = [
         "LWF",
         new_constructor(LWF, lr=0.10, alpha=4.66, temperature=1.67),
         Result(36.49, 25.09, 17.59),
+    ),
+    Case(
+        "DER",
+        new_constructor(
+            DER,
+            lr=0.3,
+            alpha=1.0,
+            buffer_size=300,
+            substeps=2,
+            augment=nn.Dropout(p=0.05),
+        ),
+        Result(40.5, 31.4, 73.0),
     ),
 ]
 

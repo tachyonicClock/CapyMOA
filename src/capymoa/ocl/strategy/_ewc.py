@@ -4,7 +4,7 @@ from torch import Tensor, nn
 import torch
 from capymoa.base import BatchClassifier
 from capymoa.ocl.base import TrainTaskAware, TestTaskAware
-from capymoa.ocl.util._buffer_list import BufferList
+from capymoa.ocl.util._buffer import BufferList
 from capymoa.ocl.util._replay import SlidingWindow
 from torch.utils.data import DataLoader
 
@@ -179,7 +179,7 @@ class EWC(BatchClassifier, nn.Module, TrainTaskAware, TestTaskAware):
         self._optimiser = optimiser
         self._model = model
         self._criterion = torch.nn.CrossEntropyLoss()
-        self._buffer = SlidingWindow(fim_buffer, schema.get_num_attributes())
+        self._buffer = SlidingWindow.new_xybuffer(fim_buffer, schema.shape)
 
         # Buffers for anchoring the model
         self._anchor_params = BufferList(
@@ -201,7 +201,7 @@ class EWC(BatchClassifier, nn.Module, TrainTaskAware, TestTaskAware):
         self.to(device)
 
     def batch_train(self, x: Tensor, y: Tensor) -> None:
-        self._buffer.update(x, y)
+        self._buffer.update(x=x, y=y)
         self._model.train()
         self._optimiser.zero_grad()
         y_hat = self._train_forward(x)

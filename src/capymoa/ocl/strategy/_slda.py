@@ -106,7 +106,7 @@ class SLDA(BatchClassifier):
 
     @torch.no_grad()
     def batch_train(self, x: Tensor, y: Tensor) -> None:
-        x = self._pre_processor(x)
+        x = self._pre_processor(x).flatten(start_dim=1)
 
         # Update class means and counts
         for i in range(self.schema.get_num_classes()):
@@ -130,7 +130,7 @@ class SLDA(BatchClassifier):
                 device=self.device,
             )
 
-        x = self._pre_processor(x)
+        x = self._pre_processor(x).flatten(start_dim=1)
         covariance = self._covariance / self._count + self._ridge
         weights: Tensor = torch.linalg.solve(covariance, self._class_means.T).T
         bias = -0.5 * (self._class_means @ weights.T).diagonal()

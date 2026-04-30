@@ -56,20 +56,22 @@ class ExperienceReplay(BatchClassifier, TrainTaskAware, TestTaskAware):
         super().__init__(learner.schema, learner.random_seed)
         #: The wrapped learner to be trained with experience replay.
         self.learner = learner
-        self._buffer = ReservoirSampler(
-            capacity=buffer_size,
-            features=self.schema.get_num_attributes(),
-            rng=torch.Generator().manual_seed(learner.random_seed),
+        self._buffer = ReservoirSampler.new_xybuffer(
+            buffer_size,
+            learner.schema.shape,
+            torch.Generator().manual_seed(self.random_seed),
         )
         self.repeat = repeat
 
     def batch_train(self, x: Tensor, y: Tensor) -> None:
         # update the buffer with the new data
-        self._buffer.update(x, y)
+        self._buffer.update(x=x, y=y)
 
         for _ in range(self.repeat):
             # sample from the buffer and construct training batch
-            replay_x, replay_y = self._buffer.sample(x.shape[0])
+            replay_batch = self._buffer.sample(x.shape[0])
+            replay_x = replay_batch["x"]
+            replay_y = replay_batch["y"]
             train_x = torch.cat((x, replay_x), dim=0)
             train_y = torch.cat((y, replay_y), dim=0)
             train_x = train_x.to(self.learner.device, dtype=self.learner.x_dtype)

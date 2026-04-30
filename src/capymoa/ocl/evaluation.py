@@ -328,11 +328,11 @@ def _abstain_prediction_uniform(rng: np.random.Generator, n_classes: int) -> Lab
 def _batch_test(rng: np.random.Generator, learner: Classifier, x: Tensor) -> np.ndarray:
     """Test a batch of instances using the learner."""
     batch_size = x.shape[0]
-    x = x.view(batch_size, -1)
     if isinstance(learner, BatchClassifier):
         x = x.to(dtype=learner.x_dtype, device=learner.device)
         return learner.batch_predict(x).cpu().numpy()
     else:
+        x = x.view(batch_size, -1)
         yb_pred = np.zeros(batch_size, dtype=int)
         for i in range(batch_size):
             instance = Instance.from_array(learner.schema, x[i].numpy())
@@ -345,16 +345,16 @@ def _batch_test(rng: np.random.Generator, learner: Classifier, x: Tensor) -> np.
         return yb_pred
 
 
-def _batch_train(learner: Classifier, x: Tensor, y: Tensor):
+def _batch_train(learner: Classifier, x: Tensor, y: Tensor, x_shape: Sequence[int]):
     """Train a batch of instances using the learner."""
-    batch_size = x.shape[0]
-    x = x.view(batch_size, -1)
+    bs = x.shape[0]
     if isinstance(learner, BatchClassifier):
-        x = x.to(dtype=learner.x_dtype, device=learner.device)
+        x = x.to(dtype=learner.x_dtype, device=learner.device).view(bs, *x_shape)
         y = y.to(dtype=learner.y_dtype, device=learner.device)
         learner.batch_train(x, y)
     else:
-        for i in range(batch_size):
+        x = x.view(bs, -1)
+        for i in range(bs):
             instance = LabeledInstance.from_array(
                 learner.schema, x[i].numpy(), int(y[i].item())
             )
@@ -441,7 +441,7 @@ def ocl_train_eval_loop(
                 yb: Tensor
                 pbar.update(1)
                 yb_pred = _batch_test(rng, learner, xb)
-                _batch_train(learner, xb, yb)
+                _batch_train(learner, xb, yb, learner.schema.shape)
 
                 for y, y_pred in zip(yb, yb_pred, strict=True):
                     online_eval.update(y.item(), y_pred)

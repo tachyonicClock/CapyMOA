@@ -1,8 +1,62 @@
-from typing import Iterable, MutableSequence, Sequence
+from typing import (
+    Iterable,
+    Iterator,
+    MutableSequence,
+    Optional,
+    Sequence,
+    MutableMapping,
+)
 from collections import OrderedDict
 
 from torch import Tensor
 from torch.nn import Module
+
+
+class BufferDict(Module, MutableMapping[str, Tensor]):
+    def __init__(self, buffers: dict[str, Tensor]) -> None:
+        super().__init__()
+        for name, buffer in buffers.items():
+            self.register_buffer(name, buffer)
+
+    def __repr__(self) -> str:
+        """Return a string representing the BufferDict
+
+        >>> import torch
+        >>> bd = BufferDict({"x": torch.zeros((10, 10)), "y": torch.zeros((20, 20))})
+        >>> print(bd)
+        BufferDict(
+            (x): Tensor((10, 10), torch.float32)
+            (y): Tensor((20, 20), torch.float32)
+        )
+        """
+        buffer_strs = []
+        for name, buffer in self.items():
+            buffer_strs.append(
+                f"({name}): Tensor({tuple(buffer.shape)}, {buffer.dtype})"
+            )
+        repr_ = "BufferDict("
+        for buffer_str in buffer_strs:
+            repr_ += f"\n    {buffer_str}"
+        repr_ += "\n)"
+        return repr_
+
+    def __getitem__(self, key: str) -> Optional[Tensor]:
+        return self._buffers.__getitem__(key)
+
+    def __setitem__(self, key: str, value: Tensor) -> None:
+        return self._buffers.__setitem__(key, value)
+
+    def __delitem__(self, key: str):
+        return self._buffers.__delitem__(key)
+
+    def __iter__(self) -> Iterator[str]:
+        return self._buffers.__iter__()
+
+    def __len__(self) -> int:
+        return self._buffers.__len__()
+
+    def __hash__(self) -> int:
+        return Module.__hash__(self)
 
 
 class BufferList(Module, MutableSequence[Tensor]):

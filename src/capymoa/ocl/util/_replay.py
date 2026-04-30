@@ -1,38 +1,42 @@
-from typing import Tuple
+from typing import Dict, Sequence, OrderedDict, Tuple
 from typing_extensions import override
 from torch import Tensor, nn
 from torch.utils.data import TensorDataset
 from abc import abstractmethod, ABC
+from capymoa.ocl.util._buffer import BufferDict
 import torch
+
+
+def _detach(**batch: Dict[str, Tensor]) -> Dict[str, Tensor]:
+    """Detach a batch of tensors from the computation graph."""
+    return {key: tensor.detach() for key, tensor in batch.items()}
 
 
 class ReplayBuffer(ABC, nn.Module):
     @abstractmethod
-    def update(self, x: Tensor, y: Tensor) -> None:
+    def update(self, **batch: Dict[str, Tensor]) -> None:
         """Update the replay buffer with new examples.
 
-        :param x: Tensor of shape (batch, features)
-        :param y: Tensor of shape (batch,) with class labels
+        :param batch: Dictionary of tensors representing a batch of examples.
         """
         ...
 
-    def sample(self, n: int) -> Tuple[Tensor, Tensor]:
+    def sample(self, n: int) -> OrderedDict[str, Tensor]:
         """Sample ``n`` examples from the replay buffer.
 
         :param n: Number of examples to sample
-        :return: Tuple of (x, y) where x is a Tensor of shape (n, features) and y is a
-            Tensor of shape (n,) with class labels
+        :return: Dictionary of tensors representing the sampled examples.
         """
         indices = torch.randint(0, self.count, (n,))
-        return self._buffer_x[indices], self._buffer_y[indices]
+        return {key: buffer[indices] for key, buffer in self._buffer.items()}
 
-    def array(self) -> Tuple[Tensor, Tensor]:
-        """Return the replay buffer as a tuple of (x, y) tensors."""
-        return self._buffer_x[: self._count], self._buffer_y[: self._count]
+    def array(self) -> Dict[str, Tensor]:
+        """Return the replay buffer as a dictionary of tensors."""
+        return {key: buffer[: self.count] for key, buffer in self._buffer.items()}
 
     def dataset_view(self) -> TensorDataset:
         """Return a TensorDataset view of the replay buffer."""
-        return TensorDataset(*self.array())
+        return TensorDataset(*self.array().values())
 
     @property
     def capacity(self) -> int:
@@ -47,48 +51,63 @@ class ReplayBuffer(ABC, nn.Module):
 
     @property
     def device(self) -> torch.device:
-        return self._buffer_x.device
+        return next(iter(self._buffer.values())).device
 
     def __init__(
         self,
         capacity: int,
-        features: int,
-        rng: torch.Generator = torch.Generator(),
+        buffers: Dict[str, Tuple[Sequence[int], torch.dtype]],
+        rng: torch.Generator = torch.default_generator,
     ) -> None:
         super().__init__()
         self._capacity = capacity
-        self._features = features
         self._rng = rng
         self._count = 0
-        self._buffer_x = nn.Buffer(torch.zeros((capacity, features)))
-        self._buffer_y = nn.Buffer(torch.zeros((capacity,), dtype=torch.long))
         self._i = 0
+        self._buffer = BufferDict(
+            {
+                key: torch.zeros((capacity, *shape), dtype=dtype)
+                for key, (shape, dtype) in buffers.items()
+            }
+        )
+
+    @classmethod
+    def new_xybuffer(
+        cls,
+        capacity: int,
+        x_shape: Sequence[int],
+        rng: torch.Generator = torch.default_generator,
+    ) -> "ReplayBuffer":
+        """Standard buffer with features ``x: (n, *x_shape) f32`` and labels ``y: (n,) i64``."""
+        return cls(
+            capacity, {"x": (x_shape, torch.float32), "y": ((), torch.long)}, rng
+        )
 
 
 class ReservoirSampler(ReplayBuffer):
     @override
-    def update(self, x: Tensor, y: Tensor) -> None:
-        x = x.to(self.device)
-        y = y.to(self.device)
-        batch_size = x.shape[0]
-        assert x.shape == (
-            batch_size,
-            self._features,
-        )
-        assert y.shape == (batch_size,)
+    def update(self, **batch: Dict[str, Tensor]) -> None:
+        assert set(batch.keys()) == set(self._buffer.keys())
+        batch = _detach(**batch)
+        batch_size = next(iter(batch.values())).shape[0]
+        for key, values in batch.items():
+            assert values.shape[0] == batch_size
+            batch[key] = values.to(self._buffer[key].device)
 
         for i in range(batch_size):
             if self.count < self.capacity:
-                # Fill the reservoir
-                self._buffer_x[self.count] = x[i]
-                self._buffer_y[self.count] = y[i]
+                # Fill the reservoir.
+                for key, values in batch.items():
+                    self._buffer[key][self.count] = values[i]
                 self._count += 1
             else:
-                # Reservoir sampling
-                index = torch.randint(0, self._i + 1, (1,), generator=self._rng)
+                # Standard reservoir sampling replacement.
+                index = int(
+                    torch.randint(0, self._i + 1, (1,), generator=self._rng).item()
+                )
                 if index < self.capacity:
-                    self._buffer_x[index] = x[i]
-                    self._buffer_y[index] = y[i]
+                    for key, values in batch.items():
+                        self._buffer[key][index] = values[i]
             self._i += 1
 
 
@@ -98,26 +117,38 @@ class GreedySampler(ReplayBuffer):
     """
 
     @override
-    def update(self, x: Tensor, y: Tensor) -> None:
-        x = x.to(self.device)
-        y = y.to(self.device)
-        for xi, yi in zip(x, y):
-            yi = int(yi.item())
+    def update(self, **batch: Dict[str, Tensor]) -> None:
+        assert set(batch.keys()) == set(self._buffer.keys())
+        assert "y" in batch
+        batch = _detach(**batch)
 
+        batch_size = next(iter(batch.values())).shape[0]
+        prepared_batch: Dict[str, Tensor] = {}
+        for key, values in batch.items():
+            assert values.shape[0] == batch_size
+            prepared_batch[key] = values.to(self._buffer[key].device)
+
+        for i in range(batch_size):
             if self.count < self.capacity:
-                # Room left in the coreset for this example
-                self._buffer_x[self.count] = xi.cpu()
-                self._buffer_y[self.count] = yi
+                # Room left in the coreset for this example.
+                for key, values in prepared_batch.items():
+                    self._buffer[key][self.count] = values[i]
                 self._count += 1
-            else:
-                # Coreset is full, replace a random example from the majority class
-                classes, counts = self._buffer_y.unique(return_counts=True)
-                replace_class = classes[counts.argmax()].item()
-                mask = self._buffer_y == replace_class
-                idx = torch.randint(0, mask.sum(), (1,), generator=self._rng)
-                replace_idx = mask.nonzero(as_tuple=True)[0][idx]
-                self._buffer_x[replace_idx] = xi.cpu()
-                self._buffer_y[replace_idx] = yi
+                continue
+
+            # Coreset is full, replace a random example from the majority class.
+            y_buffer = self._buffer["y"][: self.count]
+            classes, counts = y_buffer.unique(return_counts=True)
+            replace_class = classes[counts.argmax()]
+            candidate_indices = (y_buffer == replace_class).nonzero(as_tuple=True)[0]
+            idx = int(
+                torch.randint(
+                    0, len(candidate_indices), (1,), generator=self._rng
+                ).item()
+            )
+            replace_idx = int(candidate_indices[idx].item())
+            for key, values in prepared_batch.items():
+                self._buffer[key][replace_idx] = values[i]
 
 
 class SlidingWindow(ReplayBuffer):
@@ -126,30 +157,35 @@ class SlidingWindow(ReplayBuffer):
     """
 
     @override
-    def update(self, x: Tensor, y: Tensor) -> None:
-        x = x.to(self.device)
-        y = y.to(self.device)
-        batch_size = x.shape[0]
+    def update(self, **batch: Dict[str, Tensor]) -> None:
+        assert set(batch.keys()) == set(self._buffer.keys())
+        batch = _detach(**batch)
+
+        batch_size = next(iter(batch.values())).shape[0]
+        prepared_batch: Dict[str, Tensor] = {}
+        for key, values in batch.items():
+            assert values.shape[0] == batch_size
+            prepared_batch[key] = values.to(self._buffer[key].device)
 
         # Calculate where the batch ends
         end_idx = self._i + batch_size
 
         if end_idx <= self.capacity:
             # Case 1: Simple slice (no wrap-around)
-            self._buffer_x[self._i : end_idx] = x
-            self._buffer_y[self._i : end_idx] = y
+            for key, values in prepared_batch.items():
+                self._buffer[key][self._i : end_idx] = values
         else:
             # Case 2: Wrap-around (split the batch)
             mid_point = self.capacity - self._i
 
             # Fill the end of the buffer
-            self._buffer_x[self._i :] = x[:mid_point]
-            self._buffer_y[self._i :] = y[:mid_point]
+            for key, values in prepared_batch.items():
+                self._buffer[key][self._i :] = values[:mid_point]
 
             # Wrap the remainder to the start
             wrap_size = batch_size - mid_point
-            self._buffer_x[:wrap_size] = x[mid_point:]
-            self._buffer_y[:wrap_size] = y[mid_point:]
+            for key, values in prepared_batch.items():
+                self._buffer[key][:wrap_size] = values[mid_point:]
 
         # Update index and count
         self._i = (self._i + batch_size) % self.capacity

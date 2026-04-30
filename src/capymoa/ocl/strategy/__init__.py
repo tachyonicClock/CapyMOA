@@ -6,5 +6,16 @@ from ._rar import RAR
 from . import l2p
 from ._ewc import EWC
 from ._lwf import LWF
+from ._der import DER
 
-__all__ = ["ExperienceReplay", "SLDA", "NCM", "GDumb", "RAR", "l2p", "EWC", "LWF"]
+__all__ = [
+    "ExperienceReplay",
+    "SLDA",
+    "NCM",
+    "GDumb",
+    "RAR",
+    "l2p",
+    "EWC",
+    "LWF",
+    "DER",
+]

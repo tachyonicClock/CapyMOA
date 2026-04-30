@@ -92,13 +92,12 @@ class RAR(BatchClassifier, TrainTaskAware, TestTaskAware):
         """
 
         super().__init__(learner.schema)
-        num_features = learner.schema.get_num_attributes()
         self.learner = learner
         self.augment = augment
         self.repeats = repeats
-        self.coreset = ReservoirSampler(
+        self.coreset = ReservoirSampler.new_xybuffer(
             coreset_size,
-            num_features,
+            self.schema.shape,
             rng=torch.Generator().manual_seed(learner.random_seed),
         )
         self.shape = learner.schema.shape
@@ -106,9 +105,9 @@ class RAR(BatchClassifier, TrainTaskAware, TestTaskAware):
     def train_step(self, x_fresh: Tensor, y_fresh: Tensor) -> None:
         # Sample from reservoir and augment the data
         n = x_fresh.shape[0]
-        x_replay, y_replay = self.coreset.sample(n)
-        x = torch.cat((x_fresh, x_replay), dim=0).to(self.device, self.x_dtype)
-        y = torch.cat((y_fresh, y_replay), dim=0).to(self.device, self.y_dtype)
+        replay_batch = self.coreset.sample(n)
+        x = torch.cat((x_fresh, replay_batch["x"]), dim=0).to(self.device, self.x_dtype)
+        y = torch.cat((y_fresh, replay_batch["y"]), dim=0).to(self.device, self.y_dtype)
         x = x.view(-1, *self.shape)
         x: Tensor = self.augment(x)
 
@@ -118,7 +117,7 @@ class RAR(BatchClassifier, TrainTaskAware, TestTaskAware):
         self.learner.batch_train(x, y)
 
     def batch_train(self, x: Tensor, y: Tensor) -> None:
-        self.coreset.update(x, y)
+        self.coreset.update(x=x, y=y)
         for i in range(self.repeats):
             self.train_step(x, y)
 
