@@ -52,6 +52,6 @@ Forward Transfer: 0.07
 Backward Transfer: -0.08
 """
 
-from . import base, datasets, evaluation, util, strategy
+from . import base, datasets, evaluation, util, strategy, replay
 
-__all__ = ["evaluation", "datasets", "strategy", "base", "util"]
+__all__ = ["evaluation", "datasets", "strategy", "base", "util", "replay"]

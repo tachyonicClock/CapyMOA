@@ -11,6 +11,7 @@ from capymoa.base import Classifier
 from capymoa.classifier import Finetune, HoeffdingTree
 from capymoa.ocl.datasets import TinySplitMNIST
 from capymoa.ocl.evaluation import ocl_train_eval_loop
+from capymoa.ocl.replay import ClassBalanced
 from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC, LWF, DER
 from capymoa.stream import Schema
 
@@ -113,6 +114,13 @@ TEST_CASES: List[Case] = [
         Result(28.5, 20.1, 3.0),
     ),
     Case(
+        "ExperienceReplay_ClassBalanced",
+        lambda schema: ExperienceReplay(
+            Finetune(schema, Perceptron(schema)), replay_builder=ClassBalanced()
+        ),
+        Result(28.0, 19.6, 3.1),
+    ),
+    Case(
         "GDumb",
         lambda schema: GDumb(schema, Perceptron(schema), 2, 32, 200),
         Result(40.5, 26.6, 0.0),
@@ -139,7 +147,7 @@ TEST_CASES: List[Case] = [
             DER,
             lr=0.3,
             alpha=1.0,
-            buffer_size=300,
+            buffer_capacity=300,
             substeps=2,
             augment=nn.Dropout(p=0.05),
         ),

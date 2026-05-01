@@ -1,4 +1,4 @@
-from capymoa.ocl.util._replay import GreedySampler
+from capymoa.ocl.replay import GreedySampler
 import torch
 from capymoa.base import BatchClassifier
 from capymoa.ocl.base import TestTaskAware
@@ -28,7 +28,7 @@ class GDumb(BatchClassifier, TestTaskAware):
         model: nn.Module,
         epochs: int,
         batch_size: int,
-        capacity: int,
+        buffer_capacity: int,
         lr: float = 0.001,
         device: str | torch.device = "cpu",
         seed: int = 0,
@@ -42,8 +42,8 @@ class GDumb(BatchClassifier, TestTaskAware):
         self.fit_device = torch.device(device)
 
         self.original_state_dict = model.state_dict()
-        self.buffer = GreedySampler.new_xybuffer(
-            capacity, schema.shape, torch.Generator().manual_seed(seed)
+        self.buffer = GreedySampler().new_xybuffer(
+            buffer_capacity, schema.shape, torch.Generator().manual_seed(seed)
         )
         self.loss_func = nn.CrossEntropyLoss()
 

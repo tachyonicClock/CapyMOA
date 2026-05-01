@@ -4,7 +4,7 @@ import torch
 from torch import Tensor, nn
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.util._replay import ReservoirSampler
+from capymoa.ocl.replay import ReplayBuilder, ReservoirSampler
 from capymoa.stream._stream import Schema
 
 
@@ -30,7 +30,8 @@ class DER(BatchClassifier, nn.Module):
         optimiser: torch.optim.Optimizer,
         augment: Callable[[Tensor], Tensor],
         alpha: float = 0.5,
-        buffer_size: int = 200,
+        buffer_capacity: int = 200,
+        replay_builder: ReplayBuilder | None = None,
         seed: int = 0,
         substeps: int = 1,
         device: torch.device = torch.device("cpu"),
@@ -41,7 +42,8 @@ class DER(BatchClassifier, nn.Module):
         :param model: Torch model that outputs class logits.
         :param optimiser: Optimiser used to update ``model`` parameters.
         :param alpha: Weight of the DER replay-logit loss term.
-        :param buffer_size: Number of replay samples to retain.
+        :param buffer_capacity: Number of replay samples to retain, defaults to 200.
+        :param replay_builder: Builder used to construct the replay buffer.
         :param augment: Data augmentation function that takes a batch of
             examples.
         :param substeps: Number of optimization steps to take per batch. Each
@@ -54,8 +56,8 @@ class DER(BatchClassifier, nn.Module):
         nn.Module.__init__(self)
         if alpha < 0:
             raise ValueError("alpha must be non-negative.")
-        if buffer_size <= 0:
-            raise ValueError("buffer_size must be greater than zero.")
+        if buffer_capacity <= 0:
+            raise ValueError("buffer_capacity must be greater than zero.")
 
         self.device = device
         self._augment = augment
@@ -65,14 +67,16 @@ class DER(BatchClassifier, nn.Module):
         self._optimiser = optimiser
         self._criterion = torch.nn.CrossEntropyLoss()
         self._logit_loss = torch.nn.MSELoss()
-        self._buffer = ReservoirSampler(
-            capacity=buffer_size,
-            buffers=dict(
+        if replay_builder is None:
+            replay_builder = ReservoirSampler()
+        self._buffer = replay_builder.build(
+            buffer_capacity,
+            dict(
                 x=(schema.shape, torch.float32),
                 z=((schema.get_num_classes(),), torch.float32),
                 y=((), torch.long),
             ),
-            rng=torch.Generator().manual_seed(seed),
+            torch.Generator().manual_seed(seed),
         )
         self.to(device)
 
@@ -109,4 +113,4 @@ class DER(BatchClassifier, nn.Module):
         return torch.softmax(y_hat, dim=1)
 
     def __str__(self) -> str:
-        return f"DER(alpha={self._alpha}, buffer_size={self._buffer._capacity})"
+        return f"DER(alpha={self._alpha}, buffer_capacity={self._buffer._capacity})"

@@ -3,7 +3,7 @@ from torch import Tensor
 
 from capymoa.base import BatchClassifier
 from capymoa.ocl.base import TrainTaskAware, TestTaskAware
-from capymoa.ocl.util._replay import ReservoirSampler
+from capymoa.ocl.replay import ReplayBuilder, ReservoirSampler
 
 
 class ExperienceReplay(BatchClassifier, TrainTaskAware, TestTaskAware):
@@ -44,20 +44,27 @@ class ExperienceReplay(BatchClassifier, TrainTaskAware, TestTaskAware):
     """
 
     def __init__(
-        self, learner: BatchClassifier, buffer_size: int = 200, repeat: int = 1
+        self,
+        learner: BatchClassifier,
+        replay_builder: ReplayBuilder | None = None,
+        buffer_capacity: int = 200,
+        repeat: int = 1,
     ) -> None:
         """Initialize the Experience Replay strategy.
 
         :param learner: The learner to be wrapped for experience replay.
-        :param buffer_size: The size of the replay buffer, defaults to 200.
+        :param replay_builder: Builder used to construct the replay buffer.
+        :param buffer_capacity: The size of the replay buffer, defaults to 200.
         :param repeat: The number of times to repeat the training data in each batch,
             defaults to 1.
         """
         super().__init__(learner.schema, learner.random_seed)
         #: The wrapped learner to be trained with experience replay.
         self.learner = learner
-        self._buffer = ReservoirSampler.new_xybuffer(
-            buffer_size,
+        if replay_builder is None:
+            replay_builder = ReservoirSampler()
+        self._buffer = replay_builder.new_xybuffer(
+            buffer_capacity,
             learner.schema.shape,
             torch.Generator().manual_seed(self.random_seed),
         )
@@ -91,4 +98,4 @@ class ExperienceReplay(BatchClassifier, TrainTaskAware, TestTaskAware):
             self.learner.on_train_task(task_id)
 
     def __str__(self) -> str:
-        return f"ExperienceReplay(buffer_size={self._buffer.capacity})"
+        return f"ExperienceReplay(buffer_capacity={self._buffer.capacity})"

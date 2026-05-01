@@ -2,7 +2,7 @@ import torch
 from torch import Tensor
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.util._replay import ReservoirSampler
+from capymoa.ocl.replay import ReplayBuilder, ReservoirSampler
 from capymoa.ocl.base import TrainTaskAware, TestTaskAware
 
 from typing import Callable
@@ -77,7 +77,8 @@ class RAR(BatchClassifier, TrainTaskAware, TestTaskAware):
         self,
         learner: BatchClassifier,
         augment: Callable[[Tensor], Tensor],
-        coreset_size: int = 200,
+        replay_builder: ReplayBuilder | None = None,
+        buffer_capacity: int = 200,
         repeats: int = 1,
     ) -> None:
         """Initialize Repeated Augmented Rehearsal.
@@ -87,7 +88,8 @@ class RAR(BatchClassifier, TrainTaskAware, TestTaskAware):
             a Tensor of shape ``(batch_size, *schema.shape)`` and return a Tensor of the
             same shape. Take a look at the PyTorch torchvision transforms for some
             building blocks for your pipeline (https://docs.pytorch.org/vision/main/transforms.html).
-        :param coreset_size: Size of the coreset buffer.
+        :param replay_builder: Builder used to construct the coreset buffer.
+        :param buffer_capacity: Size of the coreset buffer, defaults to 200.
         :param repeats: Number of times to repeat training on each batch, defaults to 1.
         """
 
@@ -95,8 +97,10 @@ class RAR(BatchClassifier, TrainTaskAware, TestTaskAware):
         self.learner = learner
         self.augment = augment
         self.repeats = repeats
-        self.coreset = ReservoirSampler.new_xybuffer(
-            coreset_size,
+        if replay_builder is None:
+            replay_builder = ReservoirSampler()
+        self.coreset = replay_builder.new_xybuffer(
+            buffer_capacity,
             self.schema.shape,
             rng=torch.Generator().manual_seed(learner.random_seed),
         )

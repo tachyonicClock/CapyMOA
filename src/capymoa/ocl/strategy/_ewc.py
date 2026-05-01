@@ -5,7 +5,7 @@ import torch
 from capymoa.base import BatchClassifier
 from capymoa.ocl.base import TrainTaskAware, TestTaskAware
 from capymoa.ocl.util._buffer import BufferList
-from capymoa.ocl.util._replay import SlidingWindow
+from capymoa.ocl.replay import ReplayBuilder, SlidingWindow
 from torch.utils.data import DataLoader
 
 
@@ -136,7 +136,8 @@ class EWC(BatchClassifier, nn.Module, TrainTaskAware, TestTaskAware):
         model: torch.nn.Module,
         optimiser: torch.optim.Optimizer,
         lambda_: float,
-        fim_buffer: int = 256,
+        buffer_capacity: int = 256,
+        fim_replay_builder: Optional[ReplayBuilder] = None,
         fim_batch_size: int = 32,
         device: torch.device = torch.device("cpu"),
         mask_test: bool = False,
@@ -150,7 +151,9 @@ class EWC(BatchClassifier, nn.Module, TrainTaskAware, TestTaskAware):
         :param model: Torch model that outputs class logits.
         :param optimiser: Optimiser used to update ``model`` parameters.
         :param lambda_: Weight of the EWC regularisation term.
-        :param fim_buffer: Replay window size for Fisher estimation.
+        :param buffer_capacity: Replay window size for Fisher estimation, defaults to 256.
+        :param fim_replay_builder: Builder used to construct the replay buffer used
+            for Fisher estimation.
         :param fim_batch_size: Mini-batch size used when estimating Fisher diagonals.
         :param device: Compute device.
         :param mask_test: Whether to apply per-task masking during testing. This is a
@@ -179,7 +182,9 @@ class EWC(BatchClassifier, nn.Module, TrainTaskAware, TestTaskAware):
         self._optimiser = optimiser
         self._model = model
         self._criterion = torch.nn.CrossEntropyLoss()
-        self._buffer = SlidingWindow.new_xybuffer(fim_buffer, schema.shape)
+        if fim_replay_builder is None:
+            fim_replay_builder = SlidingWindow()
+        self._buffer = fim_replay_builder.new_xybuffer(buffer_capacity, schema.shape)
 
         # Buffers for anchoring the model
         self._anchor_params = BufferList(
