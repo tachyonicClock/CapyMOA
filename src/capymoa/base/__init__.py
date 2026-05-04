@@ -21,6 +21,7 @@ from capymoa.base._ssl import (
     MOAClassifierSSL,
 )
 from ._batch import Batch
+from . import events
 
 __all__ = [
     "_extract_moa_drift_detector_CLI",
@@ -43,4 +44,5 @@ __all__ = [
     "MOAClusterer",
     "MOAPredictionIntervalLearner",
     "PredictionIntervalLearner",
+    "events",
 ]
