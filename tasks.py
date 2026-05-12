@@ -20,6 +20,14 @@ import os
 IS_CI = environ.get("CI", "false").lower() == "true"
 COVERAGE_DEFAULT = False
 
+
+def python_exe(profile: Optional[str] = None) -> str:
+    if profile:
+        return f"python -m cProfile -o {profile}"
+    else:
+        return "python"
+
+
 # Set working directory to this file's directory
 os.chdir(Path(__file__).parent)
 
@@ -194,7 +202,6 @@ def clean(ctx: Context):
         "overwrite": (
             "Overwrite the notebooks with the executed output. Requires ``--slow``."
         ),
-        "k_pattern": "Run only the notebooks that match the pattern. Same as `pytest -k`",
         "slow": (
             "Run the notebooks in slow mode by setting the environment variable "
             "`NB_FAST` to `false`."
@@ -255,27 +262,63 @@ def notebooks(
     ctx.run(" ".join(cmd), echo=True, env=env)
 
 
-@task
-def pytest(ctx: Context, parallel: bool = True, coverage: bool = COVERAGE_DEFAULT):
-    """Run the tests using pytest."""
-    env = {"COVERAGE_FILE": ".coverage.pytest"}
+@task(
+    help={
+        "parallel": "Run the tests in parallel.",
+        "coverage": "Measure code coverage for the tests.",
+        "profile": "If not none, output a cProfile report to the given file.",
+    }
+)
+def pytest(
+    ctx: Context,
+    parallel: bool = False,
+    coverage: bool = COVERAGE_DEFAULT,
+    profile: Optional[str] = None,
+):
+    """Run the tests using pytest.
 
+    Text given after ` -- ` will be passed directly to pytest.
+    For example, to run only the tests related to the HoeffdingTree classifier, you can run:
+
+        invoke test.pytest -- tests/test_classifiers.py -k "HoeffdingTree"
+    """
+    env = {"COVERAGE_FILE": ".coverage.pytest"}
     cmd = [
-        "python -m pytest",
+        python_exe(profile),
+        "-m pytest",
         "--durations=5",  # Show the duration of each test
         "--exitfirst",  # Exit instantly on first error or failed test
     ]
     cmd += ["--cov"] if coverage else []
     cmd += ["-n=auto"] if parallel else []
+    cmd += [ctx.remainder]
     ctx.run(" ".join(cmd), echo=True, env=env)
 
 
-@task
-def doctest(ctx: Context, parallel: bool = True, coverage: bool = COVERAGE_DEFAULT):
-    """Run tests defined in docstrings using pytest."""
+@task(
+    help={
+        "parallel": "Run the doctests in parallel.",
+        "coverage": "Measure code coverage for the doctests.",
+        "profile": "If not none, output a cProfile report to the given file.",
+    }
+)
+def doctest(
+    ctx: Context,
+    parallel: bool = True,
+    coverage: bool = COVERAGE_DEFAULT,
+    profile: Optional[str] = None,
+):
+    """Run tests defined in docstrings using pytest.
+
+    Text given after ` -- ` will be passed directly to pytest.
+    For example, to run only the tests related to the HoeffdingTree classifier, you can run:
+
+        invoke test.doctest -- src/capymoa/classifier/_hoeffding_tree.py
+    """
     env = {"COVERAGE_FILE": ".coverage.doctest"}
     cmd = [
-        "python -m pytest",
+        python_exe(profile),
+        "-m pytest",
         "--doctest-modules",  # Enable doctest tests
         "--durations=5",  # Show the duration of each test
         "--exitfirst",  # Exit instantly on first error or failed test
@@ -283,6 +326,7 @@ def doctest(ctx: Context, parallel: bool = True, coverage: bool = COVERAGE_DEFAU
     ]
     cmd += ["--cov"] if coverage else []
     cmd += ["-n=auto"] if parallel else []
+    cmd += [ctx.remainder]  # Add any additional arguments passed to the task
     ctx.run(" ".join(cmd), echo=True, env=env)
 
 
