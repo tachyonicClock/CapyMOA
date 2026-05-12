@@ -12,12 +12,13 @@ def _abstain_prediction_uniform(rng: np.random.Generator, n_classes: int) -> Lab
     return int(rng.integers(0, n_classes))
 
 
-def _batch_test(rng: np.random.Generator, learner: Classifier, x: Tensor) -> np.ndarray:
+def batch_test(rng: np.random.Generator, learner: Classifier, x: Tensor) -> np.ndarray:
     """Test a batch of instances using the learner."""
     batch_size = x.shape[0]
     x = x.view(batch_size, -1)
     if isinstance(learner, BatchClassifier):
         x = x.to(dtype=learner.x_dtype, device=learner.device)
+        x = x.view(batch_size, *learner.schema.shape)
         return learner.batch_predict(x).cpu().numpy()
     else:
         yb_pred = np.zeros(batch_size, dtype=int)
@@ -32,12 +33,13 @@ def _batch_test(rng: np.random.Generator, learner: Classifier, x: Tensor) -> np.
         return yb_pred
 
 
-def _batch_train(learner: Classifier, x: Tensor, y: Tensor):
+def batch_train(learner: Classifier, x: Tensor, y: Tensor):
     """Train a batch of instances using the learner."""
     batch_size = x.shape[0]
     x = x.view(batch_size, -1)
     if isinstance(learner, BatchClassifier):
         x = x.to(dtype=learner.x_dtype, device=learner.device)
+        x = x.view(batch_size, *learner.schema.shape)
         y = y.to(dtype=learner.y_dtype, device=learner.device)
         learner.batch_train(x, y)
     else:

@@ -1,11 +1,11 @@
-from capymoa.ocl.util._replay import GreedySampler
+from capymoa.ocl.replay import GreedySampler
 import torch
 from capymoa.base import BatchClassifier
 from capymoa.base.events import Handler, Dispatcher
 from capymoa.ocl.evaluation.events import TestTaskBegin
 from capymoa.stream import Schema
 from torch import Tensor, nn
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 
 
 class GDumb(BatchClassifier, Handler):
@@ -29,7 +29,7 @@ class GDumb(BatchClassifier, Handler):
         model: nn.Module,
         epochs: int,
         batch_size: int,
-        capacity: int,
+        buffer_capacity: int,
         lr: float = 0.001,
         device: str | torch.device = "cpu",
         seed: int = 0,
@@ -43,23 +43,23 @@ class GDumb(BatchClassifier, Handler):
         self.fit_device = torch.device(device)
 
         self.original_state_dict = model.state_dict()
-        self.coreset = GreedySampler(
-            capacity, schema.get_num_attributes(), torch.Generator().manual_seed(seed)
+        self.buffer = GreedySampler().new_xybuffer(
+            buffer_capacity, schema.shape, torch.Generator().manual_seed(seed)
         )
         self.loss_func = nn.CrossEntropyLoss()
 
     def batch_train(self, x: Tensor, y: Tensor) -> None:
-        self.coreset.update(x, y)
+        self.buffer.update(x=x, y=y)
 
     def batch_predict_proba(self, x: Tensor) -> Tensor:
         return self.model(x).softmax(dim=1)
 
     def gdumb_fit(self) -> None:
         """
-        Fit the model on the coreset.
+        Fit the model on the buffer.
         """
         # Assemble a dataset from the buffer
-        dataset = TensorDataset(*self.coreset.array())
+        dataset = self.buffer.dataset_view()
 
         self.model.load_state_dict(self.original_state_dict)
         self.model.to(self.fit_device)
@@ -78,12 +78,9 @@ class GDumb(BatchClassifier, Handler):
                 loss.backward()
                 optimizer.step()
 
-    def on_test_task(self, task_id: int) -> None:
-        if task_id == 0:
+    def on_test_task(self, event: TestTaskBegin) -> None:
+        if event.test_task == 0:
             self.gdumb_fit()
 
     def attach_with(self, source: Dispatcher) -> None:
-        source.subscribe(TestTaskBegin, self._on_test_task_start)
-
-    def _on_test_task_start(self, event: TestTaskBegin) -> None:
-        self.on_test_task(event.test_task)
+        source.subscribe(TestTaskBegin, self.on_test_task)

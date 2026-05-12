@@ -12,7 +12,8 @@ from capymoa.classifier import Finetune, HoeffdingTree
 from capymoa.ocl.datasets import TinySplitMNIST
 from capymoa.ocl.evaluation import ocl_train_eval_loop
 
-from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC
+from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC, LWF, DER
+from capymoa.ocl.replay import ClassBalanced
 from capymoa.stream import Schema
 
 import torch
@@ -45,6 +46,7 @@ def pre_processor() -> nn.Module:
     """Create a pre-processor for the schema."""
     torch.manual_seed(0)
     return nn.Sequential(
+        nn.Flatten(),
         nn.Linear(256, 512),
         nn.ReLU(),
     )
@@ -113,6 +115,13 @@ TEST_CASES: List[Case] = [
         Result(28.5, 20.1, 3.0),
     ),
     Case(
+        "ExperienceReplay_ClassBalanced",
+        lambda schema: ExperienceReplay(
+            Finetune(schema, Perceptron(schema)), replay_builder=ClassBalanced()
+        ),
+        Result(28.0, 19.6, 3.1),
+    ),
+    Case(
         "GDumb",
         lambda schema: GDumb(schema, Perceptron(schema), 2, 32, 200),
         Result(40.5, 26.6, 0.0),
@@ -127,6 +136,23 @@ TEST_CASES: List[Case] = [
         new_constructor(EWC, lr=0.06, lambda_=168.69, mask_test=True),
         Result(71.99, 47.20, 25.3),
         task_mask=True,
+    ),
+    Case(
+        "LWF",
+        new_constructor(LWF, lr=0.10, alpha=4.66, temperature=1.67),
+        Result(36.49, 25.09, 17.59),
+    ),
+    Case(
+        "DER",
+        new_constructor(
+            DER,
+            lr=0.3,
+            alpha=1.0,
+            buffer_capacity=300,
+            substeps=2,
+            augment=nn.Dropout(p=0.05),
+        ),
+        Result(40.5, 31.4, 73.0),
     ),
 ]
 

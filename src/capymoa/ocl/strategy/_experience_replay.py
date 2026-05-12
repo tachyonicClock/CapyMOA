@@ -3,7 +3,8 @@ from torch import Tensor
 
 from capymoa.base import BatchClassifier
 from capymoa.base.events import Handler, Dispatcher
-from capymoa.ocl.util._replay import ReservoirSampler
+from capymoa.ocl.replay import ReservoirSampler
+from capymoa.ocl.replay import ReplayBuilder
 
 
 class ExperienceReplay(BatchClassifier, Handler):
@@ -42,32 +43,41 @@ class ExperienceReplay(BatchClassifier, Handler):
     """
 
     def __init__(
-        self, learner: BatchClassifier, buffer_size: int = 200, repeat: int = 1
+        self,
+        learner: BatchClassifier,
+        replay_builder: ReplayBuilder | None = None,
+        buffer_capacity: int = 200,
+        repeat: int = 1,
     ) -> None:
         """Initialize the Experience Replay strategy.
 
         :param learner: The learner to be wrapped for experience replay.
-        :param buffer_size: The size of the replay buffer, defaults to 200.
+        :param replay_builder: Builder used to construct the replay buffer.
+        :param buffer_capacity: The size of the replay buffer, defaults to 200.
         :param repeat: The number of times to repeat the training data in each batch,
             defaults to 1.
         """
         super().__init__(learner.schema, learner.random_seed)
         #: The wrapped learner to be trained with experience replay.
         self.learner = learner
-        self._buffer = ReservoirSampler(
-            capacity=buffer_size,
-            features=self.schema.get_num_attributes(),
-            rng=torch.Generator().manual_seed(learner.random_seed),
+        if replay_builder is None:
+            replay_builder = ReservoirSampler()
+        self._buffer = replay_builder.new_xybuffer(
+            buffer_capacity,
+            learner.schema.shape,
+            torch.Generator().manual_seed(self.random_seed),
         )
         self.repeat = repeat
 
     def batch_train(self, x: Tensor, y: Tensor) -> None:
         # update the buffer with the new data
-        self._buffer.update(x, y)
+        self._buffer.update(x=x, y=y)
 
         for _ in range(self.repeat):
             # sample from the buffer and construct training batch
-            replay_x, replay_y = self._buffer.sample(x.shape[0])
+            replay_batch = self._buffer.sample(x.shape[0])
+            replay_x = replay_batch["x"]
+            replay_y = replay_batch["y"]
             train_x = torch.cat((x, replay_x), dim=0)
             train_y = torch.cat((y, replay_y), dim=0)
             train_x = train_x.to(self.learner.device, dtype=self.learner.x_dtype)
@@ -83,4 +93,4 @@ class ExperienceReplay(BatchClassifier, Handler):
             self.learner.attach_with(source)
 
     def __str__(self) -> str:
-        return f"ExperienceReplay(buffer_size={self._buffer.capacity})"
+        return f"ExperienceReplay(buffer_capacity={self._buffer.capacity})"

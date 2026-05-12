@@ -306,15 +306,12 @@ class L2P(BatchClassifier, Handler):
             (p for p in self._model.parameters() if p.requires_grad)
         )
 
-    def on_train_task(self, task_id: int):
-        self._train_task = task_id
+    def on_train_task(self, event: TrainTaskBegin) -> None:
+        self._train_task = event.train_task
         self._optimizer = self._new_optimizer()
 
     def attach_with(self, source: Dispatcher) -> None:
-        source.subscribe(TrainTaskBegin, self._on_train_task_start)
-
-    def _on_train_task_start(self, event: TrainTaskBegin) -> None:
-        self.on_train_task(event.train_task)
+        source.subscribe(TrainTaskBegin, self.on_train_task)
 
     def batch_train(self, x: torch.Tensor, y: torch.Tensor) -> None:
         x = x.view(x.size(0), *self.schema.shape)  # Reshape to the original shape

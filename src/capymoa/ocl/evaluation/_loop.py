@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 from capymoa.base import Classifier
 from capymoa.base.events import Event, Handler, Dispatcher
 
-from ._batch import _batch_test, _batch_train
+from ._batch import batch_test, batch_train
 from ._default_sink import _OCLMetricsHandler
 from ._metrics import OCLMetrics
 from . import events
@@ -126,7 +126,7 @@ def ocl_train_eval_loop(
             )
 
             for batch_id, (x_test, y_test) in enumerate(test_stream):
-                y_hat = torch.from_numpy(_batch_test(rng, learner, x_test))
+                y_hat = torch.from_numpy(batch_test(rng, learner, x_test))
                 dispatcher.notify(
                     events.EvalBatchPredict(
                         train_task=train_task_id,
@@ -153,8 +153,8 @@ def ocl_train_eval_loop(
 
         for _ in range(epochs):
             for batch_id, (x_train, y_train) in enumerate(train_stream):
-                y_hat = torch.from_numpy(_batch_test(rng, learner, x_train))
-                _batch_train(learner, x_train, y_train)
+                y_hat = torch.from_numpy(batch_test(rng, learner, x_train))
+                batch_train(learner, x_train, y_train)
                 dispatcher.notify(
                     events.TrainBatchPredict(
                         train_task=train_task_id,

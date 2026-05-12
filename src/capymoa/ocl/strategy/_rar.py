@@ -2,7 +2,8 @@ import torch
 from torch import Tensor
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.util._replay import ReservoirSampler
+from capymoa.ocl.replay import ReservoirSampler
+from capymoa.ocl.replay import ReplayBuilder
 
 from typing import Callable
 
@@ -72,7 +73,8 @@ class RAR(BatchClassifier):
         self,
         learner: BatchClassifier,
         augment: Callable[[Tensor], Tensor],
-        coreset_size: int = 200,
+        replay_builder: ReplayBuilder | None = None,
+        buffer_capacity: int = 200,
         repeats: int = 1,
     ) -> None:
         """Initialize Repeated Augmented Rehearsal.
@@ -82,18 +84,20 @@ class RAR(BatchClassifier):
             a Tensor of shape ``(batch_size, *schema.shape)`` and return a Tensor of the
             same shape. Take a look at the PyTorch torchvision transforms for some
             building blocks for your pipeline (https://docs.pytorch.org/vision/main/transforms.html).
-        :param coreset_size: Size of the coreset buffer.
+        :param replay_builder: Builder used to construct the coreset buffer.
+        :param buffer_capacity: Size of the coreset buffer, defaults to 200.
         :param repeats: Number of times to repeat training on each batch, defaults to 1.
         """
 
         super().__init__(learner.schema)
-        num_features = learner.schema.get_num_attributes()
         self.learner = learner
         self.augment = augment
         self.repeats = repeats
-        self.coreset = ReservoirSampler(
-            coreset_size,
-            num_features,
+        if replay_builder is None:
+            replay_builder = ReservoirSampler()
+        self.coreset = replay_builder.new_xybuffer(
+            buffer_capacity,
+            self.schema.shape,
             rng=torch.Generator().manual_seed(learner.random_seed),
         )
         self.shape = learner.schema.shape
@@ -101,9 +105,9 @@ class RAR(BatchClassifier):
     def train_step(self, x_fresh: Tensor, y_fresh: Tensor) -> None:
         # Sample from reservoir and augment the data
         n = x_fresh.shape[0]
-        x_replay, y_replay = self.coreset.sample(n)
-        x = torch.cat((x_fresh, x_replay), dim=0).to(self.device, self.x_dtype)
-        y = torch.cat((y_fresh, y_replay), dim=0).to(self.device, self.y_dtype)
+        replay_batch = self.coreset.sample(n)
+        x = torch.cat((x_fresh, replay_batch["x"]), dim=0).to(self.device, self.x_dtype)
+        y = torch.cat((y_fresh, replay_batch["y"]), dim=0).to(self.device, self.y_dtype)
         x = x.view(-1, *self.shape)
         x: Tensor = self.augment(x)
 
@@ -113,7 +117,7 @@ class RAR(BatchClassifier):
         self.learner.batch_train(x, y)
 
     def batch_train(self, x: Tensor, y: Tensor) -> None:
-        self.coreset.update(x, y)
+        self.coreset.update(x=x, y=y)
         for i in range(self.repeats):
             self.train_step(x, y)
 

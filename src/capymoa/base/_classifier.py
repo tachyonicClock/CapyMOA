@@ -179,7 +179,7 @@ class BatchClassifier(Classifier, Batch, ABC):
 
     def train(self, instance: LabeledInstance) -> None:
         """Calls :func:`batch_train` with a batch of size 1."""
-        x = torch.from_numpy(instance.x).view(1, -1)
+        x = torch.from_numpy(instance.x).view(1, *self.schema.shape)
         x = x.to(self.device, self.x_dtype)
         y = torch.scalar_tensor(
             instance.y_index, dtype=self.y_dtype, device=self.device
@@ -188,7 +188,7 @@ class BatchClassifier(Classifier, Batch, ABC):
 
     def predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
         """Calls :func:`batch_predict_proba` with a batch of size 1."""
-        x = torch.from_numpy(instance.x.reshape(1, -1))
+        x = torch.from_numpy(instance.x.reshape(1, *self.schema.shape))
         x = x.to(self.device, self.x_dtype)
         return self.batch_predict_proba(x).flatten().numpy().astype(np.float64)
 

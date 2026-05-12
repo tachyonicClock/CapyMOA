@@ -16,7 +16,7 @@ class Batch(ABC):
     def batch_train(self, x: torch.Tensor, y: torch.Tensor) -> None:
         """Train the model with a batch of instances.
 
-        :param x: A batch of feature vectors of shape ``(batch_size, num_features)``.
+        :param x: A batch of feature vectors of shape ``(batch_size, *schema.shape)``.
         :param y: A batch of target values, typically a vector of shape ``(batch_size,)``.
         """
 
@@ -24,6 +24,6 @@ class Batch(ABC):
     def batch_predict(self, x: torch.Tensor) -> torch.Tensor:
         """Predict the target values for a batch of instances.
 
-        :param x: A batch of feature vectors of shape ``(batch_size, num_features)``.
+        :param x: A batch of feature vectors of shape ``(batch_size, *schema.shape)``.
         :return: Predicted target values, typically a vector of shape ``(batch_size,)``.
         """

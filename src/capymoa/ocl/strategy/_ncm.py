@@ -78,7 +78,7 @@ class NCM(BatchClassifier):
 
     @torch.no_grad()
     def batch_train(self, x: Tensor, y: Tensor) -> None:
-        x = self._pre_processor(x)
+        x = self._pre_processor(x).flatten(start_dim=1)
 
         # Update mean and count
         for i in range(self.schema.get_num_classes()):
@@ -91,8 +91,7 @@ class NCM(BatchClassifier):
 
     @torch.no_grad()
     def batch_predict_proba(self, x: Tensor) -> Tensor:
-        assert x.ndim == 2, "Input must be a 2D array (batch_size, features)"
-        x = self._pre_processor(x)
+        x = self._pre_processor(x).flatten(start_dim=1)
 
         # Calculate distances to class means
         distances = torch.cdist(x.unsqueeze(0), self._class_means.unsqueeze(0))
