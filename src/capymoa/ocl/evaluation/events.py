@@ -46,7 +46,7 @@ class TrainBatchPredict(TrainTaskBegin):
     """The input batch."""
     y: Tensor
     """The target batch."""
-    y_proba: Tensor
+    y_logits: Tensor
     """The predicted logits batch."""
     y_pred: Tensor
     """The predicted batch."""

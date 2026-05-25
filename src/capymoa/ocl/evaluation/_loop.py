@@ -188,7 +188,7 @@ def ocl_train_eval_loop(
                         batch=batch_id,
                         x=x_train,
                         y=y_train,
-                        y_proba=y_proba,
+                        y_logits=y_proba,
                         y_pred=y_hat,
                     )
                 )

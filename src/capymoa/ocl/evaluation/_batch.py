@@ -23,17 +23,17 @@ def _batch_test(
     n_classes = learner.schema.get_num_classes()
     if isinstance(learner, BatchClassifier):
         x = x.to(dtype=learner.x_dtype, device=learner.device)
-        yb_proba = learner.batch_predict_proba(x).cpu().numpy()
-        yb_pred = yb_proba.argmax(axis=1).astype(int)
-        return yb_pred, yb_proba
+        yb_logits = learner.batch_predict_proba(x).cpu().numpy()
+        yb_pred = yb_logits.argmax(axis=1).astype(int)
+        return yb_pred, yb_logits
     else:
         x = x.view(batch_size, -1)
         yb_pred = np.zeros(batch_size, dtype=int)
-        yb_proba = np.zeros((batch_size, n_classes), dtype=np.float64)
+        yb_logits = np.zeros((batch_size, n_classes), dtype=np.float64)
         for i in range(batch_size):
             instance = Instance.from_array(learner.schema, x[i].numpy())
-            y_proba = learner.predict_proba(instance)
-            if y_proba is None or len(y_proba) != n_classes:
+            y_logits = learner.predict_proba(instance)
+            if y_logits is None or len(y_logits) != n_classes:
                 # The classifier cannot create a probability distribution or returns an
                 # invalid one, so we fall back to predicting a single class or
                 # abstaining, depending on whether a prediction is available.
@@ -44,15 +44,15 @@ def _batch_test(
                 if y_pred is None:
                     # Abstain
                     yb_pred[i] = _abstain_prediction_uniform(rng, n_classes)
-                    yb_proba[i] = np.full(n_classes, 1 / n_classes)
+                    yb_logits[i] = np.full(n_classes, 1 / n_classes)
                 else:
                     # Predict but no probabilities
                     yb_pred[i] = int(y_pred)
-                    yb_proba[i][int(y_pred)] = 1.0
+                    yb_logits[i][int(y_pred)] = 1.0
             else:
-                yb_pred[i] = int(np.argmax(y_proba))
-                yb_proba[i] = y_proba
-        return yb_pred, yb_proba
+                yb_pred[i] = int(np.argmax(y_logits))
+                yb_logits[i] = y_logits
+        return yb_pred, yb_logits
 
 
 def _batch_train(learner: Classifier, x: Tensor, y: Tensor, x_shape: Sequence[int]):

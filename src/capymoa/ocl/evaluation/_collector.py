@@ -69,7 +69,7 @@ class _OCLEvaluator(Handler):
 
     def _on_train_batch(self, event: events.TrainBatchPredict) -> None:
         accuracy = (event.y == event.y_pred).float().mean().item()
-        ce = cross_entropy(event.y_proba, event.y).item()
+        ce = cross_entropy(event.y_logits, event.y).item()
         self.log_scalar(
             f"ocl_train/accuracy_{event.train_task:02d}", accuracy, event.global_step
         )
