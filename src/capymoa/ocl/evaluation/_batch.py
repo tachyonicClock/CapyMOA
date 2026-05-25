@@ -6,6 +6,7 @@ from torch import Tensor
 from capymoa.base import BatchClassifier, Classifier
 from capymoa.instance import Instance, LabeledInstance
 from capymoa.type_alias import LabelIndex
+from typing import Sequence
 
 
 def _abstain_prediction_uniform(rng: np.random.Generator, n_classes: int) -> LabelIndex:
@@ -15,11 +16,11 @@ def _abstain_prediction_uniform(rng: np.random.Generator, n_classes: int) -> Lab
 def _batch_test(rng: np.random.Generator, learner: Classifier, x: Tensor) -> np.ndarray:
     """Test a batch of instances using the learner."""
     batch_size = x.shape[0]
-    x = x.view(batch_size, -1)
     if isinstance(learner, BatchClassifier):
         x = x.to(dtype=learner.x_dtype, device=learner.device)
         return learner.batch_predict(x).cpu().numpy()
     else:
+        x = x.view(batch_size, -1)
         yb_pred = np.zeros(batch_size, dtype=int)
         for i in range(batch_size):
             instance = Instance.from_array(learner.schema, x[i].numpy())
@@ -32,16 +33,16 @@ def _batch_test(rng: np.random.Generator, learner: Classifier, x: Tensor) -> np.
         return yb_pred
 
 
-def _batch_train(learner: Classifier, x: Tensor, y: Tensor):
+def _batch_train(learner: Classifier, x: Tensor, y: Tensor, x_shape: Sequence[int]):
     """Train a batch of instances using the learner."""
-    batch_size = x.shape[0]
-    x = x.view(batch_size, -1)
+    bs = x.shape[0]
     if isinstance(learner, BatchClassifier):
-        x = x.to(dtype=learner.x_dtype, device=learner.device)
+        x = x.to(dtype=learner.x_dtype, device=learner.device).view(bs, *x_shape)
         y = y.to(dtype=learner.y_dtype, device=learner.device)
         learner.batch_train(x, y)
     else:
-        for i in range(batch_size):
+        x = x.view(bs, -1)
+        for i in range(bs):
             instance = LabeledInstance.from_array(
                 learner.schema, x[i].numpy(), int(y[i].item())
             )

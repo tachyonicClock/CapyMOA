@@ -65,7 +65,7 @@ class Finetune(BatchClassifier):
             function that takes the model parameters and returns an optimizer.
         :param criterion: Loss function to use for training.
         :param device: Hardware for training.
-        :param random_seed: Seeds torch :py:func:`torch.manual_seed`.
+        :param random_seed: Seed for PyTorch.
         """
         super().__init__(schema, random_seed)
         # seed for reproducibility

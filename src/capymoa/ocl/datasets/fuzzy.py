@@ -186,9 +186,9 @@ def fuzzy_task_transitions(
     >>> stream = TinySplitMNIST(shuffle_tasks=False)
     >>> int(stream.train_tasks[0][-1][1])
     0
-    >>> tasks = fuzzy_task_transitions(stream.train_tasks, SigmoidFn(width=0.5))
+    >>> tasks = fuzzy_task_transitions(stream.train_tasks, SigmoidFn(width=0.5, seed=0))
     >>> int(tasks[0][-1][1]) # Task 2 now blurs into Task 1
-    2
+    3
 
     """
     stream = ConcatDataset(tasks)

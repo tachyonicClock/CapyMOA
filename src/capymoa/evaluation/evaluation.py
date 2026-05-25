@@ -1040,8 +1040,10 @@ def prequential_evaluation(
         if isinstance(learner, Batch):
             # Collect a batch of instances and predict them all at once
             np_x = np.stack([instance.x for instance in batch])
-            torch_x = torch.from_numpy(np_x).to(
-                device=learner.device, dtype=learner.x_dtype
+            torch_x = (
+                torch.from_numpy(np_x)
+                .to(device=learner.device, dtype=learner.x_dtype)
+                .view(len(batch), *stream.get_schema().shape)
             )
             torch_y = torch.tensor(
                 yb_true, dtype=learner.y_dtype, device=learner.device

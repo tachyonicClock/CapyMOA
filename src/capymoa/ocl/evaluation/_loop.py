@@ -154,7 +154,7 @@ def ocl_train_eval_loop(
         for _ in range(epochs):
             for batch_id, (x_train, y_train) in enumerate(train_stream):
                 y_hat = torch.from_numpy(_batch_test(rng, learner, x_train))
-                _batch_train(learner, x_train, y_train)
+                _batch_train(learner, x_train, y_train, learner.schema.shape)
                 dispatcher.notify(
                     events.TrainBatchPredict(
                         train_task=train_task_id,

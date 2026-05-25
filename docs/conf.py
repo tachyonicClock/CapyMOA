@@ -124,7 +124,7 @@ if not notebook_doc_source.exists():
 
 intersphinx_mapping = {
     "sklearn": ("https://scikit-learn.org/stable/", None),
-    "torch": ("https://pytorch.org/docs/stable/", None),
+    "torch": ("https://pytorch.org/docs/2.11/", None),
     "python": ("https://docs.python.org/3", None),
 }
 
