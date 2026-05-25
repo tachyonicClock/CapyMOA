@@ -1,9 +1,17 @@
 from typing import Callable, Type, Dict, cast, TypeVar
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 
 class Event:
     """Base class for events emitted by a :py:class:`Dispatcher`."""
+
+
+@dataclass
+class LogScalar(Event):
+    tag: str
+    scalar_value: float
+    global_step: int
 
 
 _E = TypeVar("_E", bound=Event)

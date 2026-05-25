@@ -9,7 +9,7 @@ Events emit in the following order:
             TrainBatchPredict
                 TestBegin
                 TestTaskBegin (for number of tasks)
-                    EvalBatchPredict
+                    TestBatchPredict
                 TestTaskEnd
             TestEnd
         TrainTaskEnd
@@ -46,7 +46,9 @@ class TrainBatchPredict(TrainTaskBegin):
     """The input batch."""
     y: Tensor
     """The target batch."""
-    y_hat: Tensor
+    y_proba: Tensor
+    """The predicted logits batch."""
+    y_pred: Tensor
     """The predicted batch."""
 
 
@@ -54,18 +56,12 @@ class TrainTaskEnd(TrainTaskBegin):
     """On training end for a task."""
 
 
+@dataclass
 class TestBegin(Event):
     """On evaluation start."""
 
-
-@dataclass
-class TestTaskBegin(Event):
-    """On evaluation start for a task."""
-
     train_task: int
     """The ID of the training task that is being evaluated."""
-    test_task: int
-    """The ID of the test task that has begun."""
     continual_eval: int
     """If multiple evaluations are performed during each training task, this counts
     which evaluation pass is being performed. Otherwise will be 0."""
@@ -74,7 +70,15 @@ class TestTaskBegin(Event):
 
 
 @dataclass
-class EvalBatchPredict(TestTaskBegin):
+class TestTaskBegin(TestBegin):
+    """On evaluation start for a task."""
+
+    test_task: int
+    """The ID of the test task that has begun."""
+
+
+@dataclass
+class TestBatchPredict(TestTaskBegin):
     """After predicting on an evaluation batch, but before any updates."""
 
     batch: int
@@ -91,7 +95,7 @@ class TestTaskEnd(TestTaskBegin):
     """On evaluation end for a task."""
 
 
-class TestEnd(Event):
+class TestEnd(TestBegin):
     """On evaluation end."""
 
 

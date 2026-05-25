@@ -4,8 +4,9 @@ from typing import Optional
 
 import numpy as np
 import torch
+from torch.nn.functional import cross_entropy
 
-from capymoa.base.events import Handler, Dispatcher
+from capymoa.base.events import Handler, Dispatcher, LogScalar
 from capymoa.evaluation.results import PrequentialResults
 from capymoa.ocl.evaluation import events
 from capymoa.type_alias import LabelIndex
@@ -54,10 +55,29 @@ class _OCLEvaluator(Handler):
         # TODO: handle missing predictions
 
     def attach_with(self, source: Dispatcher) -> "Handler":
-        source.subscribe(events.EvalBatchPredict, self._on_eval_batch)
+        self.dispatcher = source
+
+        source.subscribe(events.TestBatchPredict, self._on_eval_batch)
+        source.subscribe(events.TrainBatchPredict, self._on_train_batch)
+        source.subscribe(events.TestEnd, self._on_test_end)
         return self
 
-    def _on_eval_batch(self, event: events.EvalBatchPredict) -> None:
+    def log_scalar(self, tag: str, scalar_value: float, global_step: int) -> None:
+        self.dispatcher.notify(
+            LogScalar(tag=tag, scalar_value=scalar_value, global_step=global_step)
+        )
+
+    def _on_train_batch(self, event: events.TrainBatchPredict) -> None:
+        accuracy = (event.y == event.y_pred).float().mean().item()
+        ce = cross_entropy(event.y_proba, event.y).item()
+        self.log_scalar(
+            f"ocl_train/accuracy_{event.train_task:02d}", accuracy, event.global_step
+        )
+        self.log_scalar(
+            f"ocl_train/cross_entropy_{event.train_task:02d}", ce, event.global_step
+        )
+
+    def _on_eval_batch(self, event: events.TestBatchPredict) -> None:
         for y_true, y_pred in zip(event.y, event.y_hat, strict=True):
             self.holdout_update(
                 event.train_task,
@@ -66,6 +86,38 @@ class _OCLEvaluator(Handler):
                 int(y_true.item()),
                 int(y_pred.item()),
             )
+
+    def _on_test_end(self, event: events.TestEnd) -> None:
+        correct = self.cm.diagonal(dim1=3, dim2=4).sum(-1)
+        total = self.cm.sum((3, 4))
+        anytime_acc = correct / total  # (train task, step_id, test task)
+
+        # Compute the accuracy on the current training task at the current evaluation
+        # step, and log it as a scalar.
+        for t in range(self.task_count):
+            self.log_scalar(
+                f"ocl_test/accuracy_task_{t:02d}",
+                anytime_acc[event.train_task, event.continual_eval, t].item(),
+                event.global_step,
+            )
+
+        # Compute the average accuracy on seen tasks at the current evaluation step, and
+        # log it as a scalar.
+        self.log_scalar(
+            "ocl_test/accuracy_seen",
+            anytime_acc[event.train_task, event.continual_eval, : event.train_task + 1]
+            .mean()
+            .item(),
+            event.global_step,
+        )
+
+        # Compute the average accuracy on all tasks at the current evaluation step, and
+        # log it as a scalar.
+        self.log_scalar(
+            "ocl_test/accuracy_all",
+            anytime_acc[event.train_task, event.continual_eval, :].mean().item(),
+            event.global_step,
+        )
 
     def build(
         self, ttt: PrequentialResults, boundary_instances: torch.Tensor

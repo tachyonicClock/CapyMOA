@@ -39,7 +39,7 @@ class _ProgressBarSink(Handler):
 
     def attach_with(self, source: Dispatcher) -> "_ProgressBarSink":
         source.subscribe(events.TrainBatchPredict, self._on_batch)
-        source.subscribe(events.EvalBatchPredict, self._on_batch)
+        source.subscribe(events.TestBatchPredict, self._on_batch)
         source.subscribe(events.TrainEnd, self._on_loop_end)
         return self
 
@@ -59,6 +59,7 @@ def ocl_train_eval_loop(
     eval_window_size: int = 1000,
     epochs: int = 1,
     dispatcher: Optional[Dispatcher] = None,
+    attach_learner: bool = True,
 ) -> OCLMetrics:
     """Run the OCL training loop with periodic continual evaluation.
 
@@ -73,6 +74,8 @@ def ocl_train_eval_loop(
         rolling metrics, defaults to 1000.
     :param epochs: Number of epochs to train each task stream, defaults to 1.
     :param dispatcher: Optional event dispatcher. If None, a new dispatcher is created.
+    :param attach_learner: Whether to attach the learner to the event dispatcher,
+        allowing it to receive events. Defaults to True.
     :return: Aggregated OCL metrics collected by the default metrics handler.
     :raises ValueError: If train/test task counts differ, learner is not a classifier,
         ``continual_evaluations < 1``, or a train stream has fewer batches than
@@ -103,7 +106,7 @@ def ocl_train_eval_loop(
         eval_window_size=eval_window_size,
     )
     default_sink.attach_with(dispatcher)
-    if isinstance(learner, Handler):
+    if isinstance(learner, Handler) and attach_learner:
         learner.attach_with(dispatcher)
 
     if progress_bar:
@@ -117,18 +120,28 @@ def ocl_train_eval_loop(
     global_step = 0
 
     def evaluate_learner(eval_step: int, global_step: int) -> None:
-        dispatcher.notify(events.TestBegin())
+        dispatcher.notify(
+            events.TestBegin(
+                train_task=train_task_id,
+                continual_eval=eval_step,
+                global_step=global_step,
+            )
+        )
         for test_task_id, test_stream in enumerate(test_streams):
             dispatcher.notify(
                 events.TestTaskBegin(
-                    train_task_id, test_task_id, eval_step, global_step
+                    train_task=train_task_id,
+                    test_task=test_task_id,
+                    continual_eval=eval_step,
+                    global_step=global_step,
                 )
             )
 
             for batch_id, (x_test, y_test) in enumerate(test_stream):
-                y_hat = torch.from_numpy(_batch_test(rng, learner, x_test))
+                y_hat_np, _ = _batch_test(rng, learner, x_test)
+                y_hat = torch.from_numpy(y_hat_np)
                 dispatcher.notify(
-                    events.EvalBatchPredict(
+                    events.TestBatchPredict(
                         train_task=train_task_id,
                         test_task=test_task_id,
                         continual_eval=eval_step,
@@ -141,9 +154,20 @@ def ocl_train_eval_loop(
                 )
 
             dispatcher.notify(
-                events.TestTaskEnd(train_task_id, test_task_id, eval_step, global_step)
+                events.TestTaskEnd(
+                    train_task=train_task_id,
+                    test_task=test_task_id,
+                    continual_eval=eval_step,
+                    global_step=global_step,
+                )
             )
-        dispatcher.notify(events.TestEnd())
+        dispatcher.notify(
+            events.TestEnd(
+                train_task=train_task_id,
+                continual_eval=eval_step,
+                global_step=global_step,
+            )
+        )
 
     for train_task_id, train_stream in enumerate(train_streams):
         dispatcher.notify(events.TrainTaskBegin(train_task_id, global_step))
@@ -153,7 +177,9 @@ def ocl_train_eval_loop(
 
         for _ in range(epochs):
             for batch_id, (x_train, y_train) in enumerate(train_stream):
-                y_hat = torch.from_numpy(_batch_test(rng, learner, x_train))
+                y_hat_np, y_proba_np = _batch_test(rng, learner, x_train)
+                y_hat = torch.from_numpy(y_hat_np)
+                y_proba = torch.from_numpy(y_proba_np)
                 _batch_train(learner, x_train, y_train, learner.schema.shape)
                 dispatcher.notify(
                     events.TrainBatchPredict(
@@ -162,7 +188,8 @@ def ocl_train_eval_loop(
                         batch=batch_id,
                         x=x_train,
                         y=y_train,
-                        y_hat=y_hat,
+                        y_proba=y_proba,
+                        y_pred=y_hat,
                     )
                 )
 

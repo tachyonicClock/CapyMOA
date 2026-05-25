@@ -8,7 +8,7 @@ import torch
 from capymoa.evaluation.results import PrequentialResults
 
 
-@dataclass(frozen=True)
+@dataclass()
 class OCLMetrics:
     r"""A collection of metrics evaluating an online continual learner.
 

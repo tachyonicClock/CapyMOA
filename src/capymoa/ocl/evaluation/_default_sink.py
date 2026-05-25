@@ -68,7 +68,7 @@ class _OCLMetricsHandler(Handler):
         )
 
     def _on_train_batch(self, event: TrainBatchPredict) -> None:
-        for y_true, y_pred in zip(event.y, event.y_hat, strict=True):
+        for y_true, y_pred in zip(event.y, event.y_pred, strict=True):
             y_true_i = int(y_true.item())
             y_pred_i = int(y_pred.item())
             self._online_eval.update(y_true_i, y_pred_i)
