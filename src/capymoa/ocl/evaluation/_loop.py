@@ -115,9 +115,11 @@ def ocl_train_eval_loop(
         ).attach_with(dispatcher)
 
     rng = np.random.default_rng(learner.random_seed)
-    dispatcher.notify(events.TrainBegin())
 
     global_step = 0
+    train_step = 0
+
+    dispatcher.notify(events.TrainBegin(global_step=global_step, train_step=train_step))
 
     def evaluate_learner(eval_step: int, global_step: int) -> None:
         dispatcher.notify(
@@ -170,7 +172,7 @@ def ocl_train_eval_loop(
         )
 
     for train_task_id, train_stream in enumerate(train_streams):
-        dispatcher.notify(events.TrainTaskBegin(train_task_id, global_step))
+        dispatcher.notify(events.TrainTaskBegin(train_task_id, global_step, train_step))
 
         eval_interval = (len(train_stream) * epochs) // continual_evaluations
         step = 0
@@ -185,6 +187,7 @@ def ocl_train_eval_loop(
                     events.TrainBatchPredict(
                         train_task=train_task_id,
                         global_step=global_step,
+                        train_step=train_step,
                         batch=batch_id,
                         x=x_train,
                         y=y_train,
@@ -200,10 +203,11 @@ def ocl_train_eval_loop(
 
                 step += 1
                 global_step += 1
+                train_step += 1
 
-        dispatcher.notify(events.TrainTaskEnd(train_task_id, global_step))
+        dispatcher.notify(events.TrainTaskEnd(train_task_id, global_step, train_step))
 
-    dispatcher.notify(events.TrainEnd())
+    dispatcher.notify(events.TrainEnd(global_step=global_step, train_step=train_step))
 
     return default_sink.build(
         learner_name=str(learner),

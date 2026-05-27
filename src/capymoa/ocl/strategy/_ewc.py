@@ -70,6 +70,7 @@ def fd_accumulate(
     return fisher_diagonals
 
 
+@torch.enable_grad()
 def fd_compute(
     model: torch.nn.Module,
     forward_fn: Callable[[Tensor], Tensor],
@@ -152,9 +153,10 @@ class EWC(BatchClassifier, nn.Module, Handler):
         :param model: Torch model that outputs class logits.
         :param optimiser: Optimiser used to update ``model`` parameters.
         :param lambda_: Weight of the EWC regularisation term.
-        :param buffer_capacity: Replay window size for Fisher estimation, defaults to 256.
-        :param fim_replay_builder: Builder used to construct the replay buffer used
-            for Fisher estimation.
+        :param buffer_capacity: Replay window size for Fisher estimation, defaults to
+            256.
+        :param fim_replay_builder: Builder used to construct the replay buffer used for
+            Fisher estimation.
         :param fim_batch_size: Mini-batch size used when estimating Fisher diagonals.
         :param device: Compute device.
         :param mask_test: Whether to apply per-task masking during testing. This is a
@@ -162,6 +164,9 @@ class EWC(BatchClassifier, nn.Module, Handler):
         :param mask_train: Whether to apply per-task masking during training. This is
             also known as the labels trick.
         :param task_mask: Optional per-task mask applied to output logits.
+        :param gamma: Decay factor for the accumulated Fisher diagonals. A value of 1.0
+            corresponds to standard EWC accumulation, while values less than 1.0
+            implement a decay as in Online EWC.
         :raises ValueError: If task-specific masking is requested without ``task_mask``.
         """
         super().__init__(schema, 0)

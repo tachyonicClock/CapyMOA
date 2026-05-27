@@ -25,6 +25,11 @@ from torch import Tensor
 class TrainBegin(Event):
     """On training start."""
 
+    global_step: int
+    """A monotonically increasing integer that counts training and evaluation steps."""
+    train_step: int
+    """A monotonically increasing integer that counts training steps only."""
+
 
 @dataclass
 class TrainTaskBegin(Event):
@@ -34,6 +39,8 @@ class TrainTaskBegin(Event):
     """The ID of the training task that has begun."""
     global_step: int
     """A monotonically increasing integer that counts training and evaluation steps."""
+    train_step: int
+    """A monotonically increasing integer that counts training steps only."""
 
 
 @dataclass
@@ -99,5 +106,11 @@ class TestEnd(TestBegin):
     """On evaluation end."""
 
 
+@dataclass
 class TrainEnd(Event):
     """On training end."""
+
+    global_step: int
+    """A monotonically increasing integer that counts training and evaluation steps."""
+    train_step: int
+    """A monotonically increasing integer that counts training steps only."""
