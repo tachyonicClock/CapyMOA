@@ -7,6 +7,7 @@ from . import l2p
 from ._ewc import EWC
 from ._lwf import LWF
 from ._der import DER
+from ._si import SI
 
 __all__ = [
     "ExperienceReplay",
@@ -18,4 +19,5 @@ __all__ = [
     "EWC",
     "LWF",
     "DER",
+    "SI",
 ]

@@ -12,7 +12,17 @@ from capymoa.classifier import Finetune, HoeffdingTree
 from capymoa.ocl.datasets import TinySplitMNIST
 from capymoa.ocl.evaluation import ocl_train_eval_loop
 from capymoa.ocl.replay import ClassBalanced
-from capymoa.ocl.strategy import ExperienceReplay, SLDA, NCM, GDumb, RAR, EWC, LWF, DER
+from capymoa.ocl.strategy import (
+    ExperienceReplay,
+    SLDA,
+    NCM,
+    GDumb,
+    RAR,
+    EWC,
+    LWF,
+    DER,
+    SI,
+)
 from capymoa.stream import Schema
 
 import torch
@@ -52,13 +62,16 @@ def pre_processor() -> nn.Module:
 
 
 def new_constructor(
-    learner: Type[Classifier], lr: float, **kwargs
+    learner: Type[Classifier],
+    lr: float,
+    optimiser_type: Type[torch.optim.Optimizer] = torch.optim.SGD,
+    **kwargs,
 ) -> Callable[[Schema], Classifier]:
     """Create a new learner instance with the given hyperparameters."""
 
     def constructor(schema: Schema, **extra_kwargs) -> Classifier:
         model = Perceptron(schema)
-        optimiser = torch.optim.SGD(model.parameters(), lr=lr)
+        optimiser = optimiser_type(model.parameters(), lr=lr)
         return learner(
             schema,
             model,
@@ -152,6 +165,24 @@ TEST_CASES: List[Case] = [
             augment=nn.Dropout(p=0.05),
         ),
         Result(40.5, 31.4, 73.0),
+    ),
+    Case(
+        "SI",
+        new_constructor(SI, lr=0.006, lambda_=2.5, optimiser_type=torch.optim.Adam),
+        Result(30.5, 26.7, 13.1),
+    ),
+    Case(
+        "SI_mask",
+        new_constructor(
+            SI,
+            lr=0.006,
+            lambda_=2.5,
+            optimiser_type=torch.optim.Adam,
+            mask_train=True,
+            mask_test=True,
+        ),
+        Result(84.49, 69.99, 24.2),
+        task_mask=True,
     ),
 ]
 
