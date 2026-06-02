@@ -9,6 +9,8 @@ from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
 from capymoa.ocl.util._buffer import BufferList
 from capymoa.stream._stream import Schema
 
+NEG_INF = float("-inf")
+
 
 def weighted_l2_reg(
     params: Iterable[Tensor],
@@ -195,14 +197,14 @@ class SI(BatchClassifier, nn.Module, Handler):
         """Compute logits for inference, optionally applying a test-task mask."""
         y_hat = self._model(x)
         if self._task_mask is not None and self._mask_test:
-            y_hat = self._task_mask[self._test_task] * y_hat
+            y_hat = y_hat.masked_fill(self._task_mask[self._test_task] == 0, NEG_INF)
         return y_hat
 
     def _train_forward(self, x: Tensor) -> Tensor:
         """Compute logits for training, optionally applying a train-task mask."""
         y_hat = self._model(x)
         if self._task_mask is not None and self._mask_train:
-            y_hat = self._task_mask[self._train_task] * y_hat
+            y_hat = y_hat.masked_fill(self._task_mask[self._train_task] == 0, NEG_INF)
         return y_hat
 
     def _regularisation_loss(self) -> Tensor:

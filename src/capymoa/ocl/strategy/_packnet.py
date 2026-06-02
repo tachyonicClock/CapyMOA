@@ -5,10 +5,11 @@ from typing import Dict, Optional, override
 
 from capymoa.base import BatchClassifier
 from capymoa.base.events import Dispatcher, Handler
-from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin, TrainTaskEnd
+from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
 from capymoa.stream import Schema
 
 TensorDict = Dict[str, Tensor]
+NEG_INF = float("-inf")
 
 
 def masked_forward(
@@ -24,6 +25,11 @@ class PackNet(BatchClassifier, Handler):
     PackNet [#f0]_ trains a single network across tasks while freezing previously
     allocated parameters and pruning trainable parameters by magnitude at task
     boundaries.
+
+    Offline PackNet will perform a retraining phase at each task boundaries to recover
+    lost performance. This is not possible in the online setting where we are limited to
+    a single pass over the dataset. In the future we may support warning PackNet about
+    upcoming boundaries.
 
     .. [#f0] Mallya, A., & Lazebnik, S. (2018). PackNet: Adding Multiple Tasks to a
         Single Network by Iterative Pruning. 2018 IEEE/CVF Conference on Computer Vision
@@ -100,14 +106,12 @@ class PackNet(BatchClassifier, Handler):
 
     def attach_with(self, source: Dispatcher) -> None:
         source.subscribe(TrainTaskBegin, self.on_train_task_begin)
-        source.subscribe(TrainTaskEnd, self.on_train_task_end)
         source.subscribe(TestTaskBegin, self.on_test_task_begin)
 
     def on_train_task_begin(self, event: TrainTaskBegin) -> None:
+        if event.train_task > self._train_task:
+            self._finalise_task(self._train_task)
         self._train_task = event.train_task
-
-    def on_train_task_end(self, event: TrainTaskEnd) -> None:
-        self._finalise_task(event.train_task)
 
     def on_test_task_begin(self, event: TestTaskBegin) -> None:
         self._test_task = event.test_task
@@ -133,10 +137,11 @@ class PackNet(BatchClassifier, Handler):
     def _apply_output_task_mask(self, logits: Tensor, task: int, train: bool) -> Tensor:
         if self._task_mask is None:
             return logits
+        task_mask = self._task_mask[task] == 0
         if train and self._mask_train:
-            return self._task_mask[task] * logits
+            return logits.masked_fill(task_mask, NEG_INF)
         if (not train) and self._mask_test:
-            return self._task_mask[task] * logits
+            return logits.masked_fill(task_mask, NEG_INF)
         return logits
 
     def _compute_loss(

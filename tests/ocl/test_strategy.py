@@ -145,9 +145,9 @@ TEST_CASES: List[Case] = [
         Result(24.5, 18.8, 14.6),
     ),
     Case(
-        "EWC(mask_test=True)",
+        "EWC-masked",
         new_constructor(EWC, lr=0.06, lambda_=168.69, mask_test=True),
-        Result(71.99, 47.20, 25.3),
+        Result(82.0, 65.89, 19.2),
         task_mask=True,
     ),
     Case(
@@ -173,7 +173,7 @@ TEST_CASES: List[Case] = [
         Result(30.5, 26.7, 13.1),
     ),
     Case(
-        "SI_mask",
+        "SI-masked",
         new_constructor(
             SI,
             lr=0.006,
@@ -182,7 +182,7 @@ TEST_CASES: List[Case] = [
             mask_train=True,
             mask_test=True,
         ),
-        Result(84.49, 69.99, 24.2),
+        Result(93.0, 80.8, 31.5),
         task_mask=True,
     ),
     Case(
@@ -194,7 +194,7 @@ TEST_CASES: List[Case] = [
             prune_fraction=0.72,
             mask_train=True,
         ),
-        Result(66.5, 59.70, 25.1),
+        Result(87.99, 77.29, 30.4),
         task_mask=True,
     ),
 ]
