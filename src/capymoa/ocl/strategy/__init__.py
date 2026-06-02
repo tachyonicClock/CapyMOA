@@ -8,6 +8,7 @@ from ._ewc import EWC
 from ._lwf import LWF
 from ._der import DER
 from ._si import SI
+from ._packnet import PackNet
 
 __all__ = [
     "ExperienceReplay",
@@ -20,4 +21,5 @@ __all__ = [
     "LWF",
     "DER",
     "SI",
+    "PackNet",
 ]

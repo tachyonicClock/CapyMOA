@@ -74,16 +74,18 @@ class _LambdaLayer(nn.Module):
 class _BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_planes, planes, stride=1, option="A"):
+    def __init__(
+        self, in_planes, planes, stride=1, option="A", batch_norm: bool = True
+    ):
         super(_BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(
             in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False
         )
-        self.bn1 = nn.BatchNorm2d(planes)
+        self.bn1 = nn.BatchNorm2d(planes) if batch_norm else nn.Identity()
         self.conv2 = nn.Conv2d(
             planes, planes, kernel_size=3, stride=1, padding=1, bias=False
         )
-        self.bn2 = nn.BatchNorm2d(planes)
+        self.bn2 = nn.BatchNorm2d(planes) if batch_norm else nn.Identity()
 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != planes:
@@ -100,16 +102,18 @@ class _BasicBlock(nn.Module):
                     )
                 )
             elif option == "B":
-                self.shortcut = nn.Sequential(
+                shortcut_layers: list[nn.Module] = [
                     nn.Conv2d(
                         in_planes,
                         self.expansion * planes,
                         kernel_size=1,
                         stride=stride,
                         bias=False,
-                    ),
-                    nn.BatchNorm2d(self.expansion * planes),
-                )
+                    )
+                ]
+                if batch_norm:
+                    shortcut_layers.append(nn.BatchNorm2d(self.expansion * planes))
+                self.shortcut = nn.Sequential(*shortcut_layers)
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
@@ -120,12 +124,13 @@ class _BasicBlock(nn.Module):
 
 
 class _ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10):
+    def __init__(self, block, num_blocks, num_classes=10, batch_norm: bool = True):
         super(_ResNet, self).__init__()
         self.in_planes = 16
+        self._batch_norm = batch_norm
 
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(16)
+        self.bn1 = nn.BatchNorm2d(16) if batch_norm else nn.Identity()
         self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2)
@@ -137,7 +142,9 @@ class _ResNet(nn.Module):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
-            layers.append(block(self.in_planes, planes, stride))
+            layers.append(
+                block(self.in_planes, planes, stride, batch_norm=self._batch_norm)
+            )
             self.in_planes = planes * block.expansion
 
         return nn.Sequential(*layers)
@@ -154,55 +161,55 @@ class _ResNet(nn.Module):
         return out
 
 
-def resnet20_32x32(num_classes: int):
+def resnet20_32x32(num_classes: int, batch_norm: bool = True):
     """A small ResNet20 (0.27M parameters) variant for 32x32 images.
 
     For more information visit the `source implementation
     <https://github.com/akamaster/pytorch_resnet_cifar10>`_.
     """
-    return _ResNet(_BasicBlock, [3, 3, 3], num_classes)
+    return _ResNet(_BasicBlock, [3, 3, 3], num_classes, batch_norm=batch_norm)
 
 
-def resnet32_32x32(num_classes: int):
+def resnet32_32x32(num_classes: int, batch_norm: bool = True):
     """A small ResNet32 (0.46M parameters) variant for 32x32 images.
 
     For more information visit the `source implementation
     <https://github.com/akamaster/pytorch_resnet_cifar10>`_.
     """
-    return _ResNet(_BasicBlock, [5, 5, 5], num_classes)
+    return _ResNet(_BasicBlock, [5, 5, 5], num_classes, batch_norm=batch_norm)
 
 
-def resnet44_32x32(num_classes: int):
+def resnet44_32x32(num_classes: int, batch_norm: bool = True):
     """A small ResNet44 (0.66M parameters) variant for 32x32 images.
 
     For more information visit the `source implementation
     <https://github.com/akamaster/pytorch_resnet_cifar10>`_.
     """
-    return _ResNet(_BasicBlock, [7, 7, 7], num_classes)
+    return _ResNet(_BasicBlock, [7, 7, 7], num_classes, batch_norm=batch_norm)
 
 
-def resnet56_32x32(num_classes: int):
+def resnet56_32x32(num_classes: int, batch_norm: bool = True):
     """A small ResNet56 (0.85M parameters) variant for 32x32 images.
 
     For more information visit the `source implementation
     <https://github.com/akamaster/pytorch_resnet_cifar10>`_.
     """
-    return _ResNet(_BasicBlock, [9, 9, 9], num_classes)
+    return _ResNet(_BasicBlock, [9, 9, 9], num_classes, batch_norm=batch_norm)
 
 
-def resnet110_32x32(num_classes: int):
+def resnet110_32x32(num_classes: int, batch_norm: bool = True):
     """A small ResNet110 (1.7M parameters) variant for 32x32 images.
 
     For more information visit the `source implementation
     <https://github.com/akamaster/pytorch_resnet_cifar10>`_.
     """
-    return _ResNet(_BasicBlock, [18, 18, 18], num_classes)
+    return _ResNet(_BasicBlock, [18, 18, 18], num_classes, batch_norm=batch_norm)
 
 
-def resnet1202_32x32(num_classes: int):
+def resnet1202_32x32(num_classes: int, batch_norm: bool = True):
     """A small ResNet1202 (19.4M parameters) variant for 32x32 images.
 
     For more information visit the `source implementation
     <https://github.com/akamaster/pytorch_resnet_cifar10>`_.
     """
-    return _ResNet(_BasicBlock, [200, 200, 200], num_classes)
+    return _ResNet(_BasicBlock, [200, 200, 200], num_classes, batch_norm=batch_norm)

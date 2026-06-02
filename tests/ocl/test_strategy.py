@@ -22,6 +22,7 @@ from capymoa.ocl.strategy import (
     LWF,
     DER,
     SI,
+    PackNet,
 )
 from capymoa.stream import Schema
 
@@ -184,6 +185,18 @@ TEST_CASES: List[Case] = [
         Result(84.49, 69.99, 24.2),
         task_mask=True,
     ),
+    Case(
+        "PackNet",
+        new_constructor(
+            PackNet,
+            lr=0.004,
+            optimiser_type=torch.optim.Adam,
+            prune_fraction=0.72,
+            mask_train=True,
+        ),
+        Result(66.5, 59.70, 25.1),
+        task_mask=True,
+    ),
 ]
 
 
@@ -208,6 +221,7 @@ def test_ocl_classifier(case: Case):
         scenario.test_loaders(case.batch_size),
         epochs=case.epochs,
     )
+
     actual = Result(
         r.accuracy_final * 100,
         r.anytime_accuracy_all_avg * 100,
