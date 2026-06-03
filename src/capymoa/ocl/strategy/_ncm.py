@@ -5,6 +5,29 @@ from capymoa.stream import Schema
 from torch import Tensor, nn
 
 
+def _ncm_classify(features: Tensor, class_means: Tensor) -> Tensor:
+    """Classify the features using the nearest (euclidean) means.
+
+    :param features: Tensor of shape ``(B, F)``
+    :param class_means: Tensor of shape ``(C, F)``
+    :return: Tensor of probabilities of shape ``(B, C)``
+    """
+    if features.dim() != 2 or class_means.dim() != 2:
+        raise ValueError("`features` and `class_means` must be 2D tensors.")
+    if features.size(1) != class_means.size(1):
+        raise ValueError("`features` and `class_means` differ in number of features.")
+
+    # Calculate distances to class means
+    distances = torch.cdist(features.unsqueeze(0), class_means.unsqueeze(0))
+    distances = distances.squeeze(0)
+
+    # Convert distances to pseudo-probabilities. Using the inverse weighted
+    # distance method.
+    inv_distances = 1 / (1 + distances)
+    probabilities = inv_distances / inv_distances.sum(dim=1, keepdim=True)
+    return probabilities
+
+
 def _batch_cumulative_mean(
     batch: Tensor, count: int, mean: Tensor
 ) -> Tuple[int, Tensor]:
@@ -92,13 +115,4 @@ class NCM(BatchClassifier):
     @torch.no_grad()
     def batch_predict_proba(self, x: Tensor) -> Tensor:
         x = self._pre_processor(x).flatten(start_dim=1)
-
-        # Calculate distances to class means
-        distances = torch.cdist(x.unsqueeze(0), self._class_means.unsqueeze(0))
-        distances = distances.squeeze(0)
-
-        # Convert distances to pseudo-probabilities. Using the inverse weighted
-        # distance method.
-        inv_distances = 1 / (1 + distances)
-        probabilities = inv_distances / inv_distances.sum(dim=1, keepdim=True)
-        return probabilities
+        return _ncm_classify(x, self._class_means)

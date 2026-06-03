@@ -9,6 +9,7 @@ from ._lwf import LWF
 from ._der import DER
 from ._si import SI
 from ._packnet import PackNet
+from ._icarl import ICaRL
 
 __all__ = [
     "ExperienceReplay",
@@ -22,4 +23,5 @@ __all__ = [
     "DER",
     "SI",
     "PackNet",
+    "ICaRL",
 ]

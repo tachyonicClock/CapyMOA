@@ -31,6 +31,11 @@ class ReplayBuffer(ABC, nn.Module):
         indices = torch.randint(0, self.count, (n,))
         return {key: buffer[indices] for key, buffer in self._buffer.items()}
 
+    def clear(self) -> None:
+        """Clear the replay buffer."""
+        self._count = 0
+        self._i = 0
+
     def array(self) -> Dict[str, Tensor]:
         """Return the replay buffer as a dictionary of tensors."""
         return {key: buffer[: self.count] for key, buffer in self._buffer.items()}

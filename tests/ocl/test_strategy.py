@@ -23,6 +23,7 @@ from capymoa.ocl.strategy import (
     DER,
     SI,
     PackNet,
+    ICaRL,
 )
 from capymoa.stream import Schema
 
@@ -32,6 +33,8 @@ from torch import nn
 # PyTorch is notorious for non-deterministic behavior between versions and platforms.
 # Here we set a fixed absolute tolerance of +-1.5 for percentage-based metrics.
 approx = partial(pytest.approx, abs=1.5)
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 @dataclass(frozen=True)
@@ -90,6 +93,19 @@ def _new_rar(schema):
         Finetune(schema, Perceptron(schema)),
         augment=nn.Dropout(p=0.2),
         repeats=2,
+    )
+
+
+def _new_icarl(schema: Schema) -> ICaRL:
+    model = Perceptron(schema)
+    return ICaRL(
+        schema=schema,
+        model=model,
+        optimiser=torch.optim.Adam(model.parameters(), lr=0.01),
+        feature_extractor=nn.Sequential(nn.Flatten(), model._fc1, nn.ReLU()),
+        capacity=200,
+        batch_size=32,
+        device = DEVICE,
     )
 
 
@@ -196,6 +212,11 @@ TEST_CASES: List[Case] = [
         ),
         Result(87.99, 77.29, 30.4),
         task_mask=True,
+    ),
+    Case(
+        "ICaRL",
+        _new_icarl,
+        Result(37.0, 29.2, 12.6),
     ),
 ]
 
