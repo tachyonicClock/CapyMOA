@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Sequence
 
 import torch
 from torch import Tensor, nn
@@ -15,17 +15,85 @@ NEG_INF = float("-inf")
 def weighted_l2_reg(
     params: Iterable[Tensor],
     anchor_params: Iterable[Tensor],
-    importances: Iterable[Tensor],
+    importance: Iterable[Tensor],
     device: torch.device,
 ) -> Tensor:
     """Compute an SI-style weighted L2 regularisation term."""
     l2 = torch.tensor(0.0, device=device)
     for param, anchor_param, importance in zip(
-        params, anchor_params, importances, strict=True
+        params, anchor_params, importance, strict=True
     ):
         assert param.shape == anchor_param.shape
         l2 += (importance * (param - anchor_param) ** 2).sum()
-    return l2 / 2.0
+    return 0.5 * l2
+
+@torch.no_grad()
+def accumulate_trajectory_(
+    trajectory: Sequence[Tensor],
+    pre_step_params: Iterable[Tensor],
+    post_step_params: Iterable[Tensor],
+    unreg_grads: Iterable[Tensor],
+):
+    """In-place update of the SI trajectory buffers.
+
+    Approximates the path integral online during each training iteration.
+    Calculates the change in the unregularized loss contributed by each parameter.
+    """
+    for traj, pre_param, post_param, grad in zip(
+        trajectory,
+        pre_step_params,
+        post_step_params,
+        unreg_grads,
+        strict=True,
+    ):
+        # The negative sign ensures we measure the *decrease* in loss.
+        # Trajectory (w) = -grad * delta_theta
+        step_contribution = -grad * (post_param - pre_param)
+        traj.add_(step_contribution)
+
+@torch.no_grad()
+def update_importance_weights_(
+    importance: Sequence[Tensor],
+    trajectory: Iterable[Tensor],
+    start_task_params: Iterable[Tensor],
+    end_task_params: Iterable[Tensor],
+    damping: float = 0.1,
+):
+    """In-place update of the SI importance buffers.
+
+    Calculates the new importance matrix (Omega) at the end of a task.
+    """
+    for omega, traj, start_param, end_param in zip(
+        importance, trajectory, start_task_params, end_task_params, strict=True
+    ):
+        # Importance is the accumulated trajectory normalized by the total change
+        # in the parameter over the whole task (plus a damping factor for numerical stability).
+        param_shift_squared = (end_param - start_param).pow(2)
+        task_importance = traj / (param_shift_squared + damping)
+
+        # Accumulate importance across sequential tasks
+        omega.add_(task_importance)
+
+@torch.no_grad()
+def copy_grads_(module: nn.Module, dst: Sequence[Tensor]) -> None:
+    """Copy gradients from a module's parameters into a pre-allocated list."""
+    for param, dst_tensor in zip(
+        filter(lambda p: p.grad is not None, module.parameters()), dst, strict=True
+    ):
+        assert param.grad is not None
+        dst_tensor.copy_(param.grad.detach())
+
+@torch.no_grad()
+def copy_params_(module: nn.Module, dst: Sequence[Tensor]) -> None:
+    """Copy parameters from a module into a pre-allocated list."""
+    for param, dst_tensor in zip(module.parameters(), dst, strict=True):
+        dst_tensor.copy_(param.detach())
+
+@torch.no_grad()
+def reset_trajectory_(trajectory: Sequence[Tensor]) -> None:
+    """In-place zeroing of the SI trajectory buffers."""
+    for traj in trajectory:
+        traj.zero_()
 
 
 class SI(BatchClassifier, nn.Module, Handler):
@@ -34,6 +102,11 @@ class SI(BatchClassifier, nn.Module, Handler):
     Synaptic Intelligence (SI) is a regularisation-based continual learning strategy
     that accumulates per-parameter importance online from optimization trajectories,
     then penalises changes to parameters that were important for previous tasks [#f1]_.
+
+    Alternative implementations:
+
+    * `Avalanche Lib <https://github.com/ContinualAI/avalanche/blob/eb075be393e1f458b2c352514ff6c17b5a2c0f4e/avalanche/training/plugins/synaptic_intelligence.py>`__
+    * `FACIL <https://github.com/mmasana/FACIL/blob/e09d2c83320a1aa945a6157d4875437515824dc9/src/approach/path_integral.py>`__
 
     ..  [#f1] Zenke, F., Poole, B., & Ganguli, S. (2017). Continual Learning Through
         Synaptic Intelligence. International Conference on Machine Learning, 3987–3995.
@@ -90,16 +163,18 @@ class SI(BatchClassifier, nn.Module, Handler):
         self._model = model
         self._criterion = torch.nn.CrossEntropyLoss()
 
-        # Buffers for SI regularisation
-        self._anchor_params = BufferList(
-            [param.clone().detach() for param in model.parameters()]
+        # Allocate buffers for SI regularisation
+        self._buf_anchor = BufferList([p.clone().detach() for p in model.parameters()])
+        self._buf_importance = BufferList(
+            [torch.zeros_like(p) for p in model.parameters()]
         )
-        self._omegas = BufferList(
-            [torch.zeros_like(param) for param in model.parameters()]
+        self._buf_pre_step_params = BufferList(
+            [torch.zeros_like(p) for p in model.parameters()]
         )
-        self._trajectory = BufferList(
-            [torch.zeros_like(param) for param in model.parameters()]
+        self._buf_trajectory = BufferList(
+            [torch.zeros_like(p) for p in model.parameters()]
         )
+        self._buf_grads = BufferList([torch.zeros_like(p) for p in model.parameters()])
 
         # Task tracking
         self._train_task = 0
@@ -114,36 +189,40 @@ class SI(BatchClassifier, nn.Module, Handler):
 
     def batch_train(self, x: Tensor, y: Tensor) -> None:
         self._model.train()
-        self._optimiser.zero_grad()
 
+
+        # Compute unregularised loss and gradients
+        self._optimiser.zero_grad()
         y_hat = self._train_forward(x)
         loss = self._criterion(y_hat, y)
-        total_loss = loss + self._lambda * self._regularisation_loss()
-        total_loss.backward()
+        loss.backward()
 
-        with torch.no_grad():
-            old_params = [param.detach().clone() for param in self._model.parameters()]
-            grads = []
-            for param in self._model.parameters():
-                if param.grad is None:
-                    raise ValueError(
-                        "Parameter gradients must be computed before updating SI trajectory."
-                    )
-                grads.append(param.grad.detach().clone())
+        # Capture parameters before the optimiser step
+        copy_params_(self._model, self._buf_pre_step_params)
 
+        # Save unregularised gradients needed for the path integral
+        copy_grads_(self._model, self._buf_grads)
+
+        # Add SI regularisation loss (only applies after the first task)
+        if self._train_task > 0:
+            reg_loss = self._lambda * weighted_l2_reg(
+                self._model.parameters(),
+                self._buf_anchor,
+                self._buf_importance,
+                device=self.device,
+            )
+            reg_loss.backward()
+
+        # Apply the optimiser step
         self._optimiser.step()
-        self._accumulate_trajectory(old_params, grads)
 
-    @torch.no_grad()
-    def _accumulate_trajectory(
-        self, old_params: list[Tensor], grads: list[Tensor]
-    ) -> None:
-        """Accumulate SI path integrals from parameter updates."""
-        for param, old_param, grad, trajectory in zip(
-            self._model.parameters(), old_params, grads, self._trajectory, strict=True
-        ):
-            delta = param.detach() - old_param
-            trajectory.add_(-grad * delta)
+        # Update the trajectory using the unregularised gradients and parameter changes
+        accumulate_trajectory_(
+            trajectory=self._buf_trajectory,
+            pre_step_params=self._buf_pre_step_params,
+            post_step_params=self._model.parameters(),
+            unreg_grads=self._buf_grads,
+        )
 
     @torch.no_grad()
     def batch_predict_proba(self, x: Tensor) -> Tensor:
@@ -152,46 +231,30 @@ class SI(BatchClassifier, nn.Module, Handler):
         return torch.softmax(y_hat, dim=1)
 
     def attach_with(self, source: Dispatcher) -> None:
-        source.subscribe(TrainTaskBegin, self.on_train_task)
-        source.subscribe(TestTaskBegin, self.on_test_task)
+        source.subscribe(TrainTaskBegin, self._on_train_task_begin)
+        source.subscribe(TestTaskBegin, self._on_test_task_begin)
 
-    def on_train_task(self, event: TrainTaskBegin) -> None:
-        if event.train_task > 0:
-            self._update_omegas()
-            self._update_anchor_params()
-            self._reset_trajectory()
+    def _on_train_task_begin(self, event: TrainTaskBegin) -> None:
         self._train_task = event.train_task
 
-    def on_test_task(self, event: TestTaskBegin) -> None:
+        if self._train_task > 0:
+            # Consolidate importance weights using the trajectory from the previous task
+            update_importance_weights_(
+                importance=self._buf_importance,
+                trajectory=self._buf_trajectory,
+                start_task_params=self._buf_anchor,
+                end_task_params=self._model.parameters(),
+                damping=self._eps,
+            )
+
+            # Update anchors to the current model parameters
+            copy_params_(self._model, self._buf_anchor)
+
+            # Reset trajectory for the new task
+            reset_trajectory_(self._buf_trajectory)
+
+    def _on_test_task_begin(self, event: TestTaskBegin) -> None:
         self._test_task = event.test_task
-
-    @torch.no_grad()
-    def _update_omegas(self) -> None:
-        """Consolidate trajectory information into parameter importances."""
-        for omega, trajectory, param, anchor_param in zip(
-            self._omegas,
-            self._trajectory,
-            self._model.parameters(),
-            self._anchor_params,
-            strict=True,
-        ):
-            delta = param.detach() - anchor_param
-            contribution = trajectory / (delta.pow(2) + self._eps)
-            omega.add_(contribution)
-            omega.clamp_(min=0.0)
-
-    @torch.no_grad()
-    def _update_anchor_params(self) -> None:
-        """Update anchored parameters to the current model weights."""
-        for param, anchor_param in zip(
-            self._model.parameters(), self._anchor_params, strict=True
-        ):
-            anchor_param.copy_(param.detach())
-
-    @torch.no_grad()
-    def _reset_trajectory(self) -> None:
-        for i in range(len(self._trajectory)):
-            self._trajectory[i].zero_()
 
     def _test_forward(self, x: Tensor) -> Tensor:
         """Compute logits for inference, optionally applying a test-task mask."""
@@ -206,17 +269,6 @@ class SI(BatchClassifier, nn.Module, Handler):
         if self._task_mask is not None and self._mask_train:
             y_hat = y_hat.masked_fill(self._task_mask[self._train_task] == 0, NEG_INF)
         return y_hat
-
-    def _regularisation_loss(self) -> Tensor:
-        """Return the SI regularisation loss for the current task."""
-        if self._train_task < 1:
-            return torch.tensor(0.0, device=self.device)
-        return weighted_l2_reg(
-            self._model.parameters(),
-            self._anchor_params,
-            self._omegas,
-            device=self.device,
-        )
 
     def __str__(self) -> str:
         return f"SI(lambda_={self._lambda}, eps={self._eps})"

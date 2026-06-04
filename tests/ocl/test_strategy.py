@@ -184,9 +184,9 @@ TEST_CASES: List[Case] = [
         Result(40.5, 31.4, 73.0),
     ),
     Case(
-        "SI",
-        new_constructor(SI, lr=0.006, lambda_=2.5, optimiser_type=torch.optim.Adam),
-        Result(30.5, 26.7, 13.1),
+        "SynapticIntelligence",
+        new_constructor(SI, lr=0.0017, lambda_=0.42, optimiser_type=torch.optim.Adam),
+        Result(32.50, 24.0, 7.0),
     ),
     Case(
         "SI-masked",
