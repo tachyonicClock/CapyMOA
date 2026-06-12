@@ -105,7 +105,7 @@ def _new_icarl(schema: Schema) -> ICaRL:
         feature_extractor=nn.Sequential(nn.Flatten(), model._fc1, nn.ReLU()),
         capacity=200,
         batch_size=32,
-        device = DEVICE,
+        device=DEVICE,
     )
 
 

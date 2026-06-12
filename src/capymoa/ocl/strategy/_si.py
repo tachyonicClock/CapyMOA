@@ -28,29 +28,65 @@ def weighted_l2_reg(
         l2 += (importance * (param - anchor_param) ** 2).sum()
     return 0.5 * l2
 
-@torch.no_grad()
-def accumulate_trajectory_(
-    trajectory: Sequence[Tensor],
-    pre_step_params: Iterable[Tensor],
-    post_step_params: Iterable[Tensor],
-    unreg_grads: Iterable[Tensor],
-):
-    """In-place update of the SI trajectory buffers.
 
-    Approximates the path integral online during each training iteration.
-    Calculates the change in the unregularized loss contributed by each parameter.
+@torch.no_grad()
+def update_trajectory(
+    trajectory: Sequence[Tensor],
+    theta: Iterable[Tensor],
+    previous_theta: Iterable[Tensor],
+    gradients: Iterable[Tensor],
+):
+    r"""Update the parameter's cumulative trajectory for Synaptic Intelligence.
+
+    Should be called after optimizer step but before zeroing the gradients. For example
+    in PyTorch Lightning::
+
+        def optimizer_step(self, *args, **kwargs) -> None:
+            super().optimizer_step(*args, **kwargs) self.on_after_optimizer_step() #
+            Call after optimizer step
+
+        def on_after_optimizer_step(self) -> None:
+            self.trajectory = si_update_trajectory(...)
+
+    This function implements Equation 2 from [Zenke17]_:
+
+    ..  math::
+
+        \begin{aligned} \int_{t^{\mu-1}}^{t^\mu} \boldsymbol{g}(\boldsymbol{\theta}(t))
+        \cdot \boldsymbol{\theta}^{\prime}(t) d t & =\sum_k \int_{t^{\mu-1}}^{t^\mu}
+        g_k(\theta(t)) \theta_k^{\prime}(t) d t \\ & \equiv-\sum_k \omega_k^\mu,
+        \end{aligned}
+
+    where:
+
+    *   :math:`\boldsymbol{g}(\boldsymbol{\theta}(t))` is the gradient of the loss with
+        respect to the parameters at optimization step :math:`t`.
+    *   :math:`\boldsymbol{\theta}^{\prime}(t)` is the difference between the parameters
+        at optimization step :math:`t` (``model_params``) and the parameters at
+        :math:`t-1` (``pre_step_params``).
+
+    This function updates the trajectory :math:`\omega_k^\mu` for each parameter
+    :math:`k` after each optimization step.
+
+    :param trajectory: Sequence of tensors storing the cumulative trajectory for each
+        parameter. Updated in-place.
+    :param theta: Current parameters after the optimizer step.
+    :param previous_theta: Parameters before the optimizer step.
+    :param gradients: Gradients of the loss with respect to the parameters before the
+        optimizer step.
     """
     for traj, pre_param, post_param, grad in zip(
         trajectory,
-        pre_step_params,
-        post_step_params,
-        unreg_grads,
+        theta,
+        previous_theta,
+        gradients,
         strict=True,
     ):
         # The negative sign ensures we measure the *decrease* in loss.
         # Trajectory (w) = -grad * delta_theta
         step_contribution = -grad * (post_param - pre_param)
         traj.add_(step_contribution)
+
 
 @torch.no_grad()
 def update_importance_weights_(
@@ -75,6 +111,7 @@ def update_importance_weights_(
         # Accumulate importance across sequential tasks
         omega.add_(task_importance)
 
+
 @torch.no_grad()
 def copy_grads_(module: nn.Module, dst: Sequence[Tensor]) -> None:
     """Copy gradients from a module's parameters into a pre-allocated list."""
@@ -84,11 +121,13 @@ def copy_grads_(module: nn.Module, dst: Sequence[Tensor]) -> None:
         assert param.grad is not None
         dst_tensor.copy_(param.grad.detach())
 
+
 @torch.no_grad()
 def copy_params_(module: nn.Module, dst: Sequence[Tensor]) -> None:
     """Copy parameters from a module into a pre-allocated list."""
     for param, dst_tensor in zip(module.parameters(), dst, strict=True):
         dst_tensor.copy_(param.detach())
+
 
 @torch.no_grad()
 def reset_trajectory_(trajectory: Sequence[Tensor]) -> None:
@@ -192,7 +231,6 @@ class SI(BatchClassifier, nn.Module, Handler):
     def batch_train(self, x: Tensor, y: Tensor) -> None:
         self._model.train()
 
-
         # Compute unregularised loss and gradients
         self._optimiser.zero_grad()
         y_hat = self._train_forward(x)
@@ -219,11 +257,11 @@ class SI(BatchClassifier, nn.Module, Handler):
         self._optimiser.step()
 
         # Update the trajectory using the unregularised gradients and parameter changes
-        accumulate_trajectory_(
+        update_trajectory(
             trajectory=self._buf_trajectory,
-            pre_step_params=self._buf_pre_step_params,
-            post_step_params=self._model.parameters(),
-            unreg_grads=self._buf_grads,
+            theta=self._buf_pre_step_params,
+            previous_theta=self._model.parameters(),
+            gradients=self._buf_grads,
         )
 
     @torch.no_grad()
