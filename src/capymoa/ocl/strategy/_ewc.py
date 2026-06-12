@@ -16,61 +16,33 @@ NEG_INF = float("-inf")
 def weighted_l2_reg(
     params: Iterable[Tensor],
     anchor_params: Iterable[Tensor],
-    fisher_diagonals: Iterable[Tensor],
+    weight: Iterable[Tensor],
     device: torch.device,
 ) -> Tensor:
     """Compute an EWC-style weighted L2 regularisation term.
 
     :param params: Current model parameters.
     :param anchor_params: Reference parameters from a previous task.
-    :param fisher_diagonals: Diagonal Fisher information weights.
+    :param weight: Per-parameter importance weights.
     :param device: Device used for the accumulator tensor.
     :return: Weighted L2 penalty scaled by ``1/2``.
     """
     l2 = torch.tensor(0.0, device=device)
     for param, anchor_param, fisher_diag in zip(
-        params, anchor_params, fisher_diagonals, strict=True
+        params, anchor_params, weight, strict=True
     ):
         assert param.shape == anchor_param.shape
         l2 += (fisher_diag * (param - anchor_param) ** 2).sum()
     return l2 / 2.0
 
 
-def fd_init(model: torch.nn.Module) -> Sequence[Tensor]:
-    """Initialise zero-valued Fisher diagonal tensors for a model.
-
-    :param model: Model whose parameters define the Fisher diagonal shapes.
-    :return: Zero tensors matching all model parameters.
-    """
-    return [torch.zeros_like(param) for param in model.parameters()]
-
-
-def fd_accumulate(
-    fisher_diagonals: Sequence[Tensor],
-    parameters: Iterator[Tensor],
-) -> Sequence[Tensor]:
-    """Accumulates the squared gradients into the Fisher diagonal estimates.
-
-    :param fisher_diagonals: A sequence of tensors representing the current estimates of
-        the Fisher diagonals.
-    :param parameters: A sequence of model parameters whose gradients have been
-        computed.
-    :param alpha: Decay factor for the accumulated Fisher diagonals. A value of 1.0
-        corresponds to standard EWC accumulation, while values less than 1.0 implement
-        a decay as in Online EWC.
-    :return: Updated sequence of tensors representing the accumulated Fisher diagonals.
-    """
-    for fisher_diag, param in zip(fisher_diagonals, parameters, strict=True):
-        if param.grad is None:
-            raise ValueError(
-                "Parameter gradients must be computed before updating Fisher diagonals."
-            )
-        fisher_diag.add_(param.grad.data.pow(2))
-    return fisher_diagonals
+def trainable_params(model: nn.Module) -> Iterator[Tensor]:
+    """Yields the model's parameters that require gradients."""
+    return (p for p in model.parameters() if p.requires_grad)
 
 
 @torch.enable_grad()
-def fd_compute(
+def compute_fisher_diagonals(
     model: torch.nn.Module,
     forward_fn: Callable[[Tensor], Tensor],
     dataloader: DataLoader[Tuple[Tensor, Tensor]],
@@ -89,19 +61,23 @@ def fd_compute(
     model = model.eval().to(device)
     criterion = criterion.eval().to(device)
 
-    fisher_diagonals = fd_init(model)
+    fisher_diagonals = [torch.zeros_like(p) for p in trainable_params(model)]
     for inputs, labels in dataloader:
         model.zero_grad()
         inputs, labels = inputs.to(device), labels.to(device)
         outputs = forward_fn(inputs)
         loss = criterion(outputs, labels)
         loss.backward()
-        fisher_diagonals = fd_accumulate(fisher_diagonals, model.parameters())
+
+        # Accumulate the squared gradients
+        for fisher_diag, param in zip(
+            fisher_diagonals, trainable_params(model), strict=True
+        ):
+            assert param.grad is not None
+            fisher_diag.add_(param.grad.data.pow(2))
+
     # Average the accumulated squared gradients over the number of samples
-    fisher_diagonals = [
-        fisher_diag / len(dataloader) for fisher_diag in fisher_diagonals
-    ]
-    return fisher_diagonals
+    return [f / len(dataloader) for f in fisher_diagonals]
 
 
 class EWC(BatchClassifier, nn.Module, Handler):
@@ -193,10 +169,10 @@ class EWC(BatchClassifier, nn.Module, Handler):
 
         # Buffers for anchoring the model
         self._anchor_params = BufferList(
-            [param.clone().detach() for param in model.parameters()]
+            [param.clone().detach() for param in trainable_params(model)]
         )
         self._fisher_diags = BufferList(
-            [torch.zeros_like(param) for param in model.parameters()]
+            [torch.zeros_like(param) for param in trainable_params(model)]
         )
 
         # Task tracking
@@ -244,7 +220,7 @@ class EWC(BatchClassifier, nn.Module, Handler):
         """Estimate and accumulate Fisher diagonals from the replay buffer."""
         dataset = self._buffer.dataset_view()
         dataloader = DataLoader(dataset, batch_size=self._fd_batch_size, shuffle=False)
-        task_fisher_diags = fd_compute(
+        task_fisher_diags = compute_fisher_diagonals(
             self._model,
             self._train_forward,
             dataloader,  # type: ignore

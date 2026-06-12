@@ -8,6 +8,7 @@ from ._ewc import EWC
 from ._lwf import LWF
 from ._der import DER
 from ._si import SI
+from ._mas import MAS
 from ._packnet import PackNet
 from ._icarl import ICaRL
 
@@ -22,6 +23,7 @@ __all__ = [
     "LWF",
     "DER",
     "SI",
+    "MAS",
     "PackNet",
     "ICaRL",
 ]

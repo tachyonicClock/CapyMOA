@@ -24,6 +24,7 @@ from capymoa.ocl.strategy import (
     SI,
     PackNet,
     ICaRL,
+    MAS,
 )
 from capymoa.stream import Schema
 
@@ -198,7 +199,7 @@ TEST_CASES: List[Case] = [
             mask_train=True,
             mask_test=True,
         ),
-        Result(93.0, 80.8, 31.5),
+        Result(96.5, 80.8, 34.4),
         task_mask=True,
     ),
     Case(
@@ -217,6 +218,25 @@ TEST_CASES: List[Case] = [
         "ICaRL",
         _new_icarl,
         Result(37.0, 29.2, 12.6),
+    ),
+    Case(
+        "MAS",
+        new_constructor(
+            MAS, optimiser_type=torch.optim.Adam, lr=0.004, lambda_=30, alpha=0.5
+        ),
+        Result(45.5, 35.8, 17.4),
+    ),
+    Case(
+        "MAS-masked",
+        new_constructor(
+            MAS,
+            optimiser_type=torch.optim.Adam,
+            lr=0.004,
+            lambda_=30,
+            alpha=0.5,
+        ),
+        Result(96.0, 81.2, 31.8),
+        task_mask=True,
     ),
 ]
 
