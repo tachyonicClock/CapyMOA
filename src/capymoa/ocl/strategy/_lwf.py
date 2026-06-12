@@ -7,6 +7,7 @@ from torch import Tensor, nn
 from capymoa.base import BatchClassifier
 from capymoa.base.events import Dispatcher, Handler
 from capymoa.ocl.evaluation.events import TrainTaskBegin
+from capymoa.ocl.util._optim import reset_optimizer_state
 from capymoa.ocl.util.functional import hinton_distillation_loss
 from capymoa.stream._stream import Schema
 
@@ -79,6 +80,7 @@ class LWF(BatchClassifier, nn.Module, Handler):
         return torch.softmax(y_hat, dim=1)
 
     def on_train_task(self, event: TrainTaskBegin) -> None:
+        reset_optimizer_state(self._optimiser)
         if event.train_task > 0:
             self._teacher = (
                 deepcopy(self._model).to(self.device).eval().requires_grad_(False)

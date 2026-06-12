@@ -3,6 +3,7 @@ from typing import Iterable, Optional, Sequence
 import torch
 from torch import Tensor, nn
 
+from capymoa.ocl.util._optim import reset_optimizer_state
 from capymoa.base import BatchClassifier
 from capymoa.base.events import Dispatcher, Handler
 from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
@@ -118,7 +119,7 @@ class SI(BatchClassifier, nn.Module, Handler):
         model: torch.nn.Module,
         optimiser: torch.optim.Optimizer,
         lambda_: float,
-        eps: float = 1e-7,
+        damping: float = 0.1,
         device: torch.device = torch.device("cpu"),
         mask_test: bool = False,
         mask_train: bool = False,
@@ -130,7 +131,8 @@ class SI(BatchClassifier, nn.Module, Handler):
         :param model: Torch model that outputs class logits.
         :param optimiser: Optimiser used to update ``model`` parameters.
         :param lambda_: Weight of the SI regularisation term.
-        :param eps: Damping value used in SI importance consolidation.
+        :param damping: Damping factor added to the denominator when calculating
+            importance weights.
         :param device: Compute device.
         :param mask_test: Whether to apply per-task masking during testing. This is a
             task incremental scenario.
@@ -147,14 +149,14 @@ class SI(BatchClassifier, nn.Module, Handler):
             )
         if lambda_ < 0:
             raise ValueError("lambda_ must be non-negative.")
-        if eps <= 0:
-            raise ValueError("eps must be greater than zero.")
+        if damping <= 0:
+            raise ValueError("damping must be positive.")
 
         self.device = device
 
         # Hyperparameters
         self._lambda = lambda_
-        self._eps = eps
+        self._eps = damping
         self._mask_train = mask_train
         self._mask_test = mask_test
 
@@ -235,6 +237,7 @@ class SI(BatchClassifier, nn.Module, Handler):
         source.subscribe(TestTaskBegin, self._on_test_task_begin)
 
     def _on_train_task_begin(self, event: TrainTaskBegin) -> None:
+        reset_optimizer_state(self._optimiser)
         self._train_task = event.train_task
 
         if self._train_task > 0:

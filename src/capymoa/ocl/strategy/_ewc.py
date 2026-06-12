@@ -6,6 +6,7 @@ from capymoa.base import BatchClassifier
 from capymoa.base.events import Handler, Dispatcher
 from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
 from capymoa.ocl.util._buffer import BufferList
+from capymoa.ocl.util._optim import reset_optimizer_state
 from capymoa.ocl.replay import ReplayBuilder, SlidingWindow
 from torch.utils.data import DataLoader
 
@@ -47,7 +48,6 @@ def fd_init(model: torch.nn.Module) -> Sequence[Tensor]:
 def fd_accumulate(
     fisher_diagonals: Sequence[Tensor],
     parameters: Iterator[Tensor],
-    alpha: Optional[float] = None,
 ) -> Sequence[Tensor]:
     """Accumulates the squared gradients into the Fisher diagonal estimates.
 
@@ -65,10 +65,7 @@ def fd_accumulate(
             raise ValueError(
                 "Parameter gradients must be computed before updating Fisher diagonals."
             )
-        if alpha is not None:
-            fisher_diag.mul_(alpha).add_(param.grad.data.pow(2), alpha=(1 - alpha))
-        else:
-            fisher_diag.add_(param.grad.data.pow(2))
+        fisher_diag.add_(param.grad.data.pow(2))
     return fisher_diagonals
 
 
@@ -234,6 +231,7 @@ class EWC(BatchClassifier, nn.Module, Handler):
         source.subscribe(TestTaskBegin, self.on_test_task)
 
     def on_train_task(self, event: TrainTaskBegin) -> None:
+        reset_optimizer_state(self._optimiser)
         if event.train_task > 0:
             self._update_fisher_diags()
             self._update_anchor_params()

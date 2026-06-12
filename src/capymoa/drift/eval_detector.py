@@ -1,7 +1,7 @@
 import warnings
 from dataclasses import dataclass
 from typing import List, Union, Tuple, Dict, Optional, Any, Sequence
-from scipy.stats import wasserstein_distance
+from scipy.optimize import linear_sum_assignment
 import numpy as np
 
 _ArrayOrTupleOf = Union[Sequence[int], Sequence[Tuple[int, int]], np.ndarray]
@@ -36,9 +36,6 @@ class DriftDetectionMetrics:
     """Total number of drift episodes"""
     n_alarms: int
     """Total number of alarms raised"""
-    wasserstein_distance: float
-    """Wasserstein distance between true and predicted drift points, normalized by total
-    instances. Value ranges from 0 (perfect match) to 1 (completely different)."""
 
 
 class EvaluateDriftDetector:
@@ -240,16 +237,6 @@ class EvaluateDriftDetector:
         mean_detection_time = np.nanmean(detection_times) if detection_times else np.nan
         ep_recall = etp / max(1, n_episodes)
 
-        if len(trues) > 0 and len(preds) > 0:
-            # Relative position of true and predicted drifts
-            rel_trues = np.array(trues) / tot_n_instances
-            rel_preds = np.array(preds) / tot_n_instances
-            wd = float(wasserstein_distance(rel_trues, rel_preds))
-        else:
-            # If there are no predictions then we consider the distance to be maximal
-            # (1.0) since the detector completely failed to identify any drifts
-            wd = 1.0
-
         self.metrics = DriftDetectionMetrics(
             fp=fp,
             tp=tp,
@@ -263,7 +250,6 @@ class EvaluateDriftDetector:
             ar=alarm_rate,
             n_episodes=n_episodes,
             n_alarms=n_alarms,
-            wasserstein_distance=wd,
         )
 
         return self.metrics

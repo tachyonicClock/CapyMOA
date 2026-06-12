@@ -31,6 +31,7 @@ def icarl_loss(
     target: Tensor,
     teacher_logits: Tensor | None = None,
     teacher_classes: Sequence[int] = (),
+    distillation_weight: float = 1.0,
 ) -> Tensor:
     """iCaRL hybrid classification and distillation loss.
 
@@ -53,12 +54,17 @@ def icarl_loss(
     :param target: Integer target tensor ``(B,)``
     :param teacher_logits: Logit tensor ``(B, C)``
     :param teacher_classes: Classes the teacher 'knows' about.
+    :param distillation_weight: Interpolation weight in ``[0, 1]`` for replacing
+        teacher-known class targets with teacher probabilities.
+        ``0`` keeps one-hot targets only; ``1`` matches standard iCaRL behaviour.
     :return: A loss scalar tensor.
     """
     if logits.shape[0] != target.shape[0]:
         raise ValueError("Logits and target must have the same batch size.")
     if teacher_logits is not None and teacher_logits.shape != logits.shape:
         raise ValueError("Teacher and student logits must match shape.")
+    if not (0.0 <= distillation_weight <= 1.0):
+        raise ValueError("Distillation weight must be in the range [0, 1].")
 
     num_classes = logits.shape[1]
     target_one_hot = F.one_hot(target, num_classes=num_classes).float()
@@ -66,7 +72,10 @@ def icarl_loss(
     # If a teacher is supplied use its knowledge about previous tasks to help.
     if teacher_logits is not None:
         teacher_probs = torch.sigmoid(teacher_logits)
-        target_one_hot[:, teacher_classes] = teacher_probs[:, teacher_classes]
+        target_one_hot[:, teacher_classes] = (
+            (1.0 - distillation_weight) * target_one_hot[:, teacher_classes]
+            + distillation_weight * teacher_probs[:, teacher_classes]
+        )
 
     return F.binary_cross_entropy_with_logits(logits, target_one_hot, reduction="mean")
 
@@ -247,8 +256,12 @@ class ICaRL(BatchClassifier, nn.Module, Handler):
         feature_extractor: Callable[[Tensor], Tensor],
         capacity: int = 200,
         batch_size: int = 64,
+        distillation_weight: float = 1.0,
         device: torch.device = torch.device("cpu"),
     ) -> None:
+        if not (0.0 <= distillation_weight <= 1.0):
+            raise ValueError("distillation_weight must be in the range [0, 1].")
+
         super().__init__(schema, 0)
         nn.Module.__init__(self)
         self.device = device
@@ -262,6 +275,7 @@ class ICaRL(BatchClassifier, nn.Module, Handler):
         # classes and F is the number of features.
         self._class_means: Optional[Tensor] = None
         self._batch_size = batch_size
+        self._distillation_weight = float(distillation_weight)
         self._optimiser = optimiser
         self._feature_extractor = feature_extractor
 
@@ -296,9 +310,15 @@ class ICaRL(BatchClassifier, nn.Module, Handler):
         if self._teacher is not None:
             with torch.no_grad():
                 teacher_logits = self._teacher(train_x)
+            loss = icarl_loss(
+                logits,
+                train_y,
+                teacher_logits,
+                self._teacher_classes,
+                self._distillation_weight,
+            )
         else:
-            teacher_logits = None
-        loss = icarl_loss(logits, train_y, teacher_logits, self._teacher_classes)
+            loss = F.cross_entropy(logits, train_y)
         loss.backward()
         self._optimiser.step()
 
