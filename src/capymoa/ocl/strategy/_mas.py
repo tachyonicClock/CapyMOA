@@ -158,13 +158,14 @@ class MAS(BatchClassifier, nn.Module, Handler):
         dataloader = DataLoader(
             dataset, batch_size=self._importance_batch_size, shuffle=False
         )
-        task_importance = _mas_compute_importance(
-            self._model,
-            self._mas_forward,
-            dataloader,  # type: ignore[arg-type]
-            self.device,
-        )
-        _mas_update_importance(self._importance, task_importance, self._alpha)
+        with torch.enable_grad():
+            task_importance = _mas_compute_importance(
+                self._model,
+                self._mas_forward,
+                dataloader,  # type: ignore[arg-type]
+                self.device,
+            )
+            _mas_update_importance(self._importance, task_importance, self._alpha)
 
     def _update_anchor_params(self) -> None:
         """Update anchored parameters to the current model weights."""

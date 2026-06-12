@@ -25,6 +25,7 @@ from capymoa.ocl.strategy import (
     PackNet,
     ICaRL,
     MAS,
+    RWalk,
 )
 from capymoa.stream import Schema
 
@@ -236,6 +237,31 @@ TEST_CASES: List[Case] = [
             alpha=0.5,
         ),
         Result(96.0, 81.2, 31.8),
+        task_mask=True,
+    ),
+    Case(
+        "RWalk",
+        new_constructor(
+            RWalk,
+            optimiser_type=torch.optim.Adam,
+            lr=0.0037,
+            lambda_=53.4,
+            alpha=0.84,
+            delta_t=51,
+        ),
+        Result(43.0, 28.9, 10.8),
+    ),
+    Case(
+        "RWalk-masked",
+        new_constructor(
+            RWalk,
+            optimiser_type=torch.optim.Adam,
+            lr=0.0037,
+            lambda_=53.4,
+            alpha=0.84,
+            delta_t=51,
+        ),
+        Result(87.5, 76.9, 31.1),
         task_mask=True,
     ),
 ]
