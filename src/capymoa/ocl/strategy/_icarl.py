@@ -73,9 +73,10 @@ def icarl_loss(
     if teacher_logits is not None:
         teacher_probs = torch.sigmoid(teacher_logits)
         target_one_hot[:, teacher_classes] = (
-            (1.0 - distillation_weight) * target_one_hot[:, teacher_classes]
-            + distillation_weight * teacher_probs[:, teacher_classes]
-        )
+            1.0 - distillation_weight
+        ) * target_one_hot[:, teacher_classes] + distillation_weight * teacher_probs[
+            :, teacher_classes
+        ]
 
     return F.binary_cross_entropy_with_logits(logits, target_one_hot, reduction="mean")
 

@@ -234,7 +234,7 @@ class EWC(BatchClassifier, nn.Module, Handler):
     def _update_anchor_params(self) -> None:
         """Update anchored parameters to the current model weights."""
         for param, anchor_param in zip(
-            self._model.parameters(), self._anchor_params, strict=True
+            trainable_params(self._model), self._anchor_params, strict=True
         ):
             anchor_param.copy_(param.detach())
 
@@ -257,7 +257,7 @@ class EWC(BatchClassifier, nn.Module, Handler):
         if self._train_task < 1:
             return torch.tensor(0.0, device=self.device)
         return weighted_l2_reg(
-            self._model.parameters(),
+            trainable_params(self._model),
             self._anchor_params,
             self._fisher_diags,
             device=self.device,

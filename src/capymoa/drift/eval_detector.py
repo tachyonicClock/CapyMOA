@@ -1,7 +1,6 @@
 import warnings
 from dataclasses import dataclass
 from typing import List, Union, Tuple, Dict, Optional, Any, Sequence
-from scipy.optimize import linear_sum_assignment
 import numpy as np
 
 _ArrayOrTupleOf = Union[Sequence[int], Sequence[Tuple[int, int]], np.ndarray]

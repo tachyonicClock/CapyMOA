@@ -31,7 +31,18 @@ def _mas_compute_importance(
     dataloader: DataLoader[Tuple[Tensor, Tensor]],
     device: torch.device,
 ) -> Sequence[Tensor]:
-    """Estimate MAS parameter importance from the given data loader."""
+    r"""Estimate MAS parameter importance from the given data loader.
+
+    ..  math::
+
+        \Omega_i = \frac{1}{N} \sum_{k=1}^N \left\| \frac{\partial \left( \|F(x_k)\|_2^2
+        \right)}
+             {\partial \theta_i}
+        \right\|
+
+    where :math:`F` is the model's forward function, :math:`x_k` is the input of the
+    :math:`k`-th sample, and :math:`\theta_i` is the :math:`i`-th parameter.
+    """
     model = model.train().to(device)
     importances = [torch.zeros_like(param) for param in trainable_params(model)]
 

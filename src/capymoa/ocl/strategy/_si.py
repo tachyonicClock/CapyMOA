@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Sequence
+from typing import Iterable, Iterator, Optional, Sequence
 
 import torch
 from torch import Tensor, nn
@@ -11,6 +11,11 @@ from capymoa.ocl.util._buffer import BufferList
 from capymoa.stream._stream import Schema
 
 NEG_INF = float("-inf")
+
+
+def trainable_params(model: nn.Module) -> Iterator[Tensor]:
+    """Yields the model's parameters that require gradients."""
+    return (p for p in model.parameters() if p.requires_grad)
 
 
 def weighted_l2_reg(
@@ -115,9 +120,7 @@ def update_importance_weights_(
 @torch.no_grad()
 def copy_grads_(module: nn.Module, dst: Sequence[Tensor]) -> None:
     """Copy gradients from a module's parameters into a pre-allocated list."""
-    for param, dst_tensor in zip(
-        filter(lambda p: p.grad is not None, module.parameters()), dst, strict=True
-    ):
+    for param, dst_tensor in zip(trainable_params(module), dst, strict=True):
         assert param.grad is not None
         dst_tensor.copy_(param.grad.detach())
 
@@ -125,7 +128,7 @@ def copy_grads_(module: nn.Module, dst: Sequence[Tensor]) -> None:
 @torch.no_grad()
 def copy_params_(module: nn.Module, dst: Sequence[Tensor]) -> None:
     """Copy parameters from a module into a pre-allocated list."""
-    for param, dst_tensor in zip(module.parameters(), dst, strict=True):
+    for param, dst_tensor in zip(trainable_params(module), dst, strict=True):
         dst_tensor.copy_(param.detach())
 
 
@@ -205,17 +208,21 @@ class SI(BatchClassifier, nn.Module, Handler):
         self._criterion = torch.nn.CrossEntropyLoss()
 
         # Allocate buffers for SI regularisation
-        self._buf_anchor = BufferList([p.clone().detach() for p in model.parameters()])
+        self._buf_anchor = BufferList(
+            [p.clone().detach() for p in trainable_params(model)]
+        )
         self._buf_importance = BufferList(
-            [torch.zeros_like(p) for p in model.parameters()]
+            [torch.zeros_like(p) for p in trainable_params(model)]
         )
         self._buf_pre_step_params = BufferList(
-            [torch.zeros_like(p) for p in model.parameters()]
+            [torch.zeros_like(p) for p in trainable_params(model)]
         )
         self._buf_trajectory = BufferList(
-            [torch.zeros_like(p) for p in model.parameters()]
+            [torch.zeros_like(p) for p in trainable_params(model)]
         )
-        self._buf_grads = BufferList([torch.zeros_like(p) for p in model.parameters()])
+        self._buf_grads = BufferList(
+            [torch.zeros_like(p) for p in trainable_params(model)]
+        )
 
         # Task tracking
         self._train_task = 0
@@ -246,7 +253,7 @@ class SI(BatchClassifier, nn.Module, Handler):
         # Add SI regularisation loss (only applies after the first task)
         if self._train_task > 0:
             reg_loss = self._lambda * weighted_l2_reg(
-                self._model.parameters(),
+                trainable_params(self._model),
                 self._buf_anchor,
                 self._buf_importance,
                 device=self.device,
@@ -260,7 +267,7 @@ class SI(BatchClassifier, nn.Module, Handler):
         update_trajectory(
             trajectory=self._buf_trajectory,
             theta=self._buf_pre_step_params,
-            previous_theta=self._model.parameters(),
+            previous_theta=trainable_params(self._model),
             gradients=self._buf_grads,
         )
 
@@ -284,7 +291,7 @@ class SI(BatchClassifier, nn.Module, Handler):
                 importance=self._buf_importance,
                 trajectory=self._buf_trajectory,
                 start_task_params=self._buf_anchor,
-                end_task_params=self._model.parameters(),
+                end_task_params=trainable_params(self._model),
                 damping=self._eps,
             )
 

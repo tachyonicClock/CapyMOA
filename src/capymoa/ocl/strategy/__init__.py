@@ -9,6 +9,7 @@ from ._lwf import LWF
 from ._der import DER
 from ._si import SI
 from ._mas import MAS
+from ._rwalk import RWalk
 from ._packnet import PackNet
 from ._icarl import ICaRL
 
@@ -24,6 +25,7 @@ __all__ = [
     "DER",
     "SI",
     "MAS",
+    "RWalk",
     "PackNet",
     "ICaRL",
 ]
