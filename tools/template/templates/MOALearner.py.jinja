@@ -1,0 +1,49 @@
+from capymoa._cli import cli_str_classifier, cli_str_regressor, cli_str_drift_detector, cli_str_prediction_interval, cli_str_stream
+from capymoa._utils import cli_str_from_dict
+from capymoa.stream import Schema
+from capymoa.base import MOAClassifier, MOARegressor
+from typing import Literal
+from {{j_package}} import {{j_class}} as _{{j_class}}
+
+class {{j_class}}({{py_base_class}}):
+    {%- filter indent(width=4, first=True) %}
+    {%- block docstring -%}
+    {%- endblock -%}
+    {%- endfilter %}
+
+    def __init__(
+        self,
+        schema: Schema,
+        {%- for option in options %}
+        {%- if option.option_type == "JClassOption" %}
+        {{ option.name }}: {{ option.type }} | str = {{ option.default }},
+        {%- else %}
+        {{ option.name }}: {{ option.type }} = {{ option.default }},
+        {%- endif %}
+        {%- endfor %}
+    ) -> None:
+        """Construct {{j_class}} classifier.
+        {% for option in options %}
+        {{(':param ' ~ option.name ~ ': ' ~ option.doc) | wordwrap(80) | indent(12) }}
+        {%- endfor %}
+        """
+
+        {%- for option in options if option.option_type == "JClassOption" %}
+        {% if loop.first %}
+        # Convert CapyMOA objects into CLI strings for MOA
+        {%- endif %}
+        {%- if option.cli_func %}
+        if isinstance({{option.name}}, {{option.type}}):
+            {{option.name}} = {{option.cli_func}}({{option.name}})
+        {%- else %}
+        if isinstance({{option.name}}, {{option.type}}):
+            {{option.name}} = cli_str({{option.name}}, {{option.type}})
+        {%- endif %}
+        {%- endfor %}
+
+        options = {
+            {%- for option in options %}
+            "{{option.cli_char}}": {{option.name}},
+            {%- endfor %}
+        }
+        super().__init__(moa_learner=_{{j_class}}, schema=schema, CLI=cli_str_from_dict(cli))

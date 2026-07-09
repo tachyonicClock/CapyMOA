@@ -1,0 +1,22 @@
+{% extends "MOALearner.py.jinja" %}
+
+{% block docstring %}
+"""FULL NAME OF CLASSIFIER
+
+FULL NAME OF CLASSIFIER (ACRONYM) [#f1]_ is a METHOD CLASS. DESCRIPTION OF THE
+CLASSIFIER ...
+
+>>> from capymoa.classifier import {{j_class}}
+>>> from capymoa.datasets import ElectricityTiny
+>>> from capymoa.evaluation import prequential_evaluation
+>>>
+>>> stream = ElectricityTiny()
+>>> classifier = {{j_class}}(stream.get_schema())
+>>> results = prequential_evaluation(stream, classifier, max_instances=1000)
+>>> print(f"{results['cumulative'].accuracy():.1f}")
+XX.X
+
+.. [#f1] BIBLIOGRAPHY ENTRY
+
+"""
+{% endblock %}

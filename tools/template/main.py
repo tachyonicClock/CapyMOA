@@ -2,12 +2,30 @@ import click
 from jinja2 import Environment, FileSystemLoader
 import capymoa  # Needed to initialize JPype with MOA #noqa: F401
 from typing import Literal, Sequence
-from moa.options import AbstractOptionHandler, ClassOption as MoaClassOption
 from com.github import javacliparser
 import jpype
 from dataclasses import dataclass
 import re
 from keyword import iskeyword
+from pathlib import Path
+
+from moa.options import (
+    AbstractOptionHandler as JAbstractOptionHandler,
+    ClassOption as JClassOption,
+)
+
+TYPE_MAPPINGS = {
+    "moa.classifiers.core.driftdetection.ChangeDetector": (
+        "MOADriftDetector",
+        "cli_str_drift_detector",
+    ),
+    "moa.classifiers.core.splitcriteria.SplitCriterion": (
+        "SplitCriterion",
+        "_split_criterion_to_cli_str",
+    ),
+}
+
+file_dir = Path(__file__).parent
 
 
 def camel_to_snake(name: str) -> str:
@@ -32,12 +50,14 @@ class Option:
             "FloatOption",
             "FlagOption",
             "MultiChoiceOption",
-            "MoaClassOption",
+            "JClassOption",
         ]
     )
     """The type of the option in javacliparser."""
     default: str
     """Default value of the option as a string."""
+    cli_func: str | None = None
+    """The function to convert the option to a CLI string, if applicable."""
 
     @staticmethod
     def from_javacliparser(option: javacliparser.Option) -> "Option":
@@ -48,6 +68,7 @@ class Option:
         type_ = "Any"
         default = "None"
         option_type = None
+        cli_func = None
 
         if isinstance(option, javacliparser.IntOption):
             type_ = "int"
@@ -72,10 +93,13 @@ class Option:
                 definition_list.append(f"* ``{label}``: {description}")
             doc += "\n\n" + "\n".join(definition_list)
             option_type = "MultiChoiceOption"
-        elif isinstance(option, MoaClassOption):
-            type_ = "str | MOAClassifier"
+        elif isinstance(option, JClassOption):
+            required_type = option.getRequiredType().getName()
+            type_, cli_func = TYPE_MAPPINGS.get(
+                required_type, (f"'{required_type}'", None)
+            )
             default = f'"{option.getValueAsCLIString()}"'
-            option_type = "MoaClassOption"
+            option_type = "JClassOption"
         else:
             raise NotImplementedError(f"Option type {type(option)} not implemented")
 
@@ -90,31 +114,36 @@ class Option:
             type=type_,
             default=default,
             option_type=option_type,
+            cli_func=cli_func,
         )
 
 
-def get_options(abstract_options: AbstractOptionHandler) -> Sequence[Option]:
+def get_options(abstract_options: JAbstractOptionHandler) -> Sequence[Option]:
     """Get the options of an object as a list."""
     options = abstract_options.getOptions().getOptionArray()
     return [Option.from_javacliparser(opt) for opt in options]
 
 
 @click.command()
-@click.argument("java_classifier", type=str, required=True)
-def main(java_classifier: str):
-    environment = Environment(loader=FileSystemLoader("."))
+@click.argument("java_learner", type=str, required=True)
+@click.argument(
+    "py_base_class", type=click.Choice(["MOAClassifier", "MOARegressor"]), required=True
+)
+def main(java_learner: str, py_base_class: str) -> None:
+    environment = Environment(loader=FileSystemLoader(file_dir / "templates"))
     environment.filters["camel_to_snake"] = camel_to_snake
 
     # Construct the Java object
-    j_object = jpype.JClass(java_classifier)()
+    j_object = jpype.JClass(java_learner)()
 
     # Render the template to stdout
-    template = environment.get_template("MOAClassifier.py.jinja")
+    template = environment.get_template(f"{py_base_class}.py.jinja")
     print(
         template.render(
             options=get_options(j_object),
-            j_class=java_classifier.split(".")[-1],
-            j_package=java_classifier.rsplit(".", 1)[0],
+            j_class=java_learner.split(".")[-1],
+            j_package=java_learner.rsplit(".", 1)[0],
+            py_base_class=py_base_class,
         )
     )
 

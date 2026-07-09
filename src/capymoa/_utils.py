@@ -65,6 +65,22 @@ def _translate_metric_name(metric_name, to="capymoa"):
         raise ValueError("Invalid translation direction. Use 'moa' or 'capymoa'.")
 
 
+def cli_str_from_dict(options: Dict[str, float | int | str | bool]) -> str:
+    cli = []
+    for key, value in options.items():
+        type_ = type(value)
+        if type_ is bool:
+            if value:
+                cli.append(f"-{key}")
+        elif type_ in [float, int]:
+            cli.append(f"-{key} {value}")
+        elif type_ is str:
+            cli.append(f"-{key} ({value})")
+        else:
+            raise ValueError(f"Unsupported type {type_} for key {key}")
+    return " ".join(cli)
+
+
 def build_cli_str_from_mapping_and_locals(mapping: Dict[str, str], lcs: Dict[str, Any]):
     """Builds a CLI string based on a provided mapping and the current scope's local variables.
 
