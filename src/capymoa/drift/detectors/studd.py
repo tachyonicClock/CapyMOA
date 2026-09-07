@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from typing_extensions import override
 
@@ -8,8 +6,8 @@ from capymoa.core import Instance, LabeledInstance, LabelIndex
 from capymoa.drift.base_detector import BaseDriftDetector, MOADriftDetector
 from capymoa.drift.detectors import ADWIN
 
-ArrayOrList = Union[np.ndarray, list[float]]
-ArrayOrInstance = Union[ArrayOrList, Instance]
+ArrayOrList = np.ndarray | list[float]
+ArrayOrInstance = ArrayOrList | Instance
 
 
 class STUDD(BaseDriftDetector):
@@ -62,7 +60,7 @@ class STUDD(BaseDriftDetector):
         self,
         student: MOAClassifier,
         min_n_instances: int = 500,
-        detector: MOADriftDetector = ADWIN(),
+        detector: MOADriftDetector | None = None,
     ):
         """
         :param student: Student model that mimics the teacher's predictions
@@ -71,6 +69,8 @@ class STUDD(BaseDriftDetector):
         """
         super().__init__()
 
+        if detector is None:
+            detector = ADWIN()
         self.min_n_instances = min_n_instances
         self.detector = detector
         self.student = student

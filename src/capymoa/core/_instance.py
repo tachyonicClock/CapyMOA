@@ -83,7 +83,7 @@ class Instance:
 
         :param schema: A schema that describes the datastream the instance belongs to.
         :param instance: A vector of features (float values) or a Java instance.
-        :raises ValueError: If the given instance type is of an unsupported type.
+        :raises TypeError: If the given instance type is of an unsupported type.
         """
         self._schema: Schema = schema
         self._java_instance: InstanceExample | None = None
@@ -94,7 +94,7 @@ class Instance:
         elif isinstance(instance, np.ndarray):
             self._x = instance.astype(np.double)
         else:
-            raise ValueError(f"Given instance type unsupported: {type(instance)}")
+            raise TypeError(f"Given instance type unsupported: {type(instance)}")
 
     @classmethod
     def from_java_instance(
@@ -263,7 +263,7 @@ class Instance:
         )
 
 
-_AnyInstance = TypeVar("_AnyInstance", bound=Instance)
+_AnyInstance = TypeVar("_AnyInstance", bound=Instance)  # noqa: PYI018
 """A generic type that is bound to an instance type.
 
 Such as :class:`LabeledInstance` or :class:`RegressionInstance`.

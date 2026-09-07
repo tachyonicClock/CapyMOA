@@ -58,7 +58,7 @@ class OSNeuralNetwork(nn.Module):
 
     def initialize_weights(self):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Linear):
+            if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
                 m.weight.data.normal_(0, 0.02)
                 m.bias.data.zero_()
 
@@ -312,7 +312,11 @@ class OSNN(ClassifierSSL):
             for _ in range(self.optim_steps):
                 data_window, label_window, label_index = self.Network.return_window()
 
-                def closure():
+                def closure(
+                    data_window=data_window,
+                    label_window=label_window,
+                    label_index=label_index,
+                ):
                     optimizer.zero_grad()
                     y = self.Network.forward(data_window)
                     loss = self.loss_f(y, label_window, label_index)

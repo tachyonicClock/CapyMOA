@@ -91,7 +91,7 @@ def write_machine_info(output_file):
             "cpu_count": os.cpu_count(),
             "machine_info_status": "ok",
         }
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - best-effort info, must not abort the benchmark run
         machine_info = {
             "machine_info_status": "unavailable",
             "message": (
@@ -203,10 +203,17 @@ class PulseRecorder:
 
     def finish(self, processed_instances: int):
         processed_instances = min(int(processed_instances), self.total_instances)
-        if processed_instances > 0 and (
-            self.last_timestamp is None or processed_instances != self.total_instances
-        ) or processed_instances == self.total_instances and (
-            self.last_timestamp is None or self.next_pulse_at <= self.total_instances
+        if (
+            processed_instances > 0
+            and (
+                self.last_timestamp is None
+                or processed_instances != self.total_instances
+            )
+            or processed_instances == self.total_instances
+            and (
+                self.last_timestamp is None
+                or self.next_pulse_at <= self.total_instances
+            )
         ):
             self.record(processed_instances)
 
@@ -410,11 +417,10 @@ def write_configurations_summary(
             continue
         if learner_name in selected_set:
             lines.append(config_lines[learner_name])
-    if include_threaded_arf:
-        if "ARF100j4" in selected_set:
-            lines.append(
-                "- ARF100j4 is a CapyMOA-only threaded configuration and has no River counterpart."
-            )
+    if include_threaded_arf and "ARF100j4" in selected_set:
+        lines.append(
+            "- ARF100j4 is a CapyMOA-only threaded configuration and has no River counterpart."
+        )
     lines.append("")
     output_file.write_text("\n".join(lines), encoding="utf-8")
 
@@ -494,13 +500,15 @@ def capymoa_experiment(
     learner_name,
     stream,
     learner,
-    hyperparameters={},
+    hyperparameters=None,
     repetitions=1,
     max_instances=DEFAULT_MAX_INSTANCES,
     raw_results_output_csv=None,
     pulse_output_csv=None,
     pulse_percent=5.0,
 ):
+    if hyperparameters is None:
+        hyperparameters = {}
     date_time_stamp = datetime.now().strftime("[%Y-%m-%d %H:%M]")
     print(f"[{date_time_stamp}][capymoa] Executing {learner_name} on {dataset_name}")
 
@@ -654,13 +662,15 @@ def river_experiment(
     learner_name,
     stream_path_csv,
     learner,
-    hyperparameters={},
+    hyperparameters=None,
     repetitions=1,
     max_instances=DEFAULT_MAX_INSTANCES,
     raw_results_output_csv=None,
     pulse_output_csv=None,
     pulse_percent=5.0,
 ):
+    if hyperparameters is None:
+        hyperparameters = {}
     date_time_stamp = datetime.now().strftime("[%Y-%m-%d %H:%M]")
     print(f"[{date_time_stamp}][river] Executing {learner_name} on {dataset_name}")
 

@@ -45,9 +45,11 @@ def download_unpacked(url: str, downloads: Path | str):
     # Unpack, decompress, or simply move to the path
     format, filename = unpacked_format(url_to_filename(url))
     if format == "gzip":
-        with gzip.open(tmpfile, "rb") as fin:
-            with open(downloads / filename, "xb") as fdst:
-                copyfileobj(fin, fdst)
+        with (
+            gzip.open(tmpfile, "rb") as fin,
+            open(downloads / filename, "xb") as fdst,
+        ):
+            copyfileobj(fin, fdst)
     elif format is not None:
         unpack_archive(tmpfile, downloads / filename, format=format)
     elif format is None:

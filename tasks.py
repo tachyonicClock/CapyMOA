@@ -52,7 +52,9 @@ def divider(text: str):
     print(text.center(88, "-"))
 
 
-def all_exist(files: list[str] = None, directories: list[str] = None) -> bool:
+def all_exist(
+    files: list[str] | None = None, directories: list[str] | None = None
+) -> bool:
     """Check if all files and directories exist."""
     if files:
         for file in files:

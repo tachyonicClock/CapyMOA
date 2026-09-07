@@ -50,7 +50,7 @@ class LAST(MOAClassifier):
         schema: Schema | None = None,
         random_seed: int = 0,
         split_criterion: str | SplitCriterion = "InfoGainSplitCriterion",
-        change_detector: MOADriftDetector = ADWIN(),
+        change_detector: MOADriftDetector | None = None,
         monitor_distribution=False,
         leaf_prediction: int = "NaiveBayesAdaptive",
         nb_threshold: int = 0,
@@ -86,6 +86,8 @@ class LAST(MOAClassifier):
             usage.
         :param disable_prepruning: If True, disable merit-based tree pre-pruning.
         """
+        if change_detector is None:
+            change_detector = ADWIN()
 
         mapping = {
             "max_byte_size": "-m",

@@ -49,7 +49,7 @@ class Finetune(BatchClassifier):
         schema: Schema,
         model: nn.Module | Callable[[Schema], nn.Module],
         optimizer: Optimizer | Callable[[Iterator[Tensor]], Optimizer] = optim.Adam,
-        criterion: nn.Module = nn.CrossEntropyLoss(),
+        criterion: nn.Module | None = None,
         device: device | str = "cpu",
         random_seed: int = 0,
     ) -> None:
@@ -61,11 +61,14 @@ class Finetune(BatchClassifier):
             constructor function that takes a schema and returns a model.
         :param optimizer: A PyTorch gradient descent optimizer or a constructor
             function that takes the model parameters and returns an optimizer.
-        :param criterion: Loss function to use for training.
+        :param criterion: Loss function to use for training. Defaults to
+            :class:`torch.nn.CrossEntropyLoss`.
         :param device: Hardware for training.
         :param random_seed: Seeds torch :py:func:`torch.manual_seed`.
         """
         super().__init__(schema, random_seed)
+        if criterion is None:
+            criterion = nn.CrossEntropyLoss()
         # seed for reproducibility
         torch.manual_seed(random_seed)
         #: The model to be trained.

@@ -220,7 +220,7 @@ def write_machine_info(output_file: Path):
             "cpu_count": os.cpu_count(),
             "machine_info_status": "ok",
         }
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - best-effort info, must not abort the benchmark run
         machine_info = {
             "machine_info_status": "unavailable",
             "message": (

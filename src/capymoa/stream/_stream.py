@@ -2,7 +2,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Generic, Literal
+from typing import Generic, Literal, Self
 
 import numpy as np
 from com.yahoo.labs.samoa.instances import (
@@ -285,10 +285,10 @@ class Schema:
         return str(self._moa_header.toString()).strip()
 
 
-class Stream(ABC, Generic[_AnyInstance], Iterator[_AnyInstance]):
+class Stream(ABC, Iterator[_AnyInstance], Generic[_AnyInstance]):
     """A datastream that can be learnt instance by instance."""
 
-    def __iter__(self) -> Iterator[_AnyInstance]:
+    def __iter__(self) -> Self:
         """Get an iterator over the stream.
 
         This will NOT restart the stream if it has already been iterated over.
@@ -446,9 +446,7 @@ class MOAStream(Stream[_AnyInstance]):
 class ARFFStream(MOAStream[_AnyInstance]):
     """A datastream originating from an ARFF file."""
 
-    def __init__(
-        self, path: str | Path, CLI: str | None = None, class_index: int = -1
-    ):
+    def __init__(self, path: str | Path, CLI: str | None = None, class_index: int = -1):
         """Construct an ARFFStream object from a file path.
 
         :param path: A filepath
@@ -573,9 +571,9 @@ def _numpy_to_arff(
     X,
     y,
     dataset_name: str = "No_Name",
-    feature_names: str = None,
-    target_name: str = None,
-    target_type: str = None,
+    feature_names: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
 ):
     """Converts a numpy X and y into a ARFF format. The code first check if the user has specified the type of the
     target values, if not, the code infers whether it is a categorical or numeric target by _target_is_categorical
@@ -632,12 +630,12 @@ def _new_instances_header(
 
 def _init_moa_stream_and_create_moa_header(
     number_of_instances: int = 100,
-    feature_names: list = None,
-    values_for_nominal_features={},
-    values_for_class_label: list = None,
+    feature_names: list | None = None,
+    values_for_nominal_features=None,
+    values_for_class_label: list | None = None,
     dataset_name="No_Name",
     target_attribute_name=None,
-    target_type: str = None,
+    target_type: str | None = None,
 ):
     """Initialize a moa stream with number_of_instances capacity and create a
     MOA header containing all the necessary attribute information.
@@ -663,6 +661,8 @@ def _init_moa_stream_and_create_moa_header(
     :return moa_header: initialized moa header which contain all necessary attribute information for all features and
         the class label
     """
+    if values_for_nominal_features is None:
+        values_for_nominal_features = {}
     attributes = FastVector()
     # Attribute("name") will create a numeric attribute;
     # Attribute("name", array_of_values) will create a nominal attribute

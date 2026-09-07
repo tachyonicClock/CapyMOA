@@ -25,7 +25,7 @@ def test_bad_infer_java_home(env):
     del env["JAVA_HOME"]
     env["PATH"] = ""
     assert "JAVA_HOME" not in env
-    result = subprocess.run(CMD_ABOUT, capture_output=True, env=env)
+    result = subprocess.run(CMD_ABOUT, capture_output=True, env=env, check=False)
     print(result.stdout.decode())
     assert result.returncode != 0
     exception = str(result.stderr.decode().splitlines()[-1])
@@ -34,14 +34,14 @@ def test_bad_infer_java_home(env):
 
 def test_good_java_home(env):
     env["JAVA_HOME"] = _get_java_home().as_posix()
-    result = subprocess.run(CMD, capture_output=True, env=env)
+    result = subprocess.run(CMD, capture_output=True, env=env, check=False)
     assert result.returncode == 0
 
 
 def test_bad_java_home(env):
     notfound = Path("/notfound")
     env["JAVA_HOME"] = notfound.as_posix()
-    result = subprocess.run(CMD, capture_output=True, env=env)
+    result = subprocess.run(CMD, capture_output=True, env=env, check=False)
     assert result.returncode != 0
     exception = result.stderr.decode().splitlines()[-1]
     assert exception == (
@@ -53,7 +53,7 @@ def test_bad_java_home(env):
 def test_capymoa_moa_jar(env):
     notfound = Path("/notfound")
     env["CAPYMOA_MOA_JAR"] = notfound.as_posix()
-    result = subprocess.run(CMD, capture_output=True, env=env)
+    result = subprocess.run(CMD, capture_output=True, env=env, check=False)
     assert result.returncode != 0
     exception = result.stderr.decode().splitlines()[-1]
     assert exception == (
@@ -79,6 +79,7 @@ def test_nonascii_capymoa(env):
             ],
             capture_output=True,
             env=env,
+            check=False,
         )
         assert result.returncode == 0
         assert result.stdout.decode().splitlines()[-1].strip() == moa_jar.as_posix()
@@ -87,7 +88,7 @@ def test_nonascii_capymoa(env):
 def test_capymoa_datasets_dir(env):
     with tempfile.TemporaryDirectory() as d:
         env["CAPYMOA_DATASETS_DIR"] = d
-        result = subprocess.run(CMD_ABOUT, capture_output=True, env=env)
+        result = subprocess.run(CMD_ABOUT, capture_output=True, env=env, check=False)
         assert result.returncode == 0
         about = result.stdout.decode()
         assert f"CAPYMOA_DATASETS_DIR: {d}" in about
@@ -95,7 +96,7 @@ def test_capymoa_datasets_dir(env):
 
 def test_capymoa_jvm_args(env):
     env["CAPYMOA_JVM_ARGS"] = "-Xmx16g -Xss10M"
-    result = subprocess.run(CMD_ABOUT, capture_output=True, env=env)
+    result = subprocess.run(CMD_ABOUT, capture_output=True, env=env, check=False)
     assert result.returncode == 0
     about = result.stdout.decode()
     assert "CAPYMOA_JVM_ARGS:     ['-Xmx16g', '-Xss10M']" in about

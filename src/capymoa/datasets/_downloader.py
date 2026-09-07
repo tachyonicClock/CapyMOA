@@ -37,10 +37,12 @@ class _DownloadableDataset(ABC):
 
     def __init__(
         self,
-        directory: str | Path = get_download_dir(),
+        directory: str | Path | None = None,
         auto_download: bool = True,
         file_type: FileType = "arff",
     ):
+        if directory is None:
+            directory = get_download_dir()
         self.file_type: FileType = file_type
         self._url = _resolve_dataset_url(type(self).__name__, file_type)
         self.path = infer_unpacked_path(self._url, directory)
@@ -73,7 +75,7 @@ class _DownloadableARFF(_DownloadableDataset, Stream):
 
     def __init__(
         self,
-        directory: str | Path = get_download_dir(),
+        directory: str | Path | None = None,
         auto_download: bool = True,
         file_type: FileType = "arff",
     ):
@@ -84,6 +86,8 @@ class _DownloadableARFF(_DownloadableDataset, Stream):
         :param auto_download: Download the dataset if it is missing.
         :param file_type: Download either the ``"arff"`` or ``"csv"`` dataset asset.
         """
+        if directory is None:
+            directory = get_download_dir()
         _DownloadableDataset.__init__(self, directory, auto_download, file_type)
         self.stream = self.to_stream(self.path)
         self.schema = self.stream.get_schema()

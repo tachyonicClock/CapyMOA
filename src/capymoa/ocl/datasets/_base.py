@@ -85,7 +85,7 @@ class _BuiltInCIScenario(ABC):
         shuffle_tasks: bool = True,
         shuffle_data: bool = True,
         seed: int = 0,
-        directory: Path = get_download_dir(),
+        directory: Path | None = None,
         auto_download: bool = True,
         train_transform: Callable[[Any], Tensor] | None = None,
         test_transform: Callable[[Any], Tensor] | None = None,
@@ -123,6 +123,8 @@ class _BuiltInCIScenario(ABC):
         assert self.num_classes
         assert self.default_task_count
 
+        if directory is None:
+            directory = get_download_dir()
         if num_tasks is None:
             num_tasks = self.default_task_count
         if train_transform is None:
@@ -314,7 +316,7 @@ class _BuiltInRotatedDomainScenario(_BuiltInCIScenario):
         rotations: Sequence[float] | None = None,
         shuffle_data: bool = True,
         seed: int = 0,
-        directory: Path = get_download_dir(),
+        directory: Path | None = None,
         auto_download: bool = True,
         train_transform: Callable[[Any], Tensor] | None = None,
         test_transform: Callable[[Any], Tensor] | None = None,
@@ -322,6 +324,8 @@ class _BuiltInRotatedDomainScenario(_BuiltInCIScenario):
         preload_test: bool = True,
         preload_train: bool = False,
     ):
+        if directory is None:
+            directory = get_download_dir()
         if num_tasks is None:
             num_tasks = self.default_task_count
         if num_tasks <= 0:

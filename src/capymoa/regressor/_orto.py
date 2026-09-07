@@ -1,4 +1,3 @@
-
 from moa.classifiers.trees import ORTO as _MOA_ORTO
 
 from capymoa.base import MOARegressor

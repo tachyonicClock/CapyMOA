@@ -253,6 +253,15 @@ upload_to_vcs_release = true
 [tool.ruff]
 target-version = "py311"
 
+[tool.ruff.lint]
+ignore = [
+    # Require a `tz` argument on `datetime.now()`. Every current call site
+    # uses `datetime.now()` to stamp human-readable filenames/log lines with
+    # local wall-clock time (e.g. experiment output filenames); there's no
+    # timezone-sensitive computation involved, so forcing tz-awareness would
+    # just complicate call sites without fixing a real bug.
+    "DTZ005",
+]
 
 [tool.coverage.report]
 exclude_also = [

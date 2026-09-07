@@ -898,7 +898,7 @@ def test_recurrent_concept_drift_stream_accepts_gradual_start_end():
 
 
 def test_recurrent_concept_drift_stream_rejects_base_drift_template():
-    with pytest.raises(ValueError, match="Unsupported drift transition type"):
+    with pytest.raises(TypeError, match="Unsupported drift transition type"):
         RecurrentConceptDriftStream(
             concept_list=recurrent_drift_concepts(),
             max_recurrences_per_concept=1,

@@ -118,9 +118,9 @@ class RCTree:
     def map_leaves(self, node, op=(lambda x: None), *args, **kwargs):
         if isinstance(node, RCBranch):
             if node.left:
-                self.map_leaves(node.left, op=op, *args, **kwargs)
+                self.map_leaves(node.left, *args, op=op, **kwargs)
             if node.right:
-                self.map_leaves(node.right, op=op, *args, **kwargs)
+                self.map_leaves(node.right, *args, op=op, **kwargs)
         else:
             op(node, *args, **kwargs)
 
@@ -262,10 +262,9 @@ class RCTree:
         else:
             self._train_index = len(self.leaves)
 
-        if len(self.leaves) >= self.tree_size:
-            if self.leaves:
-                oldest_inst = next(iter(self.leaves))
-                self.forget_point(oldest_inst)
+        if len(self.leaves) >= self.tree_size and self.leaves:
+            oldest_inst = next(iter(self.leaves))
+            self.forget_point(oldest_inst)
 
         self.insert_point(instance)
 

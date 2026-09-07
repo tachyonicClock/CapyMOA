@@ -43,4 +43,4 @@ def is_nb_fast() -> bool:
     only. This is done by adding ``"nbsphinx": "hidden"`` to the cell metadata.
     See: https://nbsphinx.readthedocs.io/en/0.9.3/hidden-cells.html
     """
-    return bool(environ.get("NB_FAST", False))
+    return environ.get("NB_FAST", "") not in ("", "0", "false", "False")

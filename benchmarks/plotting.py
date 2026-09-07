@@ -175,16 +175,19 @@ def plot_performance(
             legend_handles.append(
                 Patch(color=library_colors.get(library, "gray"), label=library)
             )
-        if unpaired_library in libraries and unpaired_label is not None:
-            if any(
+        if (
+            unpaired_library in libraries
+            and unpaired_label is not None
+            and any(
                 learner not in paired_learners
                 for learner in ordered_algorithms
                 if (learner, unpaired_library) in plot_df.index
-            ):
-                legend_handles.insert(
-                    libraries.index(unpaired_library) + 1,
-                    Patch(color=unpaired_color, label=unpaired_label),
-                )
+            )
+        ):
+            legend_handles.insert(
+                libraries.index(unpaired_library) + 1,
+                Patch(color=unpaired_color, label=unpaired_label),
+            )
 
         legend = ax.legend(handles=legend_handles)
         if dark_theme and legend is not None:

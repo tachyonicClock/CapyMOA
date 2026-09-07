@@ -1,4 +1,3 @@
-
 from moa.clusterers.clustream import WithKmeans as _MOA_Clustream_WKM
 
 from capymoa._utils import build_cli_str_from_mapping_and_locals
@@ -39,9 +38,7 @@ class Clustream_with_kmeans(MOAClusterer):
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         self.moa_learner = _MOA_Clustream_WKM()
-        super().__init__(
-            schema=schema, CLI=config_str, moa_learner=self.moa_learner
-        )
+        super().__init__(schema=schema, CLI=config_str, moa_learner=self.moa_learner)
 
     def implements_micro_clusters(self) -> bool:
         return True

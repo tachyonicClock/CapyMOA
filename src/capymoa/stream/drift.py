@@ -6,7 +6,7 @@ import math
 import random as _random
 import re
 from collections import OrderedDict
-from itertools import cycle
+from itertools import cycle, pairwise
 
 from moa.streams import ConceptDriftStream as MOA_ConceptDriftStream
 
@@ -305,12 +305,12 @@ class DriftStream(Stream):
                 "This DriftStream has no drifts, so there is nothing to "
                 "estimate a horizon from. Pass one explicitly."
             )
-        gaps = [positions[0]] + [b - a for a, b in zip(positions, positions[1:])]
+        gaps = [positions[0]] + [b - a for a, b in pairwise(positions)]
         # The final concept is unbounded, so assume it runs about as long as
         # the others did.
         return positions[-1] + sum(gaps) // len(gaps), True
 
-    def get_concept_counts(self, horizon: int = None):
+    def get_concept_counts(self, horizon: int | None = None):
         """How many of the first ``num_instances`` come from each concept.
 
         Around an :class:`AbruptDrift` this follows from the definition, but
@@ -408,7 +408,7 @@ class DriftStream(Stream):
             [in_transition[id(leaf)] for leaf in leaves],
         )
 
-    def describe(self, horizon: int = None) -> str:
+    def describe(self, horizon: int | None = None) -> str:
         """A readable summary of where the first ``num_instances`` come from.
 
         Intended for reporting a stream in a paper or notebook, where the drift
@@ -993,7 +993,7 @@ class AbruptDrift(Drift):
     so an omitted position cannot quietly become a drift at instance zero.
     """
 
-    def __init__(self, position: int = None, random_seed: int = 1):
+    def __init__(self, position: int | None = None, random_seed: int = 1):
         self.__init_args_kwargs__ = copy.copy(
             locals()
         )  # save init args for recreation. not a deep copy to avoid unnecessary use of memory
@@ -1073,12 +1073,14 @@ def get_class_and_init_attributes_with_values(obj):
 def get_recurrent_concept_drift_stream_list(
     concept_list: list,
     max_recurrences_per_concept: int = 3,
-    transition_type_template: Drift = AbruptDrift(position=5000),
-    concept_name_list: list = None,
+    transition_type_template: Drift | None = None,
+    concept_name_list: list | None = None,
 ) -> list:
+    if transition_type_template is None:
+        transition_type_template = AbruptDrift(position=5000)
     # checks
     if not isinstance(transition_type_template, (AbruptDrift, GradualDrift)):
-        raise ValueError(
+        raise TypeError(
             f"Unsupported drift transition type: {transition_type_template!s}"
         )
 
@@ -1177,9 +1179,11 @@ class RecurrentConceptDriftStream(DriftStream):
         self,
         concept_list: list,
         max_recurrences_per_concept: int = 3,
-        transition_type_template: Drift = AbruptDrift(position=5000),
-        concept_name_list: list = None,
+        transition_type_template: Drift | None = None,
+        concept_name_list: list | None = None,
     ):
+        if transition_type_template is None:
+            transition_type_template = AbruptDrift(position=5000)
         self.concept_info, stream_list = get_recurrent_concept_drift_stream_list(
             concept_list=concept_list,
             max_recurrences_per_concept=max_recurrences_per_concept,

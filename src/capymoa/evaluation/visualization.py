@@ -23,15 +23,15 @@ from capymoa.stream.drift import DriftStream, RecurrentConceptDriftStream
 def plot_windowed_results(
     *results,
     metric: str,
-    plot_title: str = None,
-    xlabel: str = None,
-    ylabel: str = None,
+    plot_title: str | None = None,
+    xlabel: str | None = None,
+    ylabel: str | None = None,
     figure_path: str = "./",
-    figure_name: str = None,
+    figure_name: str | None = None,
     save_only: bool = True,
     prevent_plotting_drifts: bool = False,
-    ymin: float = None,
-    ymax: float = None,
+    ymin: float | None = None,
+    ymax: float | None = None,
 ):
     """
     Plot a comparison of values from multiple evaluators based on a selected column using line plots.
@@ -47,7 +47,7 @@ def plot_windowed_results(
     # check if the results are all prequential
     for result in results:
         if not isinstance(result, PrequentialResults):
-            raise ValueError("Only PrequentialResults class are valid")
+            raise TypeError("Only PrequentialResults class are valid")
 
     num_instances = results[0].max_instances
     stream = results[0]["stream"]
@@ -115,62 +115,65 @@ def plot_windowed_results(
         if np.isnan(y_values).any():
             warn(f"Results for '{labels[i]}' contains NaNs.")
 
-    if stream is not None and isinstance(stream, DriftStream):
-        if not prevent_plotting_drifts:
-            drifts = stream.get_drifts()
+    if (
+        stream is not None
+        and isinstance(stream, DriftStream)
+        and not prevent_plotting_drifts
+    ):
+        drifts = stream.get_drifts()
 
-            drift_locations = [drift.position for drift in drifts]
-            gradual_drift_window_lengths = [drift.width for drift in drifts]
+        drift_locations = [drift.position for drift in drifts]
+        gradual_drift_window_lengths = [drift.width for drift in drifts]
 
-            # Add vertical lines at drift locations
-            if drift_locations:
-                for location in drift_locations:
-                    plt.axvline(location, color="red", linestyle="-")
+        # Add vertical lines at drift locations
+        if drift_locations:
+            for location in drift_locations:
+                plt.axvline(location, color="red", linestyle="-")
 
-            # Plot the horizontal line (concept width) for each concept
-            if isinstance(stream, RecurrentConceptDriftStream):
-                cmap = plt.cm.tab10
-                colour_idxs = {}
-                colour_idx = 0
-                for c in stream.concept_info:
-                    concept_label = None
-                    if c["id"] not in colour_idxs:
-                        colour_idxs[c["id"]] = colour_idx
-                        colour_idx += 1
-                        concept_label = c["id"]
-                    plt.hlines(
-                        y=ymin + padding,
-                        xmin=c["start"],
-                        xmax=c["end"],
-                        color=cmap(colour_idxs[c["id"]]),
-                        linestyle="--",
-                        linewidth=2,
-                        label=concept_label,
-                    )
+        # Plot the horizontal line (concept width) for each concept
+        if isinstance(stream, RecurrentConceptDriftStream):
+            cmap = plt.cm.tab10
+            colour_idxs = {}
+            colour_idx = 0
+            for c in stream.concept_info:
+                concept_label = None
+                if c["id"] not in colour_idxs:
+                    colour_idxs[c["id"]] = colour_idx
+                    colour_idx += 1
+                    concept_label = c["id"]
+                plt.hlines(
+                    y=ymin + padding,
+                    xmin=c["start"],
+                    xmax=c["end"],
+                    color=cmap(colour_idxs[c["id"]]),
+                    linestyle="--",
+                    linewidth=2,
+                    label=concept_label,
+                )
 
-            # Add gradual drift windows as 70% transparent rectangles
-            if gradual_drift_window_lengths:
-                if not drift_locations:
-                    print(
-                        "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
-                    )
-                    return
+        # Add gradual drift windows as 70% transparent rectangles
+        if gradual_drift_window_lengths:
+            if not drift_locations:
+                print(
+                    "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
+                )
+                return
 
-                if len(drift_locations) != len(gradual_drift_window_lengths):
-                    print(
-                        "Error: drift_locations and gradual_drift_window_lengths must have the same length."
-                    )
-                    return
+            if len(drift_locations) != len(gradual_drift_window_lengths):
+                print(
+                    "Error: drift_locations and gradual_drift_window_lengths must have the same length."
+                )
+                return
 
-                for i in range(len(drift_locations)):
-                    location = drift_locations[i]
-                    window_length = gradual_drift_window_lengths[i]
-                    plt.axvspan(
-                        location - window_length / 2,
-                        location + window_length / 2,
-                        alpha=0.2,
-                        color="red",
-                    )
+            for i in range(len(drift_locations)):
+                location = drift_locations[i]
+                window_length = gradual_drift_window_lengths[i]
+                plt.axvspan(
+                    location - window_length / 2,
+                    location + window_length / 2,
+                    alpha=0.2,
+                    color="red",
+                )
 
     # Set the y-axis limits
     plt.ylim(ymin, ymax)
@@ -228,9 +231,8 @@ def plot_predictions_vs_ground_truth(
     #     raise ValueError('Cannot process results that do not include prediction interval results.')
 
     # Determine ground truth y
-    if ground_truth is None:
-        if results and results[0].ground_truth_y():
-            ground_truth = results[0].ground_truth_y()
+    if ground_truth is None and results and results[0].ground_truth_y():
+        ground_truth = results[0].ground_truth_y()
 
     # Check if ground truth y is available
     if ground_truth is None:
@@ -344,9 +346,8 @@ def plot_regression_results(
             )
 
     # Check if the ground_truth is stored in the first result
-    if ground_truth is None:
-        if results and results[0].ground_truth_y():
-            ground_truth = results[0].ground_truth_y()
+    if ground_truth is None and results and results[0].ground_truth_y():
+        ground_truth = results[0].ground_truth_y()
 
     # Check if ground_truth is none
     if ground_truth is None:
@@ -470,45 +471,48 @@ def plot_regression_results(
                 alpha=0.5,
             )
 
-    if stream is not None and isinstance(stream, DriftStream):
-        if not prevent_plotting_drifts:
-            drifts = stream.get_drifts()
+    if (
+        stream is not None
+        and isinstance(stream, DriftStream)
+        and not prevent_plotting_drifts
+    ):
+        drifts = stream.get_drifts()
 
-            drift_locations = [drift.position for drift in drifts]
-            gradual_drift_window_lengths = [drift.width for drift in drifts]
+        drift_locations = [drift.position for drift in drifts]
+        gradual_drift_window_lengths = [drift.width for drift in drifts]
 
-            # Add vertical lines at drift locations
-            if drift_locations:
-                for location in drift_locations:
-                    if start < location < end:
-                        plt.axvline(location, color="red", linestyle="-")
+        # Add vertical lines at drift locations
+        if drift_locations:
+            for location in drift_locations:
+                if start < location < end:
+                    plt.axvline(location, color="red", linestyle="-")
 
-            # Add gradual drift windows as 70% transparent rectangles
-            if gradual_drift_window_lengths:
-                if not drift_locations:
-                    print(
-                        "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
+        # Add gradual drift windows as 70% transparent rectangles
+        if gradual_drift_window_lengths:
+            if not drift_locations:
+                print(
+                    "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
+                )
+                return
+
+            if len(drift_locations) != len(gradual_drift_window_lengths):
+                print(
+                    "Error: drift_locations and gradual_drift_window_lengths must have the same length."
+                )
+                return
+
+            for i in range(len(drift_locations)):
+                location = drift_locations[i]
+                window_length = gradual_drift_window_lengths[i]
+
+                # Plot the 70% transparent rectangle
+                if start < location < end:
+                    plt.axvspan(
+                        max(location - window_length / 2, start),
+                        min(location + window_length / 2, end),
+                        alpha=0.2,
+                        color="red",
                     )
-                    return
-
-                if len(drift_locations) != len(gradual_drift_window_lengths):
-                    print(
-                        "Error: drift_locations and gradual_drift_window_lengths must have the same length."
-                    )
-                    return
-
-                for i in range(len(drift_locations)):
-                    location = drift_locations[i]
-                    window_length = gradual_drift_window_lengths[i]
-
-                    # Plot the 70% transparent rectangle
-                    if start < location < end:
-                        plt.axvspan(
-                            max(location - window_length / 2, start),
-                            min(location + window_length / 2, end),
-                            alpha=0.2,
-                            color="red",
-                        )
 
     output_name = str(
         InstancesHeader.getClassNameString(
@@ -703,45 +707,48 @@ def plot_prediction_interval(
                 label="Ground Truth (outer)",
             )
 
-        if stream is not None and isinstance(stream, DriftStream):
-            if not prevent_plotting_drifts:
-                drifts = stream.get_drifts()
+        if (
+            stream is not None
+            and isinstance(stream, DriftStream)
+            and not prevent_plotting_drifts
+        ):
+            drifts = stream.get_drifts()
 
-                drift_locations = [drift.position for drift in drifts]
-                gradual_drift_window_lengths = [drift.width for drift in drifts]
+            drift_locations = [drift.position for drift in drifts]
+            gradual_drift_window_lengths = [drift.width for drift in drifts]
 
-                # Add vertical lines at drift locations
-                if drift_locations:
-                    for location in drift_locations:
-                        if start < location < end:
-                            plt.axvline(location, color="red", linestyle="-")
+            # Add vertical lines at drift locations
+            if drift_locations:
+                for location in drift_locations:
+                    if start < location < end:
+                        plt.axvline(location, color="red", linestyle="-")
 
-                # Add gradual drift windows as 70% transparent rectangles
-                if gradual_drift_window_lengths:
-                    if not drift_locations:
-                        print(
-                            "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
+            # Add gradual drift windows as 70% transparent rectangles
+            if gradual_drift_window_lengths:
+                if not drift_locations:
+                    print(
+                        "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
+                    )
+                    return
+
+                if len(drift_locations) != len(gradual_drift_window_lengths):
+                    print(
+                        "Error: drift_locations and gradual_drift_window_lengths must have the same length."
+                    )
+                    return
+
+                for i in range(len(drift_locations)):
+                    location = drift_locations[i]
+                    window_length = gradual_drift_window_lengths[i]
+
+                    # Plot the 70% transparent rectangle
+                    if start < location < end:
+                        plt.axvspan(
+                            max(location - window_length / 2, start),
+                            min(location + window_length / 2, end),
+                            alpha=0.2,
+                            color="red",
                         )
-                        return
-
-                    if len(drift_locations) != len(gradual_drift_window_lengths):
-                        print(
-                            "Error: drift_locations and gradual_drift_window_lengths must have the same length."
-                        )
-                        return
-
-                    for i in range(len(drift_locations)):
-                        location = drift_locations[i]
-                        window_length = gradual_drift_window_lengths[i]
-
-                        # Plot the 70% transparent rectangle
-                        if start < location < end:
-                            plt.axvspan(
-                                max(location - window_length / 2, start),
-                                min(location + window_length / 2, end),
-                                alpha=0.2,
-                                color="red",
-                            )
 
         output_name = str(
             InstancesHeader.getClassNameString(
@@ -1010,45 +1017,48 @@ def plot_prediction_interval(
                 label="Ground Truth (interim)",
             )
 
-        if stream is not None and isinstance(stream, DriftStream):
-            if not prevent_plotting_drifts:
-                drifts = stream.get_drifts()
+        if (
+            stream is not None
+            and isinstance(stream, DriftStream)
+            and not prevent_plotting_drifts
+        ):
+            drifts = stream.get_drifts()
 
-                drift_locations = [drift.position for drift in drifts]
-                gradual_drift_window_lengths = [drift.width for drift in drifts]
+            drift_locations = [drift.position for drift in drifts]
+            gradual_drift_window_lengths = [drift.width for drift in drifts]
 
-                # Add vertical lines at drift locations
-                if drift_locations:
-                    for location in drift_locations:
-                        if start < location < end:
-                            plt.axvline(location, color="red", linestyle="-")
+            # Add vertical lines at drift locations
+            if drift_locations:
+                for location in drift_locations:
+                    if start < location < end:
+                        plt.axvline(location, color="red", linestyle="-")
 
-                # Add gradual drift windows as 70% transparent rectangles
-                if gradual_drift_window_lengths:
-                    if not drift_locations:
-                        print(
-                            "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
+            # Add gradual drift windows as 70% transparent rectangles
+            if gradual_drift_window_lengths:
+                if not drift_locations:
+                    print(
+                        "Error: gradual_drift_window_lengths is provided, but drift_locations is not."
+                    )
+                    return
+
+                if len(drift_locations) != len(gradual_drift_window_lengths):
+                    print(
+                        "Error: drift_locations and gradual_drift_window_lengths must have the same length."
+                    )
+                    return
+
+                for i in range(len(drift_locations)):
+                    location = drift_locations[i]
+                    window_length = gradual_drift_window_lengths[i]
+
+                    # Plot the 70% transparent rectangle
+                    if start < location < end:
+                        plt.axvspan(
+                            max(location - window_length / 2, start),
+                            min(location + window_length / 2, end),
+                            alpha=0.2,
+                            color="red",
                         )
-                        return
-
-                    if len(drift_locations) != len(gradual_drift_window_lengths):
-                        print(
-                            "Error: drift_locations and gradual_drift_window_lengths must have the same length."
-                        )
-                        return
-
-                    for i in range(len(drift_locations)):
-                        location = drift_locations[i]
-                        window_length = gradual_drift_window_lengths[i]
-
-                        # Plot the 70% transparent rectangle
-                        if start < location < end:
-                            plt.axvspan(
-                                max(location - window_length / 2, start),
-                                min(location + window_length / 2, end),
-                                alpha=0.2,
-                                color="red",
-                            )
 
         output_name = str(
             InstancesHeader.getClassNameString(

@@ -1,6 +1,5 @@
 """Statistics collector used while evaluating OCL learners."""
 
-
 import numpy as np
 import torch
 

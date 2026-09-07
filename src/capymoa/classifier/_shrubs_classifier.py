@@ -48,9 +48,7 @@ class ShrubsClassifier(_ShrubEnsembles, Classifier):
         burnin_steps: int = 5,
         update_leaves: bool = False,
         batch_size: int = 32,
-        sk_dt: DecisionTreeClassifier = DecisionTreeClassifier(
-            splitter="best", criterion="gini", max_depth=None, random_state=1234
-        ),
+        sk_dt: DecisionTreeClassifier | None = None,
         allow_abstaining: bool = True,
     ):
         """Initializes the ShrubEnsemble classifier with the given parameters.
@@ -106,6 +104,10 @@ class ShrubsClassifier(_ShrubEnsembles, Classifier):
         :param allow_abstaining: bool - If true, then None is returned if there is no
             model in the ensemble (i.e. it was pruned away or no data has been seen yet)
         """
+        if sk_dt is None:
+            sk_dt = DecisionTreeClassifier(
+                splitter="best", criterion="gini", max_depth=None, random_state=1234
+            )
         Classifier.__init__(self, schema, sk_dt.random_state)
         _ShrubEnsembles.__init__(
             self,

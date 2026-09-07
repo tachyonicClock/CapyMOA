@@ -1,4 +1,3 @@
-
 from moa.classifiers.trees import SelfOptimisingBaseTree as _MOA_SelfOptimisingBaseTree
 
 from capymoa.base import (

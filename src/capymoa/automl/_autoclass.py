@@ -25,11 +25,7 @@ class AutoClass(MOAClassifier):
         schema: Schema = None,
         random_seed: int = 0,
         configuration_json: str = "../../data/settings_autoclass.json",
-        base_classifiers: list[Classifier] = [
-            "lazy.kNN",
-            "trees.HoeffdingTree",
-            "trees.HoeffdingAdaptiveTree",
-        ],
+        base_classifiers: list[Classifier] | None = None,
         number_active_classifiers: int = 1,
         weight_classifiers: bool = False,
     ):
@@ -47,6 +43,12 @@ class AutoClass(MOAClassifier):
         """
 
         # Check if the json configuration file exists.
+        if base_classifiers is None:
+            base_classifiers = [
+                "lazy.kNN",
+                "trees.HoeffdingTree",
+                "trees.HoeffdingAdaptiveTree",
+            ]
         if not os.path.exists(configuration_json):
             raise FileNotFoundError(
                 f"The configuration json file was not found: {configuration_json}"

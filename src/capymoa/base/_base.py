@@ -232,7 +232,7 @@ class MOAClusterer(Clusterer):
             if isinstance(moa_learner, _jpype._JClass):
                 moa_learner = moa_learner()
             else:  # this is not a Java object, thus it certainly isn't a MOA learner
-                raise ValueError("Invalid MOA clusterer provided.")
+                raise TypeError("Invalid MOA clusterer provided.")
         self.moa_learner = moa_learner
 
         # self.moa_learner.setRandomSeed(self.random_seed)

@@ -1,4 +1,3 @@
-
 from moa.classifiers.trees import FIMTDD as _MOA_FIMTDD
 
 from capymoa.base import MOARegressor

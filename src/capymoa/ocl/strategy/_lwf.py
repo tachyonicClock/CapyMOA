@@ -31,7 +31,7 @@ class LWF(BatchClassifier, nn.Module, Handler):
         optimiser: torch.optim.Optimizer,
         alpha: float = 1.0,
         temperature: float = 2.0,
-        device: torch.device = torch.device("cpu"),
+        device: torch.device | None = None,
         mask_test: bool = False,
         mask_train: bool = False,
         task_mask: Tensor | None = None,
@@ -54,6 +54,8 @@ class LWF(BatchClassifier, nn.Module, Handler):
         """
         super().__init__(schema, 0)
         nn.Module.__init__(self)
+        if device is None:
+            device = torch.device("cpu")
         if alpha < 0:
             raise ValueError("alpha must be non-negative.")
         if temperature <= 0:

@@ -4,6 +4,8 @@ import pytest
 
 pytestmark = pytest.markskip("torch")
 
+import itertools
+
 import torch
 from torch import BoolTensor, IntTensor
 from torch.utils.data import Dataset, TensorDataset
@@ -68,7 +70,7 @@ def test_gradual_task_idx_preserves_within_task_order() -> None:
 
     task_idx: list[IntTensor] = [
         torch.arange(start, end, dtype=torch.int64)
-        for start, end in zip(boundaries[:-1], boundaries[1:])
+        for start, end in itertools.pairwise(boundaries)
     ]
     transition_fn = FixedMaskTransitionFn(
         masks=[
@@ -112,6 +114,6 @@ def test_gradual_task_transitions_seeded_deterministic_and_ordered() -> None:
     for length in lengths:
         boundaries.append(boundaries[-1] + length)
 
-    for start, end in zip(boundaries[:-1], boundaries[1:]):
+    for start, end in itertools.pairwise(boundaries):
         original_task_indices = [v for v in flattened if start <= v < end]
         assert original_task_indices == sorted(original_task_indices)

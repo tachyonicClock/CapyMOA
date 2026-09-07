@@ -1,5 +1,6 @@
 """Data structures and metric helpers for OCL evaluation."""
 
+import itertools
 from dataclasses import dataclass
 
 import numpy as np
@@ -191,9 +192,7 @@ def _forwards_transfer(R: torch.Tensor) -> float:
 
 def _get_ttt_windowed_task_index(boundaries: np.ndarray, window_size: int):
     tasks = np.zeros(int(boundaries[-1]) // window_size)
-    for task_id, (start, end) in enumerate(
-        zip(boundaries[:-1], boundaries[1:], strict=True)
-    ):
+    for task_id, (start, end) in enumerate(itertools.pairwise(boundaries)):
         win_start = int(start) // window_size
         win_end = int(end) // window_size
         tasks[win_start:win_end] = np.linspace(
