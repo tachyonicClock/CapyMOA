@@ -20,6 +20,7 @@ _metrics_name_mapping = {
     "precision_{N}": "Precision for class {N} (percent)",
     "recall": "Recall (percent)",
     "recall_{N}": "Recall for class {N} (percent)",
+    "roc_auc": "ROC AUC (cumulative)",
     # regression
     "mae": "mean absolute error",
     "rmse": "root mean squared error",

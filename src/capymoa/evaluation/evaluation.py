@@ -114,6 +114,7 @@ class ClassificationEvaluator:
         self.moa_basic_evaluator.precisionPerClassOption.set()
         self.moa_basic_evaluator.precisionRecallOutputOption.set()
         self.moa_basic_evaluator.f1PerClassOption.set()
+        self.moa_basic_evaluator.rocAucOption.set()
         self.moa_basic_evaluator.prepareForUse()
 
         _attributeValues = ArrayList()
@@ -284,6 +285,10 @@ class ClassificationEvaluator:
 
     def recall(self):
         index = self.metrics_header().index("recall")
+        return float(self.metrics()[index])
+
+    def roc_auc(self):
+        index = self.metrics_header().index("roc_auc")
         return float(self.metrics()[index])
 
 
@@ -744,6 +749,9 @@ class ClassificationWindowedEvaluator(ClassificationEvaluator):
 
     def recall(self):
         return self.metrics_per_window()["recall"].tolist()
+
+    def roc_auc(self):
+        return self.metrics_per_window()["roc_auc"].tolist()
 
 
 class RegressionWindowedEvaluator(RegressionEvaluator):
