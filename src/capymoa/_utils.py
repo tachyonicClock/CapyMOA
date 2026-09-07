@@ -84,14 +84,14 @@ def build_cli_str_from_mapping_and_locals(mapping: dict[str, str], lcs: dict[str
     """
 
     config_str = ""
-    for key in mapping:
+    for key, cli_flag in mapping.items():
         set_value = lcs[key]
         is_bool = isinstance(set_value, bool)
         if is_bool:
-            str_extension = mapping[key] + " " if set_value else ""
+            str_extension = cli_flag + " " if set_value else ""
         else:
             # The parenthesis are used to support nested classes
-            str_extension = f"{mapping[key]} ({set_value}) "
+            str_extension = f"{cli_flag} ({set_value}) "
         config_str += str_extension
     return config_str
 

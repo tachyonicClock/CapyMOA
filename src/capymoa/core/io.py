@@ -40,7 +40,7 @@ def load_model(file: BinaryIO) -> object:
     :return: The loaded model.
     """
     if not isinstance(file, (RawIOBase, BufferedIOBase)):
-        raise ValueError("File must be opened in binary mode.")
+        raise TypeError("File must be opened in binary mode.")
     if not file.readable():
         raise ValueError("File must be readable.")
     try:

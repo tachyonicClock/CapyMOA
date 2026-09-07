@@ -53,9 +53,11 @@ class ReplayBuffer(ABC, nn.Module):
         self,
         capacity: int,
         features: int,
-        rng: torch.Generator = torch.Generator(),
+        rng: torch.Generator | None = None,
     ) -> None:
         super().__init__()
+        if rng is None:
+            rng = torch.Generator()
         self._capacity = capacity
         self._features = features
         self._rng = rng

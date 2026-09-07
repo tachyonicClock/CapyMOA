@@ -1,6 +1,5 @@
 """Tests to ensure progress bars work correctly."""
 
-
 import pytest
 from pytest import CaptureFixture
 from tqdm import tqdm

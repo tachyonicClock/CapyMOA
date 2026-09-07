@@ -111,7 +111,7 @@ def download_numpy_dataset(
     dataset_name: str,
     url: str,
     auto_download: bool = True,
-    downloads: Path | str = capymoa_datasets_dir(),
+    downloads: Path | str | None = None,
 ) -> tuple[
     tuple[np.ndarray, np.ndarray],
     tuple[np.ndarray, np.ndarray],
@@ -137,6 +137,8 @@ def download_numpy_dataset(
         is False.
     :return: A tuple containing the training and testing data as numpy arrays.
     """
+    if downloads is None:
+        downloads = capymoa_datasets_dir()
     path = Path(downloads) / dataset_name
 
     # Check if the dataset is already downloaded

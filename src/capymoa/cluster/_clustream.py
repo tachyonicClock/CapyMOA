@@ -1,4 +1,3 @@
-
 from moa.clusterers.clustream import Clustream as _MOA_Clustream
 
 from capymoa._utils import build_cli_str_from_mapping_and_locals
@@ -36,9 +35,7 @@ class Clustream(MOAClusterer):
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         self.moa_learner = _MOA_Clustream()
-        super().__init__(
-            schema=schema, CLI=config_str, moa_learner=self.moa_learner
-        )
+        super().__init__(schema=schema, CLI=config_str, moa_learner=self.moa_learner)
 
     def implements_micro_clusters(self) -> bool:
         return True

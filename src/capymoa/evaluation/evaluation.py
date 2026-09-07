@@ -162,14 +162,14 @@ class ClassificationEvaluator:
             schema.
         :param y_pred_index: The predicted class index. If the classifier
             abstains from making a prediction, this value can be None.
-        :raises ValueError: If the values are not valid indexes in the schema.
+        :raises TypeError: If the values are not valid indexes in the schema.
         """
         if not isinstance(y_target_index, (np.integer, int)):
-            raise ValueError(
+            raise TypeError(
                 f"y_target_index must be an integer, not {type(y_target_index)}"
             )
         if not (y_pred_index is None or isinstance(y_pred_index, (np.integer, int))):
-            raise ValueError(
+            raise TypeError(
                 f"y_pred_index must be an integer, not {type(y_pred_index)}"
             )
 
@@ -473,7 +473,7 @@ class AnomalyDetectionEvaluator:
         :param score: The predicted scores. Should be in the range [0, 1].
         """
         if not isinstance(y_target_index, (np.integer, int)):
-            raise ValueError(
+            raise TypeError(
                 f"y_target_index must be an integer, not {type(y_target_index)}"
             )
 
@@ -581,7 +581,7 @@ class AnomalyDetectionWindowedEvaluator:
         :param score: The predicted scores. Should be in the range [0, 1].
         """
         if not isinstance(y_target_index, (np.integer, int)):
-            raise ValueError(
+            raise TypeError(
                 f"y_target_index must be an integer, not {type(y_target_index)}"
             )
 
@@ -965,7 +965,7 @@ def _get_target(
     elif isinstance(instance, RegressionInstance):
         return instance.y_value
     else:
-        raise ValueError("Unknown instance type")
+        raise TypeError("Unknown instance type")
 
 
 def prequential_evaluation(
@@ -1640,7 +1640,7 @@ def _prequential_evaluation_anomaly_fast(
     basic_evaluator = None
     windowed_evaluator = None
     if not isinstance(learner, AnomalyDetector):
-        raise ValueError("The learner is not an AnomalyDetector")
+        raise TypeError("The learner is not an AnomalyDetector")
     basic_evaluator = AnomalyDetectionEvaluator(schema=stream.get_schema())
     windowed_evaluator = AnomalyDetectionWindowedEvaluator(
         schema=stream.get_schema(), window_size=window_size
@@ -1854,15 +1854,18 @@ def prequential_evaluation_multiple_learners(
 
 
 def write_results_to_files(
-    path: str = None, results=None, file_name: str = None, directory_name: str = None
+    path: str | None = None,
+    results=None,
+    file_name: str | None = None,
+    directory_name: str | None = None,
 ):
     if results is None:
         raise ValueError("The results object is None")
 
     path = path if path.endswith("/") else (path + "/")
 
-    if isinstance(results, ClassificationWindowedEvaluator) or isinstance(
-        results, RegressionWindowedEvaluator
+    if isinstance(
+        results, (ClassificationWindowedEvaluator, RegressionWindowedEvaluator)
     ):
         data = results.metrics_per_window()
         data.to_csv(
@@ -1870,9 +1873,7 @@ def write_results_to_files(
             + ("/windowed_results.csv" if file_name is None else file_name),
             index=False,
         )
-    elif isinstance(results, ClassificationEvaluator) or isinstance(
-        results, RegressionEvaluator
-    ):
+    elif isinstance(results, (ClassificationEvaluator, RegressionEvaluator)):
         json_str = json.dumps(results.metrics_dict())
         data = json.loads(json_str)
         with open(
@@ -1925,7 +1926,7 @@ def write_results_to_files(
                     index=False,
                 )
     else:
-        raise ValueError(
+        raise TypeError(
             "Writing results to file is not supported for type "
             + str(type(results))
             + " yet"

@@ -510,7 +510,7 @@ class ClassifierPipeline(BasePipeline, Classifier):
             The prediction of the pipeline
 
         """
-        inst, pred = self.pass_forward_predict(instance)
+        _inst, pred = self.pass_forward_predict(instance)
         return pred
 
     def predict_proba(self, instance: Instance) -> LabelProbabilities:
@@ -701,7 +701,7 @@ class RandomSearchClassifierPE(ClassifierPipelineElement, Classifier):
             The prediction of the pipeline
 
         """
-        inst, pred = self.pass_forward_predict(instance)
+        _inst, pred = self.pass_forward_predict(instance)
         return pred
 
     def predict_proba(self, instance: Instance) -> LabelProbabilities:

@@ -12,11 +12,11 @@ from capymoa.stream import Stream
 class PrequentialResults:
     def __init__(
         self,
-        learner: str = None,
+        learner: str | None = None,
         stream: Stream = None,
-        wallclock: float = None,
-        cpu_time: float = None,
-        max_instances: int = None,
+        wallclock: float | None = None,
+        cpu_time: float | None = None,
+        max_instances: int | None = None,
         cumulative_evaluator=None,
         windowed_evaluator=None,
         ground_truth_y: np.ndarray | None = None,
@@ -61,7 +61,7 @@ class PrequentialResults:
         else:
             raise AttributeError(f"Attribute {attribute} not found")
 
-    def write_to_file(self, path: str = "./", directory_name: str = None):
+    def write_to_file(self, path: str = "./", directory_name: str | None = None):
         if directory_name is None:
             current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
             directory_name = f"{current_datetime}_{self._learner}"
@@ -90,7 +90,9 @@ class PrequentialResults:
         return self.windowed.metrics_per_window()
 
 
-def _write_results_to_files(path: str = None, results=None, directory_name: str = None):
+def _write_results_to_files(
+    path: str | None = None, results=None, directory_name: str | None = None
+):
     from capymoa.evaluation import (
         ClassificationEvaluator,
         ClassificationWindowedEvaluator,
@@ -103,14 +105,12 @@ def _write_results_to_files(path: str = None, results=None, directory_name: str 
 
     path = path if path.endswith("/") else (path + "/")
 
-    if isinstance(results, ClassificationWindowedEvaluator) or isinstance(
-        results, RegressionWindowedEvaluator
+    if isinstance(
+        results, (ClassificationWindowedEvaluator, RegressionWindowedEvaluator)
     ):
         data = results.metrics_per_window()
         data.to_csv(("./" if path is None else path) + "/windowed.csv", index=False)
-    elif isinstance(results, ClassificationEvaluator) or isinstance(
-        results, RegressionEvaluator
-    ):
+    elif isinstance(results, (ClassificationEvaluator, RegressionEvaluator)):
         json_str = json.dumps(results.metrics_dict())
         data = json.loads(json_str)
         with open(
@@ -153,7 +153,7 @@ def _write_results_to_files(path: str = None, results=None, directory_name: str 
                     index=False,
                 )
     else:
-        raise ValueError(
+        raise TypeError(
             "Writing results to file is not supported for type "
             + str(type(results))
             + " yet"

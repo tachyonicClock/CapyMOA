@@ -37,7 +37,7 @@ class SplitCIFAR100ViT(_BuiltInCIScenario):
     default_task_count = 10
     default_train_transform = None
     default_test_transform = None
-    shape = [768]
+    shape = (768,)
     _dataset_key = "CIFAR100_vit_base_patch16_224_augreg_in21k"
 
     @classmethod
@@ -90,7 +90,7 @@ class SplitCIFAR10ViT(SplitCIFAR100ViT):
 
     num_classes = 10
     default_task_count = 5
-    shape = [768]
+    shape = (768,)
 
 
 class DomainCIFAR100ViT(SplitCIFAR100ViT):
@@ -108,28 +108,30 @@ class DomainCIFAR100ViT(SplitCIFAR100ViT):
     #. Krizhevsky, A. (2009). Learning Multiple Layers of Features from Tiny Images.
     """
 
-    _CIFAR100_CLASS_TO_SUPERCLASS: list[int] = (
+    _CIFAR100_CLASS_TO_SUPERCLASS: tuple[int, ...] = (
         DomainCIFAR100._CIFAR100_CLASS_TO_SUPERCLASS
     )
-    _CIFAR100_SUPERCLASS_CLASSES: list[list[int]] = (
+    _CIFAR100_SUPERCLASS_CLASSES: tuple[tuple[int, ...], ...] = (
         DomainCIFAR100._CIFAR100_SUPERCLASS_CLASSES
     )
     classes = DomainCIFAR100.classes
 
     num_classes = 20
     default_task_count = 5
-    shape = [768]
+    shape = (768,)
 
     def __init__(
         self,
         shuffle_data: bool = True,
         seed: int = 0,
-        directory: Path = get_download_dir(),
+        directory: Path | None = None,
         auto_download: bool = True,
         train_transform: Callable[[Any], Tensor] | None = None,
         test_transform: Callable[[Any], Tensor] | None = None,
     ):
         """Create the DomainCIFAR100ViT scenario."""
+        if directory is None:
+            directory = get_download_dir()
         if train_transform is None:
             train_transform = self.default_train_transform
         if test_transform is None:

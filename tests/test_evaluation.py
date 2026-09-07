@@ -149,13 +149,13 @@ def _test_accessibility(obj, function_names):
             if callable(func):
                 func()
             else:
-                raise AttributeError(f"{func_name} is not callable.")
+                raise TypeError(f"{func_name} is not callable.")
 
             # Check if the function is accessible via __getitem__
             if obj[func_name] is None:  # func_name in obj.metrics_header():
                 raise KeyError(f"{func_name} is not accessible via __getitem__.")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - collect every accessor failure instead of stopping at the first
             errors.append((func_name, str(e)))
 
     return errors

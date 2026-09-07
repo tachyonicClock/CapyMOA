@@ -12,8 +12,14 @@ from ._csmote import CSMOTE
 from ._dems import DynamicEnsembleMemberSelection
 from ._dynamic_weighted_majority import DynamicWeightedMajority
 from ._efdt import EFDT
+
+# `_hoeffding_tree` must be imported before `_hoeffding_adaptive_tree`: the
+# latter does `from capymoa.classifier import HoeffdingTree`, which requires
+# this module's own re-export to already be bound. isort would normally
+# alphabetize these the other way, reintroducing that circular import,
+# hence `isort: skip`.
+from ._hoeffding_tree import HoeffdingTree  # isort: skip
 from ._hoeffding_adaptive_tree import HoeffdingAdaptiveTree
-from ._hoeffding_tree import HoeffdingTree
 from ._knn import KNN
 from ._last import LAST
 from ._leveraging_bagging import LeveragingBagging

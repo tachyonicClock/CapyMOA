@@ -22,14 +22,14 @@ class MVE(MOAPredictionIntervalLearner):
 
         config_str = ""
         parameters = inspect.signature(self.__init__).parameters
-        for key in mappings:
+        for key, cli_flag in mappings.items():
             if key not in parameters:
                 continue
             this_parameter = parameters[key]
             set_value = locals()[key]
             if isinstance(set_value, bool):
                 if set_value:
-                    str_extension = mappings[key] + " "
+                    str_extension = cli_flag + " "
                 else:
                     str_extension = ""
             else:
@@ -43,7 +43,7 @@ class MVE(MOAPredictionIntervalLearner):
                     else:
                         set_value = cli_str_regressor(base_learner)
 
-                str_extension = f"{mappings[key]} {set_value} "
+                str_extension = f"{cli_flag} {set_value} "
             config_str += str_extension
 
         self.moa_learner = MOA_MVE()

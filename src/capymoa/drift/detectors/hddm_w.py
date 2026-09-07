@@ -33,7 +33,7 @@ class HDDMWeighted(MOADriftDetector):
 
     _moa_detector_type = _HDDM_W_Test
 
-    TEST_TYPES = ["Two-sided", "One-sided"]
+    TEST_TYPES = ("Two-sided", "One-sided")
 
     def __init__(
         self,

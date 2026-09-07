@@ -191,7 +191,7 @@ class SuccessiveHalvingClassifier(Classifier):
                                 print(
                                     f"Added model: {algorithm_name} with parameters: {param_str}"
                                 )
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 - skip one bad candidate config, don't abort the run
                         print(
                             f"Warning: Failed to create model {algorithm_name} with parameters {params}: {e!s}"
                         )

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from collections.abc import Iterable, MutableSequence, Sequence
+from collections.abc import Iterator, MutableSequence, Sequence
 
 from torch import Tensor
 from torch.nn import Module
@@ -23,7 +23,7 @@ class BufferList(Module, MutableSequence[Tensor]):
     def __contains__(self, value: object) -> bool:
         return any(buffer is value for buffer in self._buffers.values())  # type: ignore
 
-    def __iter__(self) -> Iterable[Tensor]:
+    def __iter__(self) -> Iterator[Tensor]:
         for i in range(len(self)):
             yield self[i]
 

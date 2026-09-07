@@ -1,11 +1,11 @@
 import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
-_ArrayOrTupleOf = Union[Sequence[int], Sequence[tuple[int, int]], np.ndarray]
+_ArrayOrTupleOf = Sequence[int] | Sequence[tuple[int, int]] | np.ndarray
 
 
 @dataclass

@@ -188,15 +188,13 @@ class _L2PModel(nn.Module):
         if isinstance(vit, nn.Module):
             vit = vit.eval().requires_grad_(False)
         else:
-            raise ValueError("vit must be an instance of nn.Module.")
+            raise TypeError("vit must be an instance of nn.Module.")
 
         self.vit = vit
         self.prompt_pool = prompt_pool
         self.head = nn.Linear(vit.get_embedding_size(), out_features)
 
-    def forward(
-        self, x: Tensor, task_id: int | None = None
-    ) -> tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor, task_id: int | None = None) -> tuple[Tensor, Tensor]:
         # First forward pass to get query
         patch_embed = self.vit.get_patch_embed(x)
         query = self.vit.forward_query(patch_embed)

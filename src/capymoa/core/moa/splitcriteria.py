@@ -5,7 +5,6 @@ criterion. The split criterion is a function that measures the quality of a
 split.
 """
 
-
 import moa.classifiers.core.splitcriteria as moa_split
 
 

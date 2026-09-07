@@ -122,7 +122,7 @@ class MAS(BatchClassifier, nn.Module, Handler):
         alpha: float = 0.5,
         buffer_capacity: int = 256,
         importance_batch_size: int = 32,
-        device: torch.device = torch.device("cpu"),
+        device: torch.device | None = None,
         mask_test: bool = False,
         mask_train: bool = False,
         task_mask: Tensor | None = None,
@@ -150,6 +150,8 @@ class MAS(BatchClassifier, nn.Module, Handler):
         """
         super().__init__(schema, 0)
         nn.Module.__init__(self)
+        if device is None:
+            device = torch.device("cpu")
         if (mask_train or mask_test) and task_mask is None:
             raise ValueError(
                 "Task schedule must be provided for task incremental or labels trick scenarios."

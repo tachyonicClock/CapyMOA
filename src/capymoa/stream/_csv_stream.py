@@ -95,7 +95,9 @@ class CSVStream(Stream[_AnyInstance]):
         if isinstance(file, (str, Path)):
             file = Path(file).expanduser()
             name = name or file.stem
-            self._file = open(file, "r")
+            # Kept open for the lifetime of the stream (supports `restart()`
+            # via seek), so it can't be scoped to a `with` block here.
+            self._file = open(file, "r")  # noqa: SIM115
         else:
             self._file = file
 

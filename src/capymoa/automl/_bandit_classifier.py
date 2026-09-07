@@ -134,8 +134,8 @@ class BanditClassifier(Classifier):
         self,
         schema: Schema = None,
         random_seed: int = 1,
-        base_classifiers: list = None,
-        config_file: str = None,
+        base_classifiers: list | None = None,
+        config_file: str | None = None,
         metric: str = "accuracy",
         policy: EpsilonGreedy = None,
         verbose: bool = False,
@@ -247,7 +247,7 @@ class BanditClassifier(Classifier):
                                 print(
                                     f"Added model: {algorithm_name} with parameters: {param_str}"
                                 )
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 - skip one bad candidate config, don't abort the bandit run
                         print(
                             f"Warning: Failed to create model {algorithm_name} with parameters {params}: {e!s}"
                         )
@@ -351,13 +351,11 @@ class BanditClassifier(Classifier):
         # Get top-performing models
         top_models = []
         max_models = min(5, len(self.active_models))
-        i = 0
         # idx = self.policy.get_best_arm_idx(range(len(self.active_models)))
-        for key, value in sorted_dict.items():
+        for i, (key, value) in enumerate(sorted_dict.items()):
             if i >= max_models:
                 break
             top_models.append({"model": key, "accuracy": value})
-            i += 1
 
         return {
             "total_models": len(self.active_models),

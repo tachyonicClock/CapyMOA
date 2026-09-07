@@ -1,6 +1,5 @@
 """Default event sink for OCL metrics collection."""
 
-
 import torch
 
 from capymoa.base import Classifier

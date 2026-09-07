@@ -2,15 +2,21 @@
 
 from capymoa._optional import lazy_torch_attrs
 
-from . import drift, generator, preprocessing
-from ._csv_stream import CSVStream
-from ._stream import (
+# `_stream` and `_csv_stream` must be imported before `drift`/`generator`/
+# `preprocessing`: those submodules (transitively) import names such as
+# `MOAStream` from `capymoa.stream`, which requires this module's own
+# re-exports to already be bound. isort would normally alphabetize `from .
+# import ...` above these, which reintroduces that circular import, hence
+# `isort: skip`.
+from ._stream import (  # isort: skip
     ARFFStream,
     MOAStream,
     NumpyStream,
     Schema,
     Stream,
 )
+from ._csv_stream import CSVStream  # isort: skip
+from . import drift, generator, preprocessing
 from ._stream_from_file import stream_from_file
 
 __all__ = [

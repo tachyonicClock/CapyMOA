@@ -124,9 +124,7 @@ class DynamicEnsembleMemberSelection(MOAClassifier):
         # Simple sanity check for k_value relative to ensemble_size
         if k_value < 1:
             raise ValueError("k_value must be >= 1")
-        if k_value > ensemble_size:
-            # We don't hard-fail, but you may want to be stricter:
-            k_value = ensemble_size
+        k_value = min(k_value, ensemble_size)
 
         # Mapping from local variable names to MOA CLI flags
         mapping = {

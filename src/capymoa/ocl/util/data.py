@@ -36,7 +36,7 @@ def get_targets(dataset: Dataset[tuple[Tensor, Tensor]]) -> LongTensor:
     :return: A 1D tensor containing the targets of the dataset.
     """
     if not isinstance(dataset, Sized):
-        raise ValueError("Dataset should implement the `Sized` protocol")
+        raise TypeError("Dataset should implement the `Sized` protocol")
 
     # If possible use the dataset's targets
     if hasattr(dataset, "targets") and isinstance(dataset.targets, torch.Tensor):

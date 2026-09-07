@@ -1,4 +1,3 @@
-
 import torch
 from torch import Tensor, nn
 
@@ -74,10 +73,10 @@ class SLDA(BatchClassifier):
     def __init__(
         self,
         schema: Schema,
-        pre_processor: nn.Module = nn.Identity(),
+        pre_processor: nn.Module | None = None,
         num_features: int | None = None,
         ridge: float = 1e-6,
-        device: torch.device | str = torch.device("cpu"),
+        device: torch.device | str | None = None,
     ):
         """Initialize a SLDA classifier.
 
@@ -91,6 +90,10 @@ class SLDA(BatchClassifier):
         :param device: Device to run the model on, defaults to CPU.
         """
         super().__init__(schema)
+        if pre_processor is None:
+            pre_processor = nn.Identity()
+        if device is None:
+            device = torch.device("cpu")
         self._pre_processor = pre_processor.to(device)
         self._n_classes = schema.get_num_classes()
         self._n_feats = num_features or schema.get_num_attributes()

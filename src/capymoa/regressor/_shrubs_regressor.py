@@ -51,9 +51,7 @@ class ShrubsRegressor(_ShrubEnsembles, Regressor):
         burnin_steps: int = 5,
         update_leaves: bool = False,
         batch_size: int = 32,
-        sk_dt: DecisionTreeRegressor = DecisionTreeRegressor(
-            splitter="best", max_depth=None, random_state=1234
-        ),
+        sk_dt: DecisionTreeRegressor | None = None,
     ):
         """Initializes the ShrubEnsemble regressor with the given parameters.
 
@@ -104,6 +102,10 @@ class ShrubsRegressor(_ShrubEnsembles, Regressor):
             from. Note, that if you set random_state to an integer the exact
             same clone is used for any DT object
         """
+        if sk_dt is None:
+            sk_dt = DecisionTreeRegressor(
+                splitter="best", max_depth=None, random_state=1234
+            )
         Regressor.__init__(self, schema, sk_dt.random_state)
         _ShrubEnsembles.__init__(
             self,

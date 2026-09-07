@@ -30,9 +30,9 @@ class SplitMNIST(_TorchVisionDownload, _BuiltInCIScenario):
 
     num_classes = 10
     default_task_count = 5
-    mean = [0.1307]
-    std = [0.3081]
-    shape = [1, 28, 28]
+    mean = (0.1307,)
+    std = (0.3081,)
+    shape = (1, 28, 28)
     dataset_type = datasets.MNIST
 
 
@@ -45,9 +45,9 @@ class RotatedMNIST(_TorchVisionDownload, _BuiltInRotatedDomainScenario):
 
     num_classes = 10
     default_task_count = 5
-    mean = [0.1307]
-    std = [0.3081]
-    shape = [1, 28, 28]
+    mean = (0.1307,)
+    std = (0.3081,)
+    shape = (1, 28, 28)
     dataset_type = datasets.MNIST
 
 
@@ -62,9 +62,9 @@ class SplitFashionMNIST(_TorchVisionDownload, _BuiltInCIScenario):
 
     num_classes = 10
     default_task_count = 5
-    mean = [0.286]
-    std = [0.353]
-    shape = [1, 28, 28]
+    mean = (0.286,)
+    std = (0.353,)
+    shape = (1, 28, 28)
     dataset_type = datasets.FashionMNIST
 
 
@@ -77,9 +77,9 @@ class RotatedFashionMNIST(_TorchVisionDownload, _BuiltInRotatedDomainScenario):
 
     num_classes = 10
     default_task_count = 5
-    mean = [0.286]
-    std = [0.353]
-    shape = [1, 28, 28]
+    mean = (0.286,)
+    std = (0.353,)
+    shape = (1, 28, 28)
     dataset_type = datasets.FashionMNIST
 
 
@@ -94,9 +94,9 @@ class SplitCIFAR10(_TorchVisionDownload, _BuiltInCIScenario):
 
     num_classes = 10
     default_task_count = 5
-    mean = [0.491, 0.482, 0.447]
-    std = [0.247, 0.243, 0.262]
-    shape = [3, 32, 32]
+    mean = (0.491, 0.482, 0.447)
+    std = (0.247, 0.243, 0.262)
+    shape = (3, 32, 32)
     dataset_type = datasets.CIFAR10
 
 
@@ -111,9 +111,9 @@ class SplitCIFAR100(_TorchVisionDownload, _BuiltInCIScenario):
 
     num_classes = 100
     default_task_count = 10
-    mean = [0.507, 0.487, 0.441]
-    std = [0.267, 0.256, 0.276]
-    shape = [3, 32, 32]
+    mean = (0.507, 0.487, 0.441)
+    std = (0.267, 0.256, 0.276)
+    shape = (3, 32, 32)
     dataset_type = datasets.CIFAR100
 
 
@@ -136,13 +136,13 @@ class DomainCIFAR100(_TorchVisionDownload, _BuiltInCIScenario):
     #. Krizhevsky, A. (2009). Learning Multiple Layers of Features from Tiny Images.
     """
 
-    _CIFAR100_CLASS_TO_SUPERCLASS: list[int] = [4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 19, 8, 8, 15, 13, 14, 17, 18, 10, 16, 4, 17, 4, 2, 0, 17, 4, 18, 17, 10, 3, 2, 12, 12, 16, 12, 1, 9, 19, 2, 10, 0, 1, 16, 12, 9, 13, 15, 13, 16, 19, 2, 4, 6, 19, 5, 5, 8, 19, 18, 1, 2, 15, 6, 0, 17, 8, 14, 13]  # fmt: skip
-    _CIFAR100_SUPERCLASS_CLASSES: list[list[int]] = [[4, 30, 55, 72, 95], [1, 32, 67, 73, 91], [54, 62, 70, 82, 92], [9, 10, 16, 28, 61], [0, 51, 53, 57, 83], [22, 39, 40, 86, 87], [5, 20, 25, 84, 94], [6, 7, 14, 18, 24], [3, 42, 43, 88, 97], [12, 17, 37, 68, 76], [23, 33, 49, 60, 71], [15, 19, 21, 31, 38], [34, 63, 64, 66, 75], [26, 45, 77, 79, 99], [2, 11, 35, 46, 98], [27, 29, 44, 78, 93], [36, 50, 65, 74, 80], [47, 52, 56, 59, 96], [8, 13, 48, 58, 90], [41, 69, 81, 85, 89]]  # fmt: skip
+    _CIFAR100_CLASS_TO_SUPERCLASS: tuple[int, ...] = (4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 19, 8, 8, 15, 13, 14, 17, 18, 10, 16, 4, 17, 4, 2, 0, 17, 4, 18, 17, 10, 3, 2, 12, 12, 16, 12, 1, 9, 19, 2, 10, 0, 1, 16, 12, 9, 13, 15, 13, 16, 19, 2, 4, 6, 19, 5, 5, 8, 19, 18, 1, 2, 15, 6, 0, 17, 8, 14, 13)  # fmt: skip
+    _CIFAR100_SUPERCLASS_CLASSES: tuple[tuple[int, ...], ...] = ((4, 30, 55, 72, 95), (1, 32, 67, 73, 91), (54, 62, 70, 82, 92), (9, 10, 16, 28, 61), (0, 51, 53, 57, 83), (22, 39, 40, 86, 87), (5, 20, 25, 84, 94), (6, 7, 14, 18, 24), (3, 42, 43, 88, 97), (12, 17, 37, 68, 76), (23, 33, 49, 60, 71), (15, 19, 21, 31, 38), (34, 63, 64, 66, 75), (26, 45, 77, 79, 99), (2, 11, 35, 46, 98), (27, 29, 44, 78, 93), (36, 50, 65, 74, 80), (47, 52, 56, 59, 96), (8, 13, 48, 58, 90), (41, 69, 81, 85, 89))  # fmt: skip
     """CIFAR100 superclasses as defined in the original dataset.
     https://www.cs.toronto.edu/~kriz/cifar.html
     """
 
-    classes = [
+    classes = (
         "aquatic_mammals",
         "fish",
         "flowers",
@@ -163,21 +163,21 @@ class DomainCIFAR100(_TorchVisionDownload, _BuiltInCIScenario):
         "trees",
         "vehicles_1",
         "vehicles_2",
-    ]
+    )
     """The 20 superclasses of CIFAR-100, which are used as the labels in this scenario."""
 
     num_classes = 20
     default_task_count = 5
-    mean = [0.507, 0.487, 0.441]
-    std = [0.267, 0.256, 0.276]
-    shape = [3, 32, 32]
+    mean = (0.507, 0.487, 0.441)
+    std = (0.267, 0.256, 0.276)
+    shape = (3, 32, 32)
     dataset_type = datasets.CIFAR100
 
     def __init__(
         self,
         shuffle_data: bool = True,
         seed: int = 0,
-        directory: Path = get_download_dir(),
+        directory: Path | None = None,
         auto_download: bool = True,
         train_transform: Callable[[Any], Tensor] | None = None,
         test_transform: Callable[[Any], Tensor] | None = None,
@@ -199,6 +199,8 @@ class DomainCIFAR100(_TorchVisionDownload, _BuiltInCIScenario):
         :param normalize_features: If True, applies dataset normalization after
             the provided transforms.
         """
+        if directory is None:
+            directory = get_download_dir()
         if train_transform is None:
             train_transform = ToTensor()
         if test_transform is None:

@@ -43,10 +43,15 @@ def _get_java_home() -> Path:
             result = subprocess.run(
                 ["java", "-classpath", java_class_path.as_posix(), "Home"],
                 capture_output=True,
+                check=True,
             )
         except FileNotFoundError:
             raise CapymoaImportError(
                 "Java not found. See https://capymoa.org/setup/#java."
+            )
+        except subprocess.CalledProcessError as e:
+            raise CapymoaImportError(
+                f"Failed to determine java.home: {e.stderr.decode().strip()}"
             )
 
         java_home = Path(result.stdout.decode().strip())

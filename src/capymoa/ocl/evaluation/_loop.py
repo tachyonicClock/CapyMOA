@@ -114,16 +114,16 @@ def ocl_train_eval_loop(
     :param epochs: Number of epochs to train each task stream, defaults to 1.
     :param dispatcher: Optional event dispatcher. If None, a new dispatcher is created.
     :return: Aggregated OCL metrics collected by the default metrics handler.
-    :raises ValueError: If train/test task counts differ, learner is not a classifier,
-        ``continual_evaluations < 1``, or a train stream has fewer batches than
-        requested evaluations.
+    :raises ValueError: If train/test task counts differ, ``continual_evaluations
+        < 1``, or a train stream has fewer batches than requested evaluations.
+    :raises TypeError: If learner is not a classifier.
     """
     epochs = epochs or 1
     n_tasks = len(train_streams)
     if n_tasks != len(test_streams):
         raise ValueError("Number of train and test tasks must be equal")
     if not isinstance(learner, Classifier):
-        raise ValueError("Learner must be a classifier")
+        raise TypeError("Learner must be a classifier")
     if 1 > continual_evaluations:
         raise ValueError("Continual evaluations must be at least 1")
     if (min_stream_len := min(len(s) for s in train_streams)) < continual_evaluations:

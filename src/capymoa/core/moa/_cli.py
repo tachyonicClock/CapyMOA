@@ -1,6 +1,5 @@
 """Internal functions for generating CLI creation strings for MOA objects."""
 
-
 from moa.classifiers import AbstractClassifier as _AbstractClassifier
 from moa.classifiers import Regressor as _AbstractRegressor
 from moa.classifiers.core.driftdetection import (
@@ -46,7 +45,7 @@ def cli_str_classifier(classifier: _AbstractClassifier | MOAClassifier) -> str:
     elif isinstance(classifier, _AbstractClassifier):
         return cli_str(classifier, _AbstractClassifier)
     else:
-        raise ValueError("Unknown Type")
+        raise TypeError("Unknown Type")
 
 
 def cli_str_regressor(regressor: _AbstractRegressor | MOARegressor) -> str:
@@ -66,7 +65,7 @@ def cli_str_regressor(regressor: _AbstractRegressor | MOARegressor) -> str:
         # Some regressor are just classifiers.
         return cli_str_classifier(regressor)
     else:
-        raise ValueError("Unknown Type")
+        raise TypeError("Unknown Type")
 
 
 def cli_str_drift_detector(
@@ -84,7 +83,7 @@ def cli_str_drift_detector(
     elif isinstance(detector, _AbstractChangeDetector):
         return cli_str(detector, _AbstractChangeDetector)
     else:
-        raise ValueError("Unknown Type")
+        raise TypeError("Unknown Type")
 
 
 def cli_str_prediction_interval(
@@ -102,7 +101,7 @@ def cli_str_prediction_interval(
     elif isinstance(predictor, _PredictionIntervalLearner):
         return cli_str(predictor, _PredictionIntervalLearner)
     else:
-        raise ValueError("Unknown Type")
+        raise TypeError("Unknown Type")
 
 
 def cli_str_stream(stream: MOAStream | _InstanceStream) -> str:
@@ -118,4 +117,4 @@ def cli_str_stream(stream: MOAStream | _InstanceStream) -> str:
     elif isinstance(stream, _InstanceStream):
         return cli_str(stream, _InstanceStream)
     else:
-        raise ValueError("Unknown Type")
+        raise TypeError("Unknown Type")

@@ -28,12 +28,12 @@ class TinySplitMNIST(_BuiltInCIScenario):
 
     num_classes = 10
     default_task_count = 5
-    mean = [0.1307]
-    std = [0.3081]
+    mean = (0.1307,)
+    std = (0.3081,)
     default_train_transform = None
     default_test_transform = None
     _dataset_key = "capymoa_tiny_mnist"
-    shape = [1, 16, 16]
+    shape = (1, 16, 16)
 
     @classmethod
     def _download_dataset(
@@ -83,12 +83,12 @@ class RotatedTinyMNIST(_BuiltInRotatedDomainScenario):
 
     num_classes = 10
     default_task_count = 5
-    mean = [0.1307]
-    std = [0.3081]
+    mean = (0.1307,)
+    std = (0.3081,)
     default_train_transform = None
     default_test_transform = None
     _dataset_key = "capymoa_tiny_mnist"
-    shape = [1, 16, 16]
+    shape = (1, 16, 16)
 
     @classmethod
     def _download_dataset(

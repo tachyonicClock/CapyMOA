@@ -54,9 +54,7 @@ class AIFBranch:
     def repr_split(self):
         return f"{self.feature} < {self.split_value:.5f}"
 
-    def walk(
-        self, instance: Instance
-    ) -> typing.Iterable[AIFBranch | AIFLeaf]:
+    def walk(self, instance: Instance) -> typing.Iterable[AIFBranch | AIFLeaf]:
         """Iterate over the nodes of the path induced by instance."""
         yield self
         yield from self.next(instance).walk(instance)
