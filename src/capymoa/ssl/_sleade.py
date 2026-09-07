@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
+
+import moa.classifiers.semisupervised as moa_ssl
 
 from capymoa._utils import build_cli_str_from_mapping_and_locals
-from capymoa.core.moa._cli import cli_str_classifier, cli_str_drift_detector
 from capymoa.base import Classifier, MOAClassifierSSL
 from capymoa.classifier import HoeffdingTree
+from capymoa.core.moa._cli import cli_str_classifier, cli_str_drift_detector
 from capymoa.drift.base_detector import MOADriftDetector
 from capymoa.drift.detectors import ADWIN
 from capymoa.stream import Schema
-import moa.classifiers.semisupervised as moa_ssl
 
 
 class SLEADE(MOAClassifierSSL):
@@ -68,8 +69,8 @@ class SLEADE(MOAClassifierSSL):
         ] = "MajorityTrainsMinority",
         ssl_weight_shrinkage: float = 100.0,
         use_unsupervised_drift_detection: bool = True,
-        student_learner: Optional[Classifier] = None,
-        drift_detection_method: Optional[MOADriftDetector] = None,
+        student_learner: Classifier | None = None,
+        drift_detection_method: MOADriftDetector | None = None,
         unsupervised_detection_weight_window: int = 20,
         labeled_window_limit: int = 100,
     ):
@@ -145,7 +146,7 @@ class SLEADE(MOAClassifierSSL):
         config_str += f"-g {cli_str_classifier(student_learner)} "
         config_str += f"-x {cli_str_drift_detector(drift_detection_method)} "
 
-        super(SLEADE, self).__init__(
+        super().__init__(
             moa_learner=moa_ssl.SLEADE,
             schema=schema,
             CLI=config_str,

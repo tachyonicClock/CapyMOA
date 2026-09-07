@@ -1,15 +1,14 @@
 from __future__ import annotations
-from typing import Union
 
+import moa.classifiers.trees as moa_trees
+
+from capymoa._utils import _leaf_prediction, build_cli_str_from_mapping_and_locals
 from capymoa.base import MOAClassifier
 from capymoa.core.moa.splitcriteria import (
     SplitCriterion,
     _split_criterion_to_cli_str,
 )
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals, _leaf_prediction
-
-import moa.classifiers.trees as moa_trees
 
 
 class EFDT(MOAClassifier):
@@ -50,7 +49,7 @@ class EFDT(MOAClassifier):
         random_seed: int = 0,
         grace_period: int = 200,
         min_samples_reevaluate: int = 200,
-        split_criterion: Union[str, SplitCriterion] = "InfoGainSplitCriterion",
+        split_criterion: str | SplitCriterion = "InfoGainSplitCriterion",
         confidence: float = 1e-3,
         tie_threshold: float = 0.05,
         leaf_prediction: str = "NaiveBayesAdaptive",
@@ -105,7 +104,7 @@ class EFDT(MOAClassifier):
         split_criterion = _split_criterion_to_cli_str(split_criterion)
         leaf_prediction = _leaf_prediction(leaf_prediction)
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
-        super(EFDT, self).__init__(
+        super().__init__(
             moa_learner=moa_trees.EFDT,
             schema=schema,
             CLI=config_str,

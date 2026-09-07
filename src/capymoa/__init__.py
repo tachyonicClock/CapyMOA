@@ -5,18 +5,18 @@ import importlib.abc
 import importlib.machinery
 import sys
 
-from ._prepare_jpype import _start_jpype, about
 from .__about__ import __version__
+from ._prepare_jpype import _start_jpype, about
 
 # It is important that this is called before importing any other module
 _start_jpype()
 
 # Imported here (after _start_jpype) to ensure jpype has been started
-from . import core  # noqa: E402
+from . import core
 
 __all__ = [
-    "about",
     "__version__",
+    "about",
     "core",
 ]
 

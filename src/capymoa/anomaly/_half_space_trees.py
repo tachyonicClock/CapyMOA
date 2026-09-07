@@ -1,8 +1,8 @@
+from moa.classifiers.oneclass import HSTrees as _MOA_HSTrees
+
 from capymoa.base import (
     MOAAnomalyDetector,
 )
-
-from moa.classifiers.oneclass import HSTrees as _MOA_HSTrees
 
 
 class HalfSpaceTrees(MOAAnomalyDetector):

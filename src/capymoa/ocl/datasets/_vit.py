@@ -1,5 +1,6 @@
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Sequence, Tuple, cast
+from typing import Any, cast
 
 import torch
 from torch import Tensor
@@ -45,9 +46,9 @@ class SplitCIFAR100ViT(_BuiltInCIScenario):
         train: bool,
         directory: Path,
         auto_download: bool,
-        transform: Optional[Any],
-        target_transform: Optional[Callable[[Any], Any]] = None,
-    ) -> Dataset[Tuple[Tensor, Tensor]]:
+        transform: Any | None,
+        target_transform: Callable[[Any], Any] | None = None,
+    ) -> Dataset[tuple[Tensor, Tensor]]:
         ((train_x, train_y), (test_x, test_y)) = download_numpy_dataset(
             dataset_name=cls._dataset_key,
             url=_SOURCES[cls._dataset_key],
@@ -107,10 +108,10 @@ class DomainCIFAR100ViT(SplitCIFAR100ViT):
     #. Krizhevsky, A. (2009). Learning Multiple Layers of Features from Tiny Images.
     """
 
-    _CIFAR100_CLASS_TO_SUPERCLASS: List[int] = (
+    _CIFAR100_CLASS_TO_SUPERCLASS: list[int] = (
         DomainCIFAR100._CIFAR100_CLASS_TO_SUPERCLASS
     )
-    _CIFAR100_SUPERCLASS_CLASSES: List[List[int]] = (
+    _CIFAR100_SUPERCLASS_CLASSES: list[list[int]] = (
         DomainCIFAR100._CIFAR100_SUPERCLASS_CLASSES
     )
     classes = DomainCIFAR100.classes
@@ -125,8 +126,8 @@ class DomainCIFAR100ViT(SplitCIFAR100ViT):
         seed: int = 0,
         directory: Path = get_download_dir(),
         auto_download: bool = True,
-        train_transform: Optional[Callable[[Any], Tensor]] = None,
-        test_transform: Optional[Callable[[Any], Tensor]] = None,
+        train_transform: Callable[[Any], Tensor] | None = None,
+        test_transform: Callable[[Any], Tensor] | None = None,
     ):
         """Create the DomainCIFAR100ViT scenario."""
         if train_transform is None:
@@ -194,20 +195,20 @@ class DomainCIFAR100ViT(SplitCIFAR100ViT):
 
     @staticmethod
     def _build_domain_tasks(
-        dataset: Dataset[Tuple[Tensor, Tensor]],
+        dataset: Dataset[tuple[Tensor, Tensor]],
         task_fine_classes: Sequence[Sequence[int]],
         shuffle_data: bool,
         generator: torch.Generator,
-    ) -> List[Dataset[Tuple[Tensor, Tensor]]]:
+    ) -> list[Dataset[tuple[Tensor, Tensor]]]:
         targets = cast(torch.LongTensor, torch.asarray(dataset.targets))  # type: ignore
         grouped_indices = group_indicies(
             targets, task_fine_classes, shuffle=shuffle_data, rng=generator
         )
-        tasks: List[Dataset[Tuple[Tensor, Tensor]]] = []
+        tasks: list[Dataset[tuple[Tensor, Tensor]]] = []
         for indices in grouped_indices:
             tasks.append(
                 cast(
-                    Dataset[Tuple[Tensor, Tensor]],
+                    Dataset[tuple[Tensor, Tensor]],
                     Subset(dataset, indices.tolist()),
                 )
             )

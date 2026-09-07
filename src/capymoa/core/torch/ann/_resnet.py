@@ -52,9 +52,9 @@ author, Yerlan Idelbayev.
 """
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.nn.init as init
+from torch import nn
+from torch.nn import init
 
 
 def _weights_init(m):
@@ -64,7 +64,7 @@ def _weights_init(m):
 
 class _LambdaLayer(nn.Module):
     def __init__(self, lambd):
-        super(_LambdaLayer, self).__init__()
+        super().__init__()
         self.lambd = lambd
 
     def forward(self, x):
@@ -75,7 +75,7 @@ class _BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, in_planes, planes, stride=1, option="A"):
-        super(_BasicBlock, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(
             in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False
         )
@@ -121,7 +121,7 @@ class _BasicBlock(nn.Module):
 
 class _ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10):
-        super(_ResNet, self).__init__()
+        super().__init__()
         self.in_planes = 16
 
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)

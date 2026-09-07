@@ -10,8 +10,8 @@ prediction interval gives a range of plausible values around a point
 prediction.
 """
 
-from ._mean_and_standard_deviation_estimation import MVE
 from ._adaptive_prediction_interval import AdaPI
+from ._mean_and_standard_deviation_estimation import MVE
 
 __all__ = [
     "MVE",

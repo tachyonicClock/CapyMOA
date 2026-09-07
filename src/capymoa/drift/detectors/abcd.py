@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
+from capymoa.core import Instance
+from capymoa.drift.base_detector import BaseDriftDetector
+
 from .abcd_components.feature_extraction import (
     EncoderDecoder,
-    PCAModel,
     KernelPCAModel,
+    PCAModel,
 )
 from .abcd_components.windowing import AdaptiveWindow, p_bernstein
-from capymoa.drift.base_detector import BaseDriftDetector
-from capymoa.core import Instance
 
 
 class ABCD(BaseDriftDetector):
@@ -147,9 +148,9 @@ class ABCD(BaseDriftDetector):
             raise ValueError(
                 f"Unknown model_id {model_id!r}, expected 'pca', 'kpca' or 'ae'"
             )
-        super(ABCD, self).__init__()
+        super().__init__()
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_params(self) -> dict[str, Any]:
         """Get the hyper-parameters of the drift detector."""
         return {
             "delta_drift": self.delta_drift,

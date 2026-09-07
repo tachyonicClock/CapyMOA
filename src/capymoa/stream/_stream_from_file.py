@@ -1,12 +1,14 @@
 from pathlib import Path
-from typing import Union, Literal
-from capymoa.stream._stream import ARFFStream, Stream
-from capymoa.stream._csv_stream import CSVStream
+from typing import Literal
+
 import pandas as pd
+
+from capymoa.stream._csv_stream import CSVStream
+from capymoa.stream._stream import ARFFStream, Stream
 
 
 def stream_from_file(
-    path_to_csv_or_arff: Union[str, Path],
+    path_to_csv_or_arff: str | Path,
     dataset_name: str = "NoName",
     class_index: int = -1,
     target_type: Literal["numeric", "categorical"] | None = None,

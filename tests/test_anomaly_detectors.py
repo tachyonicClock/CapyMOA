@@ -3,7 +3,6 @@ from functools import partial
 
 import pytest
 
-from capymoa.core.moa._cli import cli_str_classifier
 from capymoa.anomaly import (
     AdaptiveIsolationForest,
     HalfSpaceTrees,
@@ -16,9 +15,9 @@ from capymoa.anomaly import (
     StreamRHF,
 )
 from capymoa.base import AnomalyDetector, MOAClassifier
+from capymoa.core.moa._cli import cli_str_classifier
 from capymoa.datasets import ElectricityTiny
 from capymoa.evaluation import AnomalyDetectionEvaluator
-from typing import Optional
 from capymoa.stream._stream import Schema
 
 
@@ -137,7 +136,7 @@ def _make_autoencoder(**kwargs):
 def test_anomaly_detectors(
     learner_constructor: Callable[[Schema], AnomalyDetector],
     auc: float,
-    cli_string: Optional[str],
+    cli_string: str | None,
 ):
     """Test on tiny is a fast running simple test to check if a learner's
     performance has changed.

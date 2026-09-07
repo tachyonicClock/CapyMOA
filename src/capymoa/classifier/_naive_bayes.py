@@ -1,10 +1,9 @@
 from __future__ import annotations
-import typing
+
+import moa.classifiers.bayes as moa_bayes
 
 from capymoa.base import MOAClassifier
 from capymoa.stream import Schema
-
-import moa.classifiers.bayes as moa_bayes
 
 
 class NaiveBayes(MOAClassifier):
@@ -27,8 +26,8 @@ class NaiveBayes(MOAClassifier):
     84.8
     """
 
-    def __init__(self, schema: typing.Union[Schema, None] = None, random_seed: int = 0):
-        super(NaiveBayes, self).__init__(
+    def __init__(self, schema: Schema | None = None, random_seed: int = 0):
+        super().__init__(
             moa_learner=moa_bayes.NaiveBayes(), schema=schema, random_seed=random_seed
         )
 

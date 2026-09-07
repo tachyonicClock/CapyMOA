@@ -6,9 +6,8 @@ import typing
 from itertools import count
 
 from capymoa.base import AnomalyDetector
-from capymoa.core import Instance
+from capymoa.core import Instance, LabelIndex
 from capymoa.stream import Schema
-from capymoa.core import LabelIndex
 
 __all__ = ["AdaptiveIsolationForest"]
 
@@ -57,7 +56,7 @@ class AIFBranch:
 
     def walk(
         self, instance: Instance
-    ) -> typing.Iterable[typing.Union[AIFBranch, AIFLeaf]]:
+    ) -> typing.Iterable[AIFBranch | AIFLeaf]:
         """Iterate over the nodes of the path induced by instance."""
         yield self
         yield from self.next(instance).walk(instance)
@@ -68,7 +67,7 @@ class AIFBranch:
         return 1 + sum(child.n_nodes for child in self.children)
 
     @property
-    def left(self) -> typing.Union[AIFBranch, AIFLeaf]:
+    def left(self) -> AIFBranch | AIFLeaf:
         return self.children[0]
 
     @left.setter
@@ -76,7 +75,7 @@ class AIFBranch:
         self.children[0] = value
 
     @property
-    def right(self) -> typing.Union[AIFBranch, AIFLeaf]:
+    def right(self) -> AIFBranch | AIFLeaf:
         return self.children[1]
 
     @right.setter
@@ -87,7 +86,7 @@ class AIFBranch:
     def mass(self):
         return self.left.mass + self.right.mass
 
-    def next(self, instance: Instance) -> typing.Union[AIFBranch, AIFLeaf]:
+    def next(self, instance: Instance) -> AIFBranch | AIFLeaf:
         try:
             value = instance.x[self.feature]
         except (KeyError, TypeError, IndexError) as e:
@@ -393,7 +392,7 @@ class AdaptiveIsolationForest(AnomalyDetector):
 
         return score
 
-    def predict(self, instance) -> typing.Optional[LabelIndex]:
+    def predict(self, instance) -> LabelIndex | None:
         """Predict is not implemented for anomaly detection.
 
         :param instance: The instance to predict.

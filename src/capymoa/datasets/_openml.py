@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Optional, Union
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -62,7 +61,7 @@ def _resolve_class_index(path: Path, target: str) -> int:
 
 def load_openml_dataset(
     openml_id: int,
-    directory: Optional[Union[str, Path]] = None,
+    directory: str | Path | None = None,
     auto_download: bool = True,
 ) -> Stream:
     """Load any OpenML dataset by numeric id as a :class:`~capymoa.stream.Stream`.

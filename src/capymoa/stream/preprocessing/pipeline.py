@@ -1,21 +1,23 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Optional, List, Protocol, Tuple, Any, Callable
+from collections.abc import Callable
+from typing import Any, Protocol
 
 import numpy as np
 
 from capymoa.base import Classifier, Regressor
-from capymoa.drift.base_detector import BaseDriftDetector
-from .transformer import Transformer
 from capymoa.core import (
-    LabeledInstance,
     Instance,
-    RegressionInstance,
-    LabelProbabilities,
+    LabeledInstance,
     LabelIndex,
+    LabelProbabilities,
+    RegressionInstance,
     TargetValue,
 )
+from capymoa.drift.base_detector import BaseDriftDetector
+
+from .transformer import Transformer
 
 
 class PipelineElement(Protocol):
@@ -30,7 +32,7 @@ class PipelineElement(Protocol):
     @abstractmethod
     def pass_forward_predict(
         self, instance: Instance, prediction=None
-    ) -> Tuple[Instance, Any]:
+    ) -> tuple[Instance, Any]:
         raise NotImplementedError
 
     @abstractmethod
@@ -77,7 +79,7 @@ class ClassifierPipelineElement(PipelineElement):
 
     def pass_forward_predict(
         self, instance: Instance, prediction: Any = None
-    ) -> Tuple[Instance, Any]:
+    ) -> tuple[Instance, Any]:
         """pass_forward_predict
 
         Trains the learner on the provided instance; then returns the instance.
@@ -98,7 +100,7 @@ class ClassifierPipelineElement(PipelineElement):
         return instance, self.learner.predict(instance)
 
     def __str__(self):
-        return "PE({})".format(str(self.learner))
+        return f"PE({self.learner!s})"
 
 
 class RegressorPipelineElement(PipelineElement):
@@ -140,7 +142,7 @@ class RegressorPipelineElement(PipelineElement):
 
     def pass_forward_predict(
         self, instance: Instance, prediction=None
-    ) -> Tuple[Instance, Any]:
+    ) -> tuple[Instance, Any]:
         """pass_forward_predict
 
         Trains the learner on the provided instance; then returns the instance.
@@ -161,7 +163,7 @@ class RegressorPipelineElement(PipelineElement):
         return instance, self.learner.predict(instance)
 
     def __str__(self):
-        return "PE({})".format(str(self.learner))
+        return f"PE({self.learner!s})"
 
 
 class TransformerPipelineElement(PipelineElement):
@@ -202,7 +204,7 @@ class TransformerPipelineElement(PipelineElement):
 
     def pass_forward_predict(
         self, instance: Instance, prediction: Any = None
-    ) -> Tuple[Instance, Any]:
+    ) -> tuple[Instance, Any]:
         """pass_forward_predict
 
         Transforms and returns the provided instance. Also returns the prediction that was provided.
@@ -223,7 +225,7 @@ class TransformerPipelineElement(PipelineElement):
         return self.transformer.transform_instance(instance), prediction
 
     def __str__(self):
-        return "PE({})".format(str(self.transformer))
+        return f"PE({self.transformer!s})"
 
 
 class DriftDetectorPipelineElement(PipelineElement):
@@ -273,7 +275,7 @@ class DriftDetectorPipelineElement(PipelineElement):
 
     def pass_forward_predict(
         self, instance: Instance, prediction: Any = None
-    ) -> Tuple[Instance, Any]:
+    ) -> tuple[Instance, Any]:
         """pass_forward_predict
 
         Updates the drift detector; returns the instance and the prediction that were provided to the function
@@ -302,7 +304,7 @@ class DriftDetectorPipelineElement(PipelineElement):
         return instance, prediction
 
     def __str__(self):
-        return "PE({})".format(str(self.drift_detector))
+        return f"PE({self.drift_detector!s})"
 
 
 class BasePipeline(PipelineElement):
@@ -310,7 +312,7 @@ class BasePipeline(PipelineElement):
     The base class for other types of pipelines. Supports transformers and drift detectors.
     """
 
-    def __init__(self, pipeline_elements: List[PipelineElement] | None = None):
+    def __init__(self, pipeline_elements: list[PipelineElement] | None = None):
         """__init__
 
         Initializes the base pipeline with a list of pipeline elements.
@@ -321,7 +323,7 @@ class BasePipeline(PipelineElement):
             The elements the pipeline consists of
 
         """
-        self.elements: List[PipelineElement] = (
+        self.elements: list[PipelineElement] = (
             [] if pipeline_elements is None else pipeline_elements
         )
 
@@ -418,7 +420,7 @@ class BasePipeline(PipelineElement):
 
     def pass_forward_predict(
         self, instance: Instance, prediction: Any = None
-    ) -> Tuple[Instance, Any]:
+    ) -> tuple[Instance, Any]:
         """pass_forward_predict
 
         Passes the instance through the pipeline and returns it. Also returns the prediction of the pipeline.
@@ -491,7 +493,7 @@ class ClassifierPipeline(BasePipeline, Classifier):
         self.pass_forward(instance)
         return self
 
-    def predict(self, instance: Instance) -> Optional[LabelIndex]:
+    def predict(self, instance: Instance) -> LabelIndex | None:
         """predict
 
         The predict function of the classifier.
@@ -585,7 +587,7 @@ class RandomSearchClassifierPE(ClassifierPipelineElement, Classifier):
         rng: np.random.Generator,
     ):
         # initialize the pipeline element but don't specify a learner
-        super(RandomSearchClassifierPE, self).__init__(learner=None)
+        super().__init__(learner=None)
 
         # assign the variables from the initializer
         self.classifier_class = classifier_class
@@ -610,7 +612,7 @@ class RandomSearchClassifierPE(ClassifierPipelineElement, Classifier):
         self.seen_instances = 0
 
     def __str__(self):
-        return f"RandomSearch({str(self.classifier_class.__name__)})"
+        return f"RandomSearch({self.classifier_class.__name__!s})"
 
     def pass_forward(self, instance: LabeledInstance) -> Instance:
         """pass_forward
@@ -645,7 +647,7 @@ class RandomSearchClassifierPE(ClassifierPipelineElement, Classifier):
 
     def pass_forward_predict(
         self, instance: Instance, prediction=None
-    ) -> Tuple[Instance, Any]:
+    ) -> tuple[Instance, Any]:
         """pass_forward_predict
 
         Trains the learner on the provided instance; then returns the instance.
@@ -682,7 +684,7 @@ class RandomSearchClassifierPE(ClassifierPipelineElement, Classifier):
         self.pass_forward(instance)
         return self
 
-    def predict(self, instance: Instance) -> Optional[LabelIndex]:
+    def predict(self, instance: Instance) -> LabelIndex | None:
         """predict
 
         The predict function of the classifier.

@@ -1,26 +1,26 @@
 # Python imports
 import argparse
-from datetime import datetime
 import os
-from pathlib import Path
 import platform
 import sys
 import time
+from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from plotting import plot_performance, write_pulse_plots
 
 # Library imports
 import capymoa.datasets as capymoa_datasets
+from capymoa.datasets import download_unpacked
+from capymoa.datasets._source_list import SOURCE_LIST
+from capymoa.datasets._utils import infer_unpacked_path
 from capymoa.evaluation.evaluation import (
     prequential_evaluation,
     start_time_measuring,
     stop_time_measuring,
 )
-from capymoa.datasets import download_unpacked
-from capymoa.datasets._source_list import SOURCE_LIST
-from capymoa.datasets._utils import infer_unpacked_path
-from plotting import plot_performance, write_pulse_plots
 
 # Globals
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -205,9 +205,7 @@ class PulseRecorder:
         processed_instances = min(int(processed_instances), self.total_instances)
         if processed_instances > 0 and (
             self.last_timestamp is None or processed_instances != self.total_instances
-        ):
-            self.record(processed_instances)
-        elif processed_instances == self.total_instances and (
+        ) or processed_instances == self.total_instances and (
             self.last_timestamp is None or self.next_pulse_at <= self.total_instances
         ):
             self.record(processed_instances)
@@ -755,10 +753,10 @@ def benchmark_classifiers_capymoa(
     selected_algorithms=None,
 ):
     from capymoa.classifier import (
-        AdaptiveRandomForestClassifier,
         EFDT,
-        HoeffdingTree,
         KNN,
+        AdaptiveRandomForestClassifier,
+        HoeffdingTree,
         NaiveBayes,
     )
 

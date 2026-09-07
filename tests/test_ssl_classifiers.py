@@ -1,10 +1,11 @@
-from capymoa.datasets._datasets import ElectricityTiny, CovtypeTiny
+from functools import partial
 
 import pytest
-from capymoa.evaluation.evaluation import prequential_ssl_evaluation
+
 from capymoa.base import ClassifierSSL
+from capymoa.datasets._datasets import CovtypeTiny, ElectricityTiny
+from capymoa.evaluation.evaluation import prequential_ssl_evaluation
 from capymoa.stream import Stream
-from functools import partial
 
 
 def _make_osnn(**kwargs):

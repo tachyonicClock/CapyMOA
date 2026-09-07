@@ -1,6 +1,6 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import RDDM as _RDDM
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class RDDM(MOADriftDetector):

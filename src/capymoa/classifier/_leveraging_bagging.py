@@ -1,11 +1,12 @@
+import os
+
+from moa.classifiers.meta import LeveragingBag as _MOA_LeveragingBag
+from moa.classifiers.meta.minibatch import LeveragingBagMB as _MOA_LeveragingBagMB
+
 from capymoa.base import (
     MOAClassifier,
 )
 from capymoa.core.moa._cli import cli_str_classifier
-
-from moa.classifiers.meta import LeveragingBag as _MOA_LeveragingBag
-from moa.classifiers.meta.minibatch import LeveragingBagMB as _MOA_LeveragingBagMB
-import os
 
 
 class LeveragingBagging(MOAClassifier):

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from moa.classifiers.meta import StreamingGradientBoostedRegression as _MOA_SGBR
+
+from capymoa._utils import build_cli_str_from_mapping_and_locals
 from capymoa.base import (
     MOARegressor,
 )
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals
-
-from moa.classifiers.meta import StreamingGradientBoostedRegression as _MOA_SGBR
 
 
 class StreamingGradientBoostedRegression(MOARegressor):
@@ -76,7 +76,7 @@ class StreamingGradientBoostedRegression(MOARegressor):
         )
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
-        super(StreamingGradientBoostedRegression, self).__init__(
+        super().__init__(
             moa_learner=_MOA_SGBR(),
             schema=schema,
             CLI=config_str,

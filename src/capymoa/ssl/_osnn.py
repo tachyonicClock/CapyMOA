@@ -7,11 +7,12 @@ CapyMOA implementation by Botao, Anton
 
 """
 
-import numpy as np
 import random
-import torch.nn as nn
+
+import numpy as np
 import torch
 from scipy.spatial.distance import cdist
+from torch import nn
 
 from capymoa.base import ClassifierSSL
 
@@ -30,7 +31,7 @@ def Euclidean_Distances(a, b):
 
 class OSNeuralNetwork(nn.Module):
     def __init__(self, num_center, n_out, window_size, beta=1, gamma=1):
-        super(OSNeuralNetwork, self).__init__()
+        super().__init__()
         self.n_out = n_out
         self.num_centers = num_center
 
@@ -57,13 +58,7 @@ class OSNeuralNetwork(nn.Module):
 
     def initialize_weights(self):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                m.weight.data.normal_(0, 0.02)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.ConvTranspose2d):
-                m.weight.data.normal_(0, 0.02)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Linear):
                 m.weight.data.normal_(0, 0.02)
                 m.bias.data.zero_()
 

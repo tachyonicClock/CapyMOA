@@ -11,6 +11,7 @@ array([0.      , 0.056443, 0.439155, 0.003467, 0.422915, 0.414912])
 """
 
 from ._datasets import (
+    KDD99,
     Airlines,
     Bike,
     CovtFD,
@@ -22,7 +23,6 @@ from ._datasets import (
     Fried,
     FriedTiny,
     Hyper100k,
-    KDD99,
     Nomao,
     PokerHand,
     RBFm_100k,
@@ -31,9 +31,10 @@ from ._datasets import (
     Spambase,
 )
 from ._openml import load_openml_dataset
-from ._utils import get_download_dir, download_unpacked
+from ._utils import download_unpacked, get_download_dir
 
 __all__ = [
+    "KDD99",
     "Airlines",
     "Bike",
     "CovtFD",
@@ -45,14 +46,13 @@ __all__ = [
     "Fried",
     "FriedTiny",
     "Hyper100k",
-    "KDD99",
     "Nomao",
     "PokerHand",
     "RBFm_100k",
     "RTG_2abrupt",
     "Sensor",
     "Spambase",
-    "get_download_dir",
     "download_unpacked",
+    "get_download_dir",
     "load_openml_dataset",
 ]

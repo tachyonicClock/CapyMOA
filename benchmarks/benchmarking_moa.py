@@ -1,19 +1,18 @@
 import argparse
-from datetime import datetime
 import os
-from pathlib import Path
 import platform
 import shlex
 import subprocess
 import sys
 import tempfile
 import time
+from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
-
-import capymoa.datasets as capymoa_datasets
 from plotting import plot_performance
 
+import capymoa.datasets as capymoa_datasets
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"

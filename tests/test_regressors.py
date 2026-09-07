@@ -1,31 +1,32 @@
-from contextlib import nullcontext
 import os
-from typing import Optional
-from capymoa.evaluation import RegressionEvaluator, RegressionWindowedEvaluator
-from capymoa.datasets import Fried, FriedTiny
+from contextlib import nullcontext
+from dataclasses import dataclass
+from tempfile import TemporaryDirectory
+
+import pytest
+from jpype import JException
+
+from capymoa.base import MOAClassifier, MOARegressor, Regressor
 from capymoa.core.io import load_model, save_model
+from capymoa.datasets import Fried, FriedTiny
+from capymoa.evaluation import RegressionEvaluator, RegressionWindowedEvaluator
 from capymoa.regressor import (
-    KNNRegressor,
-    AdaptiveRandomForestRegressor,
-    FIMTDD,
     ARFFIMTDD,
+    FIMTDD,
     ORTO,
-    SOKNLBT,
     SOKNL,
+    SOKNLBT,
+    AdaptiveRandomForestRegressor,
+    FadingTargetMean,
+    KNNRegressor,
+    NoChange,
     PassiveAggressiveRegressor,
     SGDRegressor,
     ShrubsRegressor,
     StreamingGradientBoostedRegression,
-    NoChange,
     TargetMean,
-    FadingTargetMean,
 )
-from jpype import JException
-import pytest
-from capymoa.base import MOAClassifier, MOARegressor, Regressor
 from capymoa.stream import Schema, Stream
-from tempfile import TemporaryDirectory
-from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -36,7 +37,7 @@ class Case:
     """Expected RMSE"""
     win_rmse: float
     """Expected windowed RMSE"""
-    options: Optional[dict] = None
+    options: dict | None = None
     """Keyword arguments to pass to the regressor constructor."""
 
     @property

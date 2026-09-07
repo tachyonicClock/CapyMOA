@@ -1,12 +1,11 @@
 from copy import deepcopy
-from typing import Optional
 
 import torch
 from torch import Tensor, nn
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
+from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.util._optim import reset_optimizer_state
 from capymoa.ocl.util.functional import hinton_distillation_loss
 from capymoa.stream._stream import Schema
@@ -35,7 +34,7 @@ class LWF(BatchClassifier, nn.Module, Handler):
         device: torch.device = torch.device("cpu"),
         mask_test: bool = False,
         mask_train: bool = False,
-        task_mask: Optional[Tensor] = None,
+        task_mask: Tensor | None = None,
     ) -> None:
         """Construct an LWF learner.
 
@@ -75,7 +74,7 @@ class LWF(BatchClassifier, nn.Module, Handler):
         self._model = model
         self._criterion = torch.nn.CrossEntropyLoss()
 
-        self._teacher: Optional[torch.nn.Module] = None
+        self._teacher: torch.nn.Module | None = None
         self._train_task = 0
         self._test_task = 0
         if task_mask is None:

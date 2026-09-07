@@ -1,12 +1,13 @@
 import csv
 import json
 import os
+import sys
 import time
 import warnings
 from collections import deque
+from collections.abc import Sized
 from itertools import islice
-import sys
-from typing import Any, Deque, Optional, Sized, Tuple, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -36,9 +37,9 @@ from capymoa.base import (
     MOAPredictionIntervalLearner,
     Regressor,
 )
+from capymoa.core import LabeledInstance, RegressionInstance
 from capymoa.evaluation._progress_bar import resolve_progress_bar
 from capymoa.evaluation.results import PrequentialResults
-from capymoa.core import LabeledInstance, RegressionInstance
 from capymoa.stream import Schema, Stream
 
 
@@ -57,8 +58,8 @@ def _is_fast_mode_compilable(stream: Stream, learner, optimise=True) -> bool:
 
 
 def _get_expected_length(
-    stream: Stream, max_instances: Optional[int] = None
-) -> Optional[int]:
+    stream: Stream, max_instances: int | None = None
+) -> int | None:
     """Get the expected length of the stream."""
     if isinstance(stream, Sized) and max_instances is not None:
         return min(len(stream), max_instances)
@@ -72,10 +73,10 @@ def _get_expected_length(
 
 def _setup_progress_bar(
     msg: str,
-    progress_bar: Union[bool, tqdm],
+    progress_bar: bool | tqdm,
     stream: Stream,
     learner,
-    max_instances: Optional[int],
+    max_instances: int | None,
 ):
     expected_length = _get_expected_length(stream, max_instances)
     progress_bar = resolve_progress_bar(
@@ -153,7 +154,7 @@ class ClassificationEvaluator:
     def get_instances_seen(self):
         return self.instances_seen
 
-    def update(self, y_target_index: int, y_pred_index: Optional[int]):
+    def update(self, y_target_index: int, y_pred_index: int | None):
         """Update the evaluator with the ground-truth and the prediction.
 
         :param y_target_index: The ground-truth class index. This is NOT
@@ -339,7 +340,7 @@ class RegressionEvaluator:
     def get_instances_seen(self):
         return self.instances_seen
 
-    def update(self, y, y_pred: Optional[float]):
+    def update(self, y, y_pred: float | None):
         if y is None:
             raise ValueError(f"Invalid ground-truth y = {y}")
 
@@ -956,8 +957,8 @@ def _isinstance_batch(learner, *names: str) -> bool:
 
 
 def _get_target(
-    instance: Union[LabeledInstance, RegressionInstance],
-) -> Union[int, np.double]:
+    instance: LabeledInstance | RegressionInstance,
+) -> int | np.double:
     """Get the target value from an instance."""
     if isinstance(instance, LabeledInstance):
         return instance.y_index
@@ -969,14 +970,14 @@ def _get_target(
 
 def prequential_evaluation(
     stream: Stream,
-    learner: Union[Classifier, Regressor],
-    max_instances: Optional[int] = None,
+    learner: Classifier | Regressor,
+    max_instances: int | None = None,
     window_size: int = 1000,
     store_predictions: bool = False,
     store_y: bool = False,
     optimise: bool = True,
     restart_stream: bool = True,
-    progress_bar: Union[bool, tqdm] = False,
+    progress_bar: bool | tqdm = False,
     batch_size: int = 1,
 ) -> PrequentialResults:
     """Run and evaluate a learner on a stream using prequential evaluation.
@@ -1140,8 +1141,8 @@ def prequential_evaluation(
 
 def prequential_ssl_evaluation(
     stream: Stream,
-    learner: Union[ClassifierSSL, Classifier],
-    max_instances: Optional[int] = None,
+    learner: ClassifierSSL | Classifier,
+    max_instances: int | None = None,
     window_size: int = 1000,
     initial_window_size: int = 0,
     delay_length: int = 0,
@@ -1151,7 +1152,7 @@ def prequential_ssl_evaluation(
     store_y: bool = False,
     optimise: bool = True,
     restart_stream: bool = True,
-    progress_bar: Union[bool, tqdm] = False,
+    progress_bar: bool | tqdm = False,
     batch_size: int = 1,
 ):
     """Run and evaluate a learner on a semi-supervised stream using prequential evaluation.
@@ -1250,7 +1251,7 @@ def prequential_ssl_evaluation(
 
     # Instances whose label is delayed: each entry is the index at which the
     # instance reappears as labeled, paired with the instance itself.
-    delayed_labels: Deque[Tuple[int, Any]] = deque()
+    delayed_labels: deque[tuple[int, Any]] = deque()
 
     progress_bar = _setup_progress_bar(
         "SSL Eval", progress_bar, stream, learner, max_instances
@@ -1346,7 +1347,7 @@ def prequential_evaluation_anomaly(
     optimise=True,
     store_predictions=False,
     store_y=False,
-    progress_bar: Union[bool, tqdm] = False,
+    progress_bar: bool | tqdm = False,
 ):
     """
     Calculates the metrics cumulatively (i.e. test-then-train) and in a window-fashion (i.e. windowed prequential
@@ -1710,7 +1711,7 @@ def prequential_evaluation_multiple_learners(
     window_size=1000,
     store_predictions=False,
     store_y=False,
-    progress_bar: Union[bool, tqdm] = False,
+    progress_bar: bool | tqdm = False,
 ):
     """
     Calculates the metrics cumulatively (i.e., test-then-train) and in a windowed-fashion for multiple streams and

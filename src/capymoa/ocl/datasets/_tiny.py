@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple
+from typing import Any
 
 import torch
 from torch import Tensor
@@ -40,9 +41,9 @@ class TinySplitMNIST(_BuiltInCIScenario):
         train: bool,
         directory: Path,
         auto_download: bool,
-        transform: Optional[Any],
-        target_transform: Optional[Callable[[Any], Any]] = None,
-    ) -> Dataset[Tuple[Tensor, Tensor]]:
+        transform: Any | None,
+        target_transform: Callable[[Any], Any] | None = None,
+    ) -> Dataset[tuple[Tensor, Tensor]]:
         ((train_x, train_y), (test_x, test_y)) = download_numpy_dataset(
             dataset_name=cls._dataset_key,
             url=_SOURCES[cls._dataset_key],
@@ -95,9 +96,9 @@ class RotatedTinyMNIST(_BuiltInRotatedDomainScenario):
         train: bool,
         directory: Path,
         auto_download: bool,
-        transform: Optional[Any],
-        target_transform: Optional[Callable[[Any], Any]] = None,
-    ) -> Dataset[Tuple[Tensor, Tensor]]:
+        transform: Any | None,
+        target_transform: Callable[[Any], Any] | None = None,
+    ) -> Dataset[tuple[Tensor, Tensor]]:
         ((train_x, train_y), (test_x, test_y)) = download_numpy_dataset(
             dataset_name=cls._dataset_key,
             url=_SOURCES[cls._dataset_key],

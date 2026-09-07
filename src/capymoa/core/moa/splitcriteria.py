@@ -5,14 +5,14 @@ criterion. The split criterion is a function that measures the quality of a
 split.
 """
 
-from typing import Optional, Union
+
 import moa.classifiers.core.splitcriteria as moa_split
 
 
 class SplitCriterion:
     """Split criteria are used to evaluate the quality of a split in a decision tree."""
 
-    _java_object: Optional[moa_split.SplitCriterion] = None
+    _java_object: moa_split.SplitCriterion | None = None
 
     def java_object(self) -> moa_split.SplitCriterion:
         """Return the Java object that this class wraps."""
@@ -51,7 +51,7 @@ class GiniSplitCriterion(SplitCriterion):
         self._java_object = moa_split.GiniSplitCriterion()
 
 
-def _split_criterion_to_cli_str(split_criterion: Union[str, SplitCriterion]) -> str:
+def _split_criterion_to_cli_str(split_criterion: str | SplitCriterion) -> str:
     """Convert a split criterion to a CLI string.
 
     Also strips any parentheses or whitespace from the beginning and end of the string.

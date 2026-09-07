@@ -1,13 +1,15 @@
-from typing import Sized, Type
-import capymoa.datasets as capymoa_datasets
-from capymoa.stream import Stream
-from capymoa.datasets import ElectricityTiny, load_openml_dataset
-from tempfile import TemporaryDirectory
-import pytest
-import numpy as np
-import platform
-from capymoa.datasets._downloader import _DownloadableDataset
 import inspect
+import platform
+from collections.abc import Sized
+from tempfile import TemporaryDirectory
+
+import numpy as np
+import pytest
+
+import capymoa.datasets as capymoa_datasets
+from capymoa.datasets import ElectricityTiny, load_openml_dataset
+from capymoa.datasets._downloader import _DownloadableDataset
+from capymoa.stream import Stream
 
 _ALL_DOWNLOADABLE_DATASET = [
     cls
@@ -78,7 +80,7 @@ def test_load_openml_dataset_iris():
 
 @pytest.mark.skip("This test is too slow")
 @pytest.mark.parametrize("dataset_type", _ALL_DOWNLOADABLE_DATASET)
-def test_all_datasets(dataset_type: Type[_DownloadableDataset]):
+def test_all_datasets(dataset_type: type[_DownloadableDataset]):
     with TemporaryDirectory() as tmp_dir:
         dataset_arff = dataset_type(directory=tmp_dir)
         assert isinstance(dataset_arff, Stream)

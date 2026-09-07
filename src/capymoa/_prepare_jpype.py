@@ -1,15 +1,17 @@
 # Python imports
+import os
+import subprocess
+from hashlib import sha256
+from pathlib import Path
+
 import jpype
 import jpype.imports
-import os
-from pathlib import Path
-from hashlib import sha256
-import subprocess
+
 from .__about__ import __version__
 from .env import (
+    capymoa_datasets_dir,
     capymoa_jvm_args,
     capymoa_moa_jar,
-    capymoa_datasets_dir,
 )
 
 _CAPYMOA_PACKAGE_ROOT = Path(__file__).parent

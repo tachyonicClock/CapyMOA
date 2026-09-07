@@ -1,6 +1,6 @@
 """Utilities for continual learning when using PyTorch datasets."""
 
-from typing import Sequence, Sized, Set, Tuple
+from collections.abc import Sequence, Sized
 
 import torch
 from torch import BoolTensor, LongTensor, Tensor
@@ -26,7 +26,7 @@ def _is_unique_consecutive_from_zero(tensor: Tensor) -> bool:
     )
 
 
-def get_targets(dataset: Dataset[Tuple[Tensor, Tensor]]) -> LongTensor:
+def get_targets(dataset: Dataset[tuple[Tensor, Tensor]]) -> LongTensor:
     """Return the targets of a dataset as a 1D tensor.
 
     * If the dataset has a `targets` attribute, it is used.
@@ -88,11 +88,11 @@ def group_indicies(
 
 
 def partition_by_schedule(
-    dataset: Dataset[Tuple[Tensor, Tensor]],
-    class_schedule: Sequence[Set[int]],
+    dataset: Dataset[tuple[Tensor, Tensor]],
+    class_schedule: Sequence[set[int]],
     shuffle: bool = False,
     rng: torch.Generator = torch.default_generator,
-) -> Sequence[Dataset[Tuple[Tensor, Tensor]]]:
+) -> Sequence[Dataset[tuple[Tensor, Tensor]]]:
     """Divide a dataset into multiple datasets based on a class schedule.
 
     In class incremental learning, a task is a dataset containing a subset of
@@ -116,11 +116,11 @@ def partition_by_schedule(
 
 
 def class_incremental_split(
-    dataset: Dataset[Tuple[Tensor, Tensor]],
+    dataset: Dataset[tuple[Tensor, Tensor]],
     num_tasks: int,
     shuffle_tasks: bool = True,
     generator: torch.Generator = torch.default_generator,
-) -> tuple[Sequence[Dataset[Tuple[Tensor, Tensor]]], Sequence[Set[int]]]:
+) -> tuple[Sequence[Dataset[tuple[Tensor, Tensor]]], Sequence[set[int]]]:
     """Divide a dataset into multiple tasks for class incremental learning.
 
     >>> from torch.utils.data import TensorDataset
@@ -160,7 +160,7 @@ def class_incremental_schedule(
     num_tasks: int,
     shuffle: bool = True,
     generator: torch.Generator = torch.default_generator,
-) -> Sequence[Set[int]]:
+) -> Sequence[set[int]]:
     """Returns a class schedule for class incremental learning.
 
     >>> class_incremental_schedule(9, 3, shuffle=False)
@@ -194,7 +194,7 @@ def class_incremental_schedule(
 
 
 def class_schedule_to_task_mask(
-    class_schedule: Sequence[Set[int]], num_classes: int
+    class_schedule: Sequence[set[int]], num_classes: int
 ) -> BoolTensor:
     """Convert a class schedule to a list of boolean masks.
 

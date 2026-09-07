@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from .._stream import Schema, MOAStream
-from capymoa.core import Instance
-from moa.streams import FilteredQueueStream
 import moa.streams.filters
+from moa.streams import FilteredQueueStream
+
+from capymoa.core import Instance
+
+from .._stream import MOAStream, Schema
 
 
 class Transformer(ABC):
@@ -67,8 +69,7 @@ class MOATransformer(Transformer):
         moa_filter_str = str(
             self.moa_filter.getCLICreationString(self.moa_filter.__class__)
         )
-        if moa_filter_str.endswith(" "):
-            moa_filter_str = moa_filter_str[:-1]
+        moa_filter_str = moa_filter_str.removesuffix(" ")
         return f"Transformer({moa_filter_str})"
 
     def transform_instance(self, instance) -> Instance:

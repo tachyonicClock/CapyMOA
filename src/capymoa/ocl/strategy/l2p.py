@@ -7,18 +7,18 @@
 
 """
 
-from capymoa.base import BatchClassifier
-from capymoa.ocl.events import Handler, Dispatcher
-from capymoa.ocl.evaluation.events import TrainTaskBegin
-
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Tuple, Callable
+from collections.abc import Callable
+from typing import Any
 
-from capymoa.stream import Schema
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
+from torch import Tensor, nn
+
+from capymoa.base import BatchClassifier
+from capymoa.ocl.evaluation.events import TrainTaskBegin
+from capymoa.ocl.events import Dispatcher, Handler
+from capymoa.stream import Schema
 
 
 class L2PViT(ABC):
@@ -61,7 +61,7 @@ class _HuggingFaceAdapter(L2PViT, nn.Module):
     def __init__(self, pretrained_name: str) -> None:
         super().__init__()
         try:
-            from transformers import AutoModel, AutoImageProcessor
+            from transformers import AutoImageProcessor, AutoModel
         except ImportError:
             raise ImportError(
                 "Transformers is not installed. Please install it with `pip install transformers`."
@@ -103,7 +103,7 @@ class _HuggingFaceAdapter(L2PViT, nn.Module):
 
 def _prompt_lookup(
     query: Tensor, keys: Tensor, prompts: Tensor, top_k: int
-) -> Tuple[Tensor, Tensor]:
+) -> tuple[Tensor, Tensor]:
     """Find prompts with keys closest to the query.
 
     :param query: Query of shape (batch_size, embedding_dimension)
@@ -162,8 +162,8 @@ class _PromptPool(nn.Module):
     def forward(
         self,
         query: Tensor,
-        task_id: Optional[int] = None,
-    ) -> Tuple[Tensor, Tensor]:
+        task_id: int | None = None,
+    ) -> tuple[Tensor, Tensor]:
         if task_id is not None:
             start = task_id * self.prompts_per_task
             end = (task_id + 1) * self.prompts_per_task
@@ -195,8 +195,8 @@ class _L2PModel(nn.Module):
         self.head = nn.Linear(vit.get_embedding_size(), out_features)
 
     def forward(
-        self, x: Tensor, task_id: Optional[int] = None
-    ) -> Tuple[Tensor, Tensor]:
+        self, x: Tensor, task_id: int | None = None
+    ) -> tuple[Tensor, Tensor]:
         # First forward pass to get query
         patch_embed = self.vit.get_patch_embed(x)
         query = self.vit.forward_query(patch_embed)
@@ -303,7 +303,7 @@ class L2P(BatchClassifier, Handler):
 
     def _new_optimizer(self) -> torch.optim.Optimizer:
         return self._new_optimizer_fn(
-            (p for p in self._model.parameters() if p.requires_grad)
+            p for p in self._model.parameters() if p.requires_grad
         )
 
     def on_train_task(self, task_id: int):

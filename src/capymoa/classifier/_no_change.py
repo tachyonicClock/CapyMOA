@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from moa.classifiers.functions import NoChange as _MOA_NoChange
+
+from capymoa._utils import build_cli_str_from_mapping_and_locals
 from capymoa.base import (
     MOAClassifier,
 )
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals
-
-from moa.classifiers.functions import NoChange as _MOA_NoChange
 
 
 class NoChange(MOAClassifier):
@@ -37,7 +37,7 @@ class NoChange(MOAClassifier):
         mapping = {}
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
-        super(NoChange, self).__init__(
+        super().__init__(
             moa_learner=_MOA_NoChange,
             schema=schema,
             CLI=config_str,

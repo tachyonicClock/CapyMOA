@@ -1,11 +1,13 @@
-from capymoa.drift.base_detector import BaseDriftDetector
-import numpy as np
-from scipy.stats import t as t_stat
-from scipy.optimize import fsolve
-import scipy.stats
 import math
 import warnings
-from typing import Any, Dict
+from typing import Any
+
+import numpy as np
+import scipy.stats
+from scipy.optimize import fsolve
+from scipy.stats import t as t_stat
+
+from capymoa.drift.base_detector import BaseDriftDetector
 
 
 class OPTWIN(BaseDriftDetector):
@@ -258,7 +260,6 @@ class OPTWIN(BaseDriftDetector):
             self._pop_from_running_stdev("h", [pop])
             self._pop_from_running_stdev("new", [self.W.get(self.last_opt_cut)])
             self._add_running_stdev("h", [self.W.get(self.last_opt_cut)])
-        return
 
     def _add_running_stdev(self, window: str, element: list[float]) -> None:
         """Update running stdev and avg by adding elements element.
@@ -461,7 +462,7 @@ class OPTWIN(BaseDriftDetector):
         self.in_warning_zone = True
         self.in_concept_change = False
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_params(self) -> dict[str, Any]:
         """Get the hyper-parameters of the OPTWIN drift detector."""
         return {
             "rigor": self.rigor,

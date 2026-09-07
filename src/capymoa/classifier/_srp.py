@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import os
+
+from moa.classifiers.meta import StreamingRandomPatches as _MOA_SRP
+from moa.classifiers.meta.minibatch import StreamingRandomPatchesMB as _MOA_SRP_MB
+
+from capymoa._utils import build_cli_str_from_mapping_and_locals
 from capymoa.base import (
     MOAClassifier,
 )
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals
-
-from moa.classifiers.meta import StreamingRandomPatches as _MOA_SRP
-from moa.classifiers.meta.minibatch import StreamingRandomPatchesMB as _MOA_SRP_MB
-import os
 
 
 class StreamingRandomPatches(MOAClassifier):
@@ -164,7 +165,7 @@ class StreamingRandomPatches(MOAClassifier):
             config_str += f"-b {self.minibatch_size} "
             config_str += f"-c {self.number_of_jobs} "
 
-        super(StreamingRandomPatches, self).__init__(
+        super().__init__(
             moa_learner=moa_learner,
             schema=schema,
             CLI=config_str,

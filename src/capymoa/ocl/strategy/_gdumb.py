@@ -1,11 +1,12 @@
-from capymoa.ocl.util._replay import GreedySampler
 import torch
-from capymoa.base import BatchClassifier
-from capymoa.ocl.events import Handler, Dispatcher
-from capymoa.ocl.evaluation.events import TestTaskBegin
-from capymoa.stream import Schema
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, TensorDataset
+
+from capymoa.base import BatchClassifier
+from capymoa.ocl.evaluation.events import TestTaskBegin
+from capymoa.ocl.events import Dispatcher, Handler
+from capymoa.ocl.util._replay import GreedySampler
+from capymoa.stream import Schema
 
 
 class GDumb(BatchClassifier, Handler):

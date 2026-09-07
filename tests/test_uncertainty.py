@@ -1,15 +1,17 @@
+from functools import partial
+
+import pytest
+
+from capymoa.base import PredictionIntervalLearner
+from capymoa.datasets import Fried
 from capymoa.evaluation import (
     PredictionIntervalEvaluator,
     PredictionIntervalWindowedEvaluator,
 )
-from capymoa.datasets import Fried
-from capymoa.base import PredictionIntervalLearner
 from capymoa.uncertainty import (
     MVE,
     AdaPI,
 )
-import pytest
-from functools import partial
 
 
 @pytest.mark.parametrize(

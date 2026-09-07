@@ -1,6 +1,6 @@
 """Main OCL train/evaluation loop (event-driven rewrite)."""
 
-from typing import Optional, Sequence, Tuple
+from collections.abc import Sequence
 
 import numpy as np
 import torch
@@ -9,13 +9,12 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from capymoa.base import BatchClassifier, Classifier
-from capymoa.core import Instance, LabeledInstance
-from capymoa.ocl.events import Event, Handler, Dispatcher
-from capymoa.core import LabelIndex
+from capymoa.core import Instance, LabeledInstance, LabelIndex
+from capymoa.ocl.events import Dispatcher, Event, Handler
 
-from ._metrics_handler import _OCLMetricsHandler
-from ._metrics import OCLMetrics
 from . import events
+from ._metrics import OCLMetrics
+from ._metrics_handler import _OCLMetricsHandler
 
 
 def _abstain_prediction_uniform(rng: np.random.Generator, n_classes: int) -> LabelIndex:
@@ -66,8 +65,8 @@ class _ProgressBarSink(Handler):
 
     @staticmethod
     def from_streams(
-        train_streams: Sequence[DataLoader[Tuple[Tensor, Tensor]]],
-        test_streams: Sequence[DataLoader[Tuple[Tensor, Tensor]]],
+        train_streams: Sequence[DataLoader[tuple[Tensor, Tensor]]],
+        test_streams: Sequence[DataLoader[tuple[Tensor, Tensor]]],
         epochs: int,
         continual_evaluations: int,
     ) -> "_ProgressBarSink":
@@ -93,13 +92,13 @@ class _ProgressBarSink(Handler):
 
 def ocl_train_eval_loop(
     learner: Classifier,
-    train_streams: Sequence[DataLoader[Tuple[Tensor, Tensor]]],
-    test_streams: Sequence[DataLoader[Tuple[Tensor, Tensor]]],
+    train_streams: Sequence[DataLoader[tuple[Tensor, Tensor]]],
+    test_streams: Sequence[DataLoader[tuple[Tensor, Tensor]]],
     continual_evaluations: int = 1,
     progress_bar: bool = False,
     eval_window_size: int = 1000,
     epochs: int = 1,
-    dispatcher: Optional[Dispatcher] = None,
+    dispatcher: Dispatcher | None = None,
 ) -> OCLMetrics:
     """Run the OCL training loop with periodic continual evaluation.
 

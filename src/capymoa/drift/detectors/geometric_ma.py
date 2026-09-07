@@ -1,8 +1,8 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import (
     GeometricMovingAverageDM as _GeometricMovingAverageDM,
 )
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class GeometricMovingAverage(MOADriftDetector):

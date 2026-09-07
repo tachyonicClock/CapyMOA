@@ -1,7 +1,7 @@
+from moa.classifiers.rules.functions import FadingTargetMean as _FadingTargetMean
+
 from capymoa.base import MOARegressor
 from capymoa.stream import Schema
-
-from moa.classifiers.rules.functions import FadingTargetMean as _FadingTargetMean
 
 
 class FadingTargetMean(MOARegressor):

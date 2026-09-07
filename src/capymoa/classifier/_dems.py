@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+from moa.classifiers.meta import DynamicEnsembleMemberSelection as _MOA_DEMS
+
+from capymoa._utils import build_cli_str_from_mapping_and_locals
 from capymoa.base import MOAClassifier
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals
-
-from moa.classifiers.meta import DynamicEnsembleMemberSelection as _MOA_DEMS
 
 
 class DynamicEnsembleMemberSelection(MOAClassifier):
@@ -152,7 +152,7 @@ class DynamicEnsembleMemberSelection(MOAClassifier):
 
         moa_learner = _MOA_DEMS()
 
-        super(DynamicEnsembleMemberSelection, self).__init__(
+        super().__init__(
             moa_learner=moa_learner,
             schema=schema,
             CLI=config_str,

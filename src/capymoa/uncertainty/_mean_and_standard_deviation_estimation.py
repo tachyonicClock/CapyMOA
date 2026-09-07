@@ -1,13 +1,12 @@
 import inspect
 
+from moa.classifiers.predictioninterval import MVEPredictionInterval as MOA_MVE
+
 from capymoa.base import (
     MOAPredictionIntervalLearner,
 )
 from capymoa.core.moa._cli import cli_str_regressor
-
 from capymoa.regressor import AdaptiveRandomForestRegressor
-
-from moa.classifiers.predictioninterval import MVEPredictionInterval as MOA_MVE
 
 
 class MVE(MOAPredictionIntervalLearner):

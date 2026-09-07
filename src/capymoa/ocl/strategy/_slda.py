@@ -1,14 +1,16 @@
+
 import torch
-from typing import Tuple
+from torch import Tensor, nn
+
 from capymoa.base import BatchClassifier
 from capymoa.stream import Schema
-from torch import Tensor, nn
+
 from ._ncm import _batch_cumulative_mean
 
 
 def _batch_cumulative_covariance(
     batch: Tensor, count: int, mean: Tensor, covariance: Tensor
-) -> Tuple[int, Tensor, Tensor]:
+) -> tuple[int, Tensor, Tensor]:
     """Update cumulative count, mean, and covariance with batch **Welford's** algorithm.
 
     See:

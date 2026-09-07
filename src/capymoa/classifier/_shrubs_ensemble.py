@@ -1,13 +1,13 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Literal
 
 import numpy as np
-
+from scipy.special import softmax
 from sklearn import clone
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from scipy.special import softmax
 
 from capymoa.stream._stream import Schema
 
@@ -32,13 +32,13 @@ def to_prob_simplex(x: list | np.array):
         return x
     u = np.sort(x)[::-1]
 
-    l = None  # noqa
+    l = None
     u_sum = 0
-    for i in range(0, len(u)):
+    for i in range(len(u)):
         u_sum += u[i]
         tmp = 1.0 / (i + 1.0) * (1.0 - u_sum)
         if u[i] + tmp > 0:
-            l = tmp  # noqa
+            l = tmp
 
     projected_x = [max(xi + l, 0.0) for xi in x]
     return projected_x
@@ -71,7 +71,7 @@ class _ShrubEnsembles(ABC):
         loss: Literal["mse", "ce", "h2"],
         step_size: float | Literal["adaptive"],
         ensemble_regularizer: Literal["hard-L0", "L0", "L1", "none"],
-        l_ensemble_reg: float | int,
+        l_ensemble_reg: float,
         l_l2_reg: float,
         l_tree_reg: float,
         normalize_weights: bool,
@@ -145,9 +145,7 @@ class _ShrubEnsembles(ABC):
             ensemble_regularizer != "none" and ensemble_regularizer is not None
         ):
             print(
-                "WARNING: You set l_ensemble_reg to 0, but choose regularizer {}.".format(
-                    ensemble_regularizer
-                )
+                f"WARNING: You set l_ensemble_reg to 0, but choose regularizer {ensemble_regularizer}."
             )
 
         if isinstance(step_size, str) and step_size != "adaptive":
@@ -352,7 +350,7 @@ class _ShrubEnsembles(ABC):
             nonzero_idx = np.nonzero(tmp_w)[0]
             nonzero_w = tmp_w[nonzero_idx]
             nonzero_w = to_prob_simplex(nonzero_w)
-            self.estimator_weights_ = np.zeros((len(tmp_w)))
+            self.estimator_weights_ = np.zeros(len(tmp_w))
             for i, w in zip(nonzero_idx, nonzero_w):
                 self.estimator_weights_[i] = w
         else:

@@ -1,6 +1,6 @@
+from torch import Tensor, nn
+
 from capymoa.stream._stream import Schema
-from torch import nn
-from torch import Tensor
 
 
 class Perceptron(nn.Module):
@@ -12,7 +12,7 @@ class Perceptron(nn.Module):
         :param schema: Schema describing the data types and shapes.
         :param hidden_size: Number of hidden units in the first layer.
         """
-        super(Perceptron, self).__init__()
+        super().__init__()
         in_features = schema.get_num_attributes()
         out_features = schema.get_num_classes()
         self._fc1 = nn.Linear(in_features, hidden_size)

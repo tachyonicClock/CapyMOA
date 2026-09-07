@@ -4,8 +4,8 @@ https://github.com/scikit-learn/scikit-learn/blob/8721245511de2f225ff5f9aa5f5fad
 
 import inspect
 import os
-import sys
 import subprocess
+import sys
 from functools import partial
 from operator import attrgetter
 

@@ -1,7 +1,8 @@
+from moa.classifiers.meta import DynamicWeightedMajority as _MOA_DWM
+
+from capymoa._utils import build_cli_str_from_mapping_and_locals
 from capymoa.base import MOAClassifier
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals
-from moa.classifiers.meta import DynamicWeightedMajority as _MOA_DWM
 
 
 class DynamicWeightedMajority(MOAClassifier):
@@ -54,7 +55,7 @@ class DynamicWeightedMajority(MOAClassifier):
         }
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
-        super(DynamicWeightedMajority, self).__init__(
+        super().__init__(
             schema=schema,
             random_seed=random_seed,
             CLI=config_str,

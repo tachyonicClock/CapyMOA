@@ -1,13 +1,12 @@
-from typing import Optional, Union
+
+from moa.classifiers.trees import FIMTDD as _MOA_FIMTDD
 
 from capymoa.base import MOARegressor
-
 from capymoa.core.moa.splitcriteria import (
     SplitCriterion,
     _split_criterion_to_cli_str,
 )
 from capymoa.stream._stream import Schema
-from moa.classifiers.trees import FIMTDD as _MOA_FIMTDD
 
 
 class FIMTDD(MOARegressor):
@@ -42,7 +41,7 @@ class FIMTDD(MOARegressor):
     def __init__(
         self,
         schema: Schema,
-        split_criterion: Union[SplitCriterion, str] = "VarianceReductionSplitCriterion",
+        split_criterion: SplitCriterion | str = "VarianceReductionSplitCriterion",
         grace_period: int = 200,
         split_confidence: float = 1.0e-7,
         tie_threshold: float = 0.05,
@@ -55,7 +54,7 @@ class FIMTDD(MOARegressor):
         learning_ratio: float = 0.02,
         learning_ratio_decay_factor: float = 0.001,
         learning_ratio_const: bool = False,
-        random_seed: Optional[int] = None,
+        random_seed: int | None = None,
     ) -> None:
         """
         Construct FIMTDD.

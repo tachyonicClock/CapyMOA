@@ -3,11 +3,10 @@ from __future__ import annotations
 import math
 import random
 import typing
-from capymoa.base import AnomalyDetector
-from capymoa.core import LabeledInstance
-from capymoa.stream._stream import Schema
-from capymoa.core import LabelIndex
 
+from capymoa.base import AnomalyDetector
+from capymoa.core import LabeledInstance, LabelIndex
+from capymoa.stream._stream import Schema
 
 __all__ = ["StreamingIsolationForest"]
 
@@ -487,7 +486,7 @@ class StreamingIsolationForest(AnomalyDetector):
 
         return score
 
-    def predict(self, instance: LabeledInstance) -> typing.Optional[LabelIndex]:
+    def predict(self, instance: LabeledInstance) -> LabelIndex | None:
         raise NotImplementedError(
             "StreamingIsolationForest does not implement predict. Use score_instance instead."
         )

@@ -1,10 +1,12 @@
-from jpype.pickle import JPickler, JUnpickler
-from jpype import JException
-from typing import BinaryIO, TextIO
+from io import BufferedIOBase, RawIOBase
 from pathlib import Path
-from io import RawIOBase, BufferedIOBase
-from capymoa.stream._stream import Stream
+from typing import BinaryIO, TextIO
+
 import tqdm
+from jpype import JException
+from jpype.pickle import JPickler, JUnpickler
+
+from capymoa.stream._stream import Stream
 
 
 def save_model(model: object, file: BinaryIO) -> None:

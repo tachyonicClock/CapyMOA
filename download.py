@@ -1,15 +1,14 @@
+import gzip
+from os.path import basename
 from pathlib import Path
+from shutil import copyfileobj, get_unpack_formats, move, unpack_archive
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
-from os.path import basename
-from shutil import unpack_archive, get_unpack_formats, copyfileobj, move
-import gzip
-from typing import Tuple
 
 _GZIP_SUFFIX = [".gz", ".gzip"]
 
 
-def unpacked_format(filename: str) -> Tuple[str | None, str]:
+def unpacked_format(filename: str) -> tuple[str | None, str]:
     for format, extensions, _ in get_unpack_formats():
         for ext in extensions:
             if filename.endswith(ext):

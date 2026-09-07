@@ -1,8 +1,10 @@
-from typing import Optional, Literal
-from capymoa.base import SKRegressor
+from typing import Literal
+
 from sklearn.linear_model import (
     SGDRegressor as _SKSGDRegressor,
 )
+
+from capymoa.base import SKRegressor
 from capymoa.stream._stream import Schema
 
 
@@ -39,14 +41,14 @@ class SGDRegressor(SKRegressor):
             "epsilon_insensitive",
             "squared_epsilon_insensitive",
         ] = "squared_error",
-        penalty: Optional[Literal["l2", "l1", "elasticnet"]] = "l2",
+        penalty: Literal["l2", "l1", "elasticnet"] | None = "l2",
         alpha: float = 0.0001,
         l1_ratio: float = 0.15,
         fit_intercept: bool = True,
         epsilon: float = 0.1,
         learning_rate: str = "invscaling",
         eta0: float = 0.01,
-        random_seed: Optional[int] = None,
+        random_seed: int | None = None,
     ):
         """Construct stochastic gradient descent Regressor.
 
@@ -90,4 +92,4 @@ class SGDRegressor(SKRegressor):
         )
 
     def __str__(self):
-        return str("SGDRegressor")
+        return "SGDRegressor"

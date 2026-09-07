@@ -1,10 +1,12 @@
-from capymoa.stream import Stream
-import pandas as pd
-import json
 import csv
+import json
 import os
 from datetime import datetime
+
 import numpy as np
+import pandas as pd
+
+from capymoa.stream import Stream
 
 
 class PrequentialResults:
@@ -90,10 +92,10 @@ class PrequentialResults:
 
 def _write_results_to_files(path: str = None, results=None, directory_name: str = None):
     from capymoa.evaluation import (
-        ClassificationWindowedEvaluator,
-        RegressionWindowedEvaluator,
         ClassificationEvaluator,
+        ClassificationWindowedEvaluator,
         RegressionEvaluator,
+        RegressionWindowedEvaluator,
     )
 
     if results is None:

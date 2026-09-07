@@ -1,6 +1,6 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import STEPD as _STEPD
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class STEPD(MOADriftDetector):

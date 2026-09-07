@@ -1,11 +1,13 @@
-from capymoa.stream import Schema
+from typing import Literal
+
+from moa.classifiers.trees import PLASTIC as _PLASTIC
+
 from capymoa.base import MOAClassifier
-from typing import Literal, Union
 from capymoa.core.moa.splitcriteria import (
     SplitCriterion,
     _split_criterion_to_cli_str,
 )
-from moa.classifiers.trees import PLASTIC as _PLASTIC
+from capymoa.stream import Schema
 
 
 class PLASTIC(MOAClassifier):
@@ -39,7 +41,7 @@ class PLASTIC(MOAClassifier):
         grace_period: int = 200,
         reevaluation_period: int = 200,
         nominal_estimator: str = "NominalAttributeClassObserver",
-        split_criterion: Union[str, SplitCriterion] = "InfoGainSplitCriterion",
+        split_criterion: str | SplitCriterion = "InfoGainSplitCriterion",
         split_confidence: float = 1e-07,
         tie_threshold: float = 0.05,
         tie_threshold_reevaluation: float = 0.05,

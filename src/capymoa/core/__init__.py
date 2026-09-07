@@ -1,27 +1,27 @@
 """Shared utilities and core types used across CapyMOA."""
 
+from . import io, moa, torch
 from ._instance import (
     FeatureVector,
+    Instance,
+    Label,
+    LabeledInstance,
     LabelIndex,
     LabelProbabilities,
-    Label,
-    TargetValue,
-    Instance,
-    LabeledInstance,
     RegressionInstance,
+    TargetValue,
     _AnyInstance,
 )
-from . import io, moa, torch
 
 __all__ = [
     "FeatureVector",
+    "Instance",
+    "Label",
     "LabelIndex",
     "LabelProbabilities",
-    "Label",
-    "TargetValue",
-    "Instance",
     "LabeledInstance",
     "RegressionInstance",
+    "TargetValue",
     "_AnyInstance",
     "io",
     "moa",

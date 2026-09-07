@@ -1,20 +1,19 @@
 """This is a module responsible for storing the URLs of the datasets."""
 
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 
 @dataclass
 class _Source:
     arff: str
     """The URL of the ARFF file. Can be optionally compressed."""
-    csv: Optional[str]
+    csv: str | None
     """The URL of the CSV file. Can be optionally compressed."""
 
 
 # DROPBOX: When downloading from Dropbox, the URL parameter `dl=1` must be set
 # to force the download.
-SOURCE_LIST: Dict[str, _Source] = {
+SOURCE_LIST: dict[str, _Source] = {
     "Sensor": _Source(
         "https://www.dropbox.com/scl/fi/tyvtg4g9nop80gc2zuhog/sensor.arff.gz?rlkey=dfocd19pu67lvp4zj2tcaajoq&st=ajjxsxg3&dl=1",
         "https://www.dropbox.com/scl/fi/aloisxhd7p50f669b9rxe/sensor.csv.gz?rlkey=ndiscm2qv4cvgnf5r0ly8ikjg&st=mp2gok4c&dl=1",

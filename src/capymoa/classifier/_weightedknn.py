@@ -1,7 +1,8 @@
-from capymoa.base import MOAClassifier
 from moa.classifiers.lazy import WeightedkNN as _MOA_WeightedkNN
-from capymoa.stream import Schema
+
 from capymoa._utils import build_cli_str_from_mapping_and_locals
+from capymoa.base import MOAClassifier
+from capymoa.stream import Schema
 
 
 class WeightedkNN(MOAClassifier):
@@ -39,7 +40,7 @@ class WeightedkNN(MOAClassifier):
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         self.moa_learner = _MOA_WeightedkNN()
-        super(WeightedkNN, self).__init__(
+        super().__init__(
             schema=schema,
             CLI=config_str,
             moa_learner=self.moa_learner,

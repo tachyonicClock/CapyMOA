@@ -1,6 +1,8 @@
-import jpype
-from pathlib import Path
 from hashlib import sha256
+from pathlib import Path
+
+import jpype
+
 import capymoa
 
 _MOA_JAR_HASH = "e7d7c3d533a4800bf2581f820d2c1e9310d70ff40b52fc1a742793eceb89a660"

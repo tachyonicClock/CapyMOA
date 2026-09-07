@@ -16,9 +16,11 @@ Events emit in the following order:
     TrainEnd
 """
 
-from capymoa.ocl.events import Event
 from dataclasses import dataclass
+
 from torch import Tensor
+
+from capymoa.ocl.events import Event
 
 
 @dataclass

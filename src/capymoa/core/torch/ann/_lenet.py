@@ -1,4 +1,4 @@
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 
 class LeNet5(nn.Module):
@@ -10,7 +10,7 @@ class LeNet5(nn.Module):
     """
 
     def __init__(self, num_classes: int, in_shape: tuple[int, int, int] = (1, 28, 28)):
-        super(LeNet5, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=2)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=5, stride=1, padding=0)
         self.fc1 = nn.Linear(16 * 5 * 5, 120)

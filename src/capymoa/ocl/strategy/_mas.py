@@ -1,12 +1,12 @@
-from typing import Callable, Iterable, Iterator, Optional, Sequence, Tuple
+from collections.abc import Callable, Iterable, Iterator, Sequence
 
 import torch
 from torch import Tensor, nn
 from torch.utils.data import DataLoader
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
+from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.util._buffer_list import BufferList
 from capymoa.ocl.util._optim import reset_optimizer_state
 from capymoa.ocl.util._replay import SlidingWindow
@@ -40,7 +40,7 @@ def weighted_l2_reg(
 def compute_importance(
     model: nn.Module,
     forward_fn: Callable[[Tensor], Tensor],
-    dataloader: DataLoader[Tuple[Tensor, Tensor]],
+    dataloader: DataLoader[tuple[Tensor, Tensor]],
     device: torch.device,
 ) -> Sequence[Tensor]:
     r"""Estimate MAS parameter importance from the given data loader.
@@ -125,7 +125,7 @@ class MAS(BatchClassifier, nn.Module, Handler):
         device: torch.device = torch.device("cpu"),
         mask_test: bool = False,
         mask_train: bool = False,
-        task_mask: Optional[Tensor] = None,
+        task_mask: Tensor | None = None,
     ) -> None:
         """Construct a MAS learner.
 

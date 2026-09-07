@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import matplotlib
-from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
+from matplotlib.patches import Patch
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

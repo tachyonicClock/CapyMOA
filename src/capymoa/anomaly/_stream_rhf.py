@@ -1,4 +1,5 @@
 import numpy as np
+
 from capymoa.base import AnomalyDetector
 
 

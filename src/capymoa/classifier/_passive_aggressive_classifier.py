@@ -1,8 +1,10 @@
-from typing import Optional, Dict, Union, Literal
-from capymoa.base import SKClassifier
+from typing import Literal
+
 from sklearn.linear_model import (
     SGDClassifier as _SKSGDClassifier,
 )
+
+from capymoa.base import SKClassifier
 from capymoa.stream._stream import Schema
 
 # Maps the passive aggressive loss onto the equivalent scikit-learn learning
@@ -42,8 +44,8 @@ class PassiveAggressiveClassifier(SKClassifier):
         max_step_size: float = 1.0,
         fit_intercept: bool = True,
         loss: Literal["hinge", "squared_hinge"] = "hinge",
-        n_jobs: Optional[int] = None,
-        class_weight: Union[Dict[int, float], None, Literal["balanced"]] = None,
+        n_jobs: int | None = None,
+        class_weight: dict[int, float] | None | Literal["balanced"] = None,
         average: bool = False,
         random_seed=1,
     ):
@@ -103,4 +105,4 @@ class PassiveAggressiveClassifier(SKClassifier):
         )
 
     def __str__(self):
-        return str("PassiveAggressiveClassifier")
+        return "PassiveAggressiveClassifier"

@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import numpy as np
 from jpype import _jpype
 from sklearn.base import ClassifierMixin as _SKClassifierMixin
 
-from capymoa.core import Instance, LabeledInstance
+from capymoa.core import Instance, LabeledInstance, LabelIndex, LabelProbabilities
 from capymoa.stream._stream import Schema
-from capymoa.core import LabelIndex, LabelProbabilities
 
 
 class Classifier(ABC):
@@ -46,7 +44,7 @@ class Classifier(ABC):
         """
 
     @abstractmethod
-    def predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
+    def predict_proba(self, instance: Instance) -> LabelProbabilities | None:
         """Return probability estimates for each label.
 
         :param instance: The instance to estimate the probabilities for.
@@ -54,7 +52,7 @@ class Classifier(ABC):
             classifier is unable to make a prediction.
         """
 
-    def predict(self, instance: Instance) -> Optional[LabelIndex]:
+    def predict(self, instance: Instance) -> LabelIndex | None:
         """Predict the label of an instance.
 
         The base implementation calls :func:`predict_proba` and returns the
@@ -115,7 +113,7 @@ class MOAClassifier(Classifier):
     def train(self, instance):
         self.moa_learner.trainOnInstance(instance.java_instance)
 
-    def predict_proba(self, instance) -> Optional[LabelProbabilities]:
+    def predict_proba(self, instance) -> LabelProbabilities | None:
         votes = np.array(self.moa_learner.getVotesForInstance(instance.java_instance))
         # MOA sizes the vote array by the classes seen so far, not by the
         # schema, so it can be shorter than `schema.get_num_classes()`. Votes
@@ -216,13 +214,13 @@ class SKClassifier(Classifier):
         )
         self._trained_at_least_once = True
 
-    def predict(self, instance: Instance) -> Optional[LabelIndex]:
+    def predict(self, instance: Instance) -> LabelIndex | None:
         if not self._trained_at_least_once:
             # scikit-learn does not allows invoking predict in a model that was not fit before
             return None
         return int(self.sklearner.predict([instance.x])[0])
 
-    def predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
+    def predict_proba(self, instance: Instance) -> LabelProbabilities | None:
         if not self._trained_at_least_once:
             # scikit-learn does not allows invoking predict in a model that was not fit before
             return None

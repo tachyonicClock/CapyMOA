@@ -1,16 +1,15 @@
-from typing import Optional
-from capymoa.base import MOAClassifier
-from capymoa.core.moa._cli import cli_str_drift_detector, cli_str_classifier
+import os
 
-from capymoa.drift.base_detector import MOADriftDetector
-from capymoa.drift.detectors import ADWIN
-
-from capymoa.stream._stream import Schema
 from moa.classifiers.meta import AdaptiveRandomForest as _MOA_AdaptiveRandomForest
 from moa.classifiers.meta.minibatch import (
     AdaptiveRandomForestMB as _MOA_AdaptiveRandomForestMB,
 )
-import os
+
+from capymoa.base import MOAClassifier
+from capymoa.core.moa._cli import cli_str_classifier, cli_str_drift_detector
+from capymoa.drift.base_detector import MOADriftDetector
+from capymoa.drift.detectors import ADWIN
+from capymoa.stream._stream import Schema
 
 
 class AdaptiveRandomForestClassifier(MOAClassifier):
@@ -42,17 +41,17 @@ class AdaptiveRandomForestClassifier(MOAClassifier):
 
     def __init__(
         self,
-        schema: Optional[Schema] = None,
-        CLI: Optional[str] = None,
+        schema: Schema | None = None,
+        CLI: str | None = None,
         random_seed: int = 1,
-        base_learner: Optional[MOAClassifier] = None,
+        base_learner: MOAClassifier | None = None,
         ensemble_size: int = 100,
         max_features: float = 0.6,
         lambda_param: float = 6.0,
-        minibatch_size: Optional[int] = None,
+        minibatch_size: int | None = None,
         number_of_jobs: int = 1,
-        drift_detection_method: Optional[MOADriftDetector] = None,
-        warning_detection_method: Optional[MOADriftDetector] = None,
+        drift_detection_method: MOADriftDetector | None = None,
+        warning_detection_method: MOADriftDetector | None = None,
         disable_weighted_vote: bool = False,
         disable_drift_detection: bool = False,
         disable_background_learner: bool = False,

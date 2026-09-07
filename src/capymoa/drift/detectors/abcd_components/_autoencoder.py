@@ -7,9 +7,9 @@ this lives in its own module and is loaded only when ``model_id="ae"``.
 """
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim
+from torch import nn
 
 from .feature_extraction import EncoderDecoder
 
@@ -21,7 +21,7 @@ class AutoEncoder(nn.Module, EncoderDecoder):
         :param input_size: The size of the input
         :param eta: The encoding factor. Hidden layer size is eta * input_size
         """
-        super(AutoEncoder, self).__init__()
+        super().__init__()
         self.eta = eta
         self.input_size = input_size
         self.bottleneck_size = int(eta * input_size)

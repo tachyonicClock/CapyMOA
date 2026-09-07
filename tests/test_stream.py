@@ -1,10 +1,10 @@
 """This module is for testing the speeds of different stream implementations."""
 
 import inspect
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Optional
+from pathlib import Path
 
-from capymoa.exception import StreamTypeError
 import numpy as np
 import pytest
 from com.yahoo.labs.samoa.instances import (
@@ -13,11 +13,13 @@ from com.yahoo.labs.samoa.instances import (
 from moa.streams import InstanceStream
 
 from capymoa.core import Instance, LabeledInstance, RegressionInstance
+from capymoa.exception import StreamTypeError
 from capymoa.stream import (
     ARFFStream,
     CSVStream,
     NumpyStream,
     Stream,
+    generator,
     stream_from_file,
 )
 from capymoa.stream.drift import (
@@ -28,14 +30,12 @@ from capymoa.stream.drift import (
     GradualDrift,
     RecurrentConceptDriftStream,
 )
-from capymoa.stream import generator
 from capymoa.stream.generator import (
     SEA,
     LEDGeneratorDrift,
     RandomRBFGenerator,
     RandomTreeGenerator,
 )
-from pathlib import Path
 
 allclose = partial(np.allclose, atol=0.001, equal_nan=True)
 
@@ -129,6 +129,7 @@ def _torch_classification_stream(x: np.ndarray, y: np.ndarray, n_classes: int):
     pytest.markskip("torch")
     import torch
     from torch.utils.data import TensorDataset
+
     from capymoa.stream import TorchStream
 
     dataset = TensorDataset(torch.tensor(x), torch.tensor(y))
@@ -139,6 +140,7 @@ def _torch_regression_stream(x: np.ndarray, y: np.ndarray):
     pytest.markskip("torch")
     import torch
     from torch.utils.data import TensorDataset
+
     from capymoa.stream import TorchStream
 
     dataset = TensorDataset(torch.tensor(x), torch.tensor(y))
@@ -934,7 +936,7 @@ def test_recurrent_concept_drift_stream_rejects_base_drift_template():
 def test_stream_classification(
     stream_factory: Callable[[], Stream[LabeledInstance]],
     target: str,
-    length: Optional[int],
+    length: int | None,
 ):
     """Test the classification stream interface for a variety of stream types."""
     stream = stream_factory()

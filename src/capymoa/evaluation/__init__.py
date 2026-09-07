@@ -5,34 +5,34 @@ classification, regression, prediction interval, anomaly detection, and
 clustering tasks.
 """
 
+from . import results
 from .evaluation import (
-    prequential_evaluation,
-    prequential_evaluation_multiple_learners,
-    prequential_ssl_evaluation,
-    prequential_evaluation_anomaly,
+    AnomalyDetectionEvaluator,
     ClassificationEvaluator,
     ClassificationWindowedEvaluator,
-    RegressionWindowedEvaluator,
-    RegressionEvaluator,
+    ClusteringEvaluator,
     PredictionIntervalEvaluator,
     PredictionIntervalWindowedEvaluator,
-    AnomalyDetectionEvaluator,
-    ClusteringEvaluator,
+    RegressionEvaluator,
+    RegressionWindowedEvaluator,
+    prequential_evaluation,
+    prequential_evaluation_anomaly,
+    prequential_evaluation_multiple_learners,
+    prequential_ssl_evaluation,
 )
-from . import results
 
 __all__ = [
-    "prequential_evaluation",
-    "prequential_ssl_evaluation",
-    "prequential_evaluation_multiple_learners",
-    "prequential_evaluation_anomaly",
+    "AnomalyDetectionEvaluator",
     "ClassificationEvaluator",
     "ClassificationWindowedEvaluator",
-    "RegressionWindowedEvaluator",
-    "RegressionEvaluator",
+    "ClusteringEvaluator",
     "PredictionIntervalEvaluator",
     "PredictionIntervalWindowedEvaluator",
-    "AnomalyDetectionEvaluator",
-    "ClusteringEvaluator",
+    "RegressionEvaluator",
+    "RegressionWindowedEvaluator",
+    "prequential_evaluation",
+    "prequential_evaluation_anomaly",
+    "prequential_evaluation_multiple_learners",
+    "prequential_ssl_evaluation",
     "results",
 ]

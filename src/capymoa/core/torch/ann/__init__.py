@@ -2,8 +2,8 @@
 
 # PyTorch is an optional extra; this whole module requires it.
 try:
-    from ._perceptron import Perceptron
     from ._lenet import LeNet5
+    from ._perceptron import Perceptron
     from ._resnet import (
         resnet20_32x32,
         resnet32_32x32,
@@ -20,8 +20,8 @@ except ModuleNotFoundError as _err:  # pragma: no cover
     raise
 
 __all__ = [
-    "Perceptron",
     "LeNet5",
+    "Perceptron",
     "resnet20_32x32",
     "resnet32_32x32",
     "resnet44_32x32",

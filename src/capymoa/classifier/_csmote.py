@@ -1,9 +1,10 @@
+from moa.classifiers.meta.imbalanced import CSMOTE as _MOA_CSMOTE
+
+from capymoa._utils import build_cli_str_from_mapping_and_locals
 from capymoa.base import (
     MOAClassifier,
 )
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals
-from moa.classifiers.meta.imbalanced import CSMOTE as _MOA_CSMOTE
 
 
 class CSMOTE(MOAClassifier):
@@ -67,7 +68,7 @@ class CSMOTE(MOAClassifier):
         )
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
-        super(CSMOTE, self).__init__(
+        super().__init__(
             moa_learner=_MOA_CSMOTE,
             schema=schema,
             CLI=config_str,

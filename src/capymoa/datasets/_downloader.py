@@ -1,18 +1,17 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal
 
-from capymoa.stream._stream import Schema
 from moa.streams import InstanceStream as _InstanceStream
 
-from capymoa.stream import Stream, stream_from_file
+from capymoa.datasets._source_list import SOURCE_LIST
 from capymoa.datasets._utils import (
     download_unpacked,
     get_download_dir,
     infer_unpacked_path,
 )
-from capymoa.datasets._source_list import SOURCE_LIST
-
+from capymoa.stream import Stream, stream_from_file
+from capymoa.stream._stream import Schema
 
 FileType = Literal["arff", "csv"]
 
@@ -38,7 +37,7 @@ class _DownloadableDataset(ABC):
 
     def __init__(
         self,
-        directory: Union[str, Path] = get_download_dir(),
+        directory: str | Path = get_download_dir(),
         auto_download: bool = True,
         file_type: FileType = "arff",
     ):
@@ -69,12 +68,12 @@ class _DownloadableDataset(ABC):
 class _DownloadableARFF(_DownloadableDataset, Stream):
     schema: Schema
     stream: Stream
-    moa_stream: Optional[_InstanceStream]
+    moa_stream: _InstanceStream | None
     _target_type: Literal["numeric", "categorical"] | None = None
 
     def __init__(
         self,
-        directory: Union[str, Path] = get_download_dir(),
+        directory: str | Path = get_download_dir(),
         auto_download: bool = True,
         file_type: FileType = "arff",
     ):
@@ -107,7 +106,7 @@ class _DownloadableARFF(_DownloadableDataset, Stream):
     def get_schema(self) -> Schema:
         return self.schema
 
-    def get_moa_stream(self) -> Optional[_InstanceStream]:
+    def get_moa_stream(self) -> _InstanceStream | None:
         return self.moa_stream
 
     def restart(self):

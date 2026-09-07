@@ -18,9 +18,10 @@ PyTorch the same import raises
 install command, instead of a bare ``ModuleNotFoundError``.
 """
 
+from collections.abc import Callable, Mapping, MutableSequence
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, Callable, Dict, List, Mapping, MutableSequence, Tuple
+from typing import Any
 
 __all__ = ["lazy_torch_attrs", "torch_available"]
 
@@ -41,7 +42,7 @@ def lazy_torch_attrs(
     mapping: Mapping[str, str],
     feature: str,
     all_names: MutableSequence[str],
-) -> Tuple[Callable[[str], Any], Callable[[], List[str]]]:
+) -> tuple[Callable[[str], Any], Callable[[], list[str]]]:
     """Build ``__getattr__``/``__dir__`` that import torch-backed names lazily.
 
     Use it at the bottom of a package ``__init__.py``::
@@ -66,7 +67,7 @@ def lazy_torch_attrs(
         is missing, as described above.
     :return: ``(__getattr__, __dir__)`` to assign in the calling module.
     """
-    lazy: Dict[str, str] = dict(mapping)
+    lazy: dict[str, str] = dict(mapping)
     known = sorted(set(all_names) | set(lazy))
 
     if not torch_available():
@@ -89,7 +90,7 @@ def lazy_torch_attrs(
         setattr(import_module(package), name, value)
         return value
 
-    def __dir__() -> List[str]:
+    def __dir__() -> list[str]:
         # Union with the module's real namespace rather than replacing it.
         # Returning only the curated list hides eagerly-imported names from
         # tools that enumerate modules via dir() -- Sphinx autosummary then

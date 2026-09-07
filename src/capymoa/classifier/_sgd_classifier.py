@@ -1,8 +1,10 @@
-from typing import Optional, Literal
-from capymoa.base import SKClassifier
+from typing import Literal
+
 from sklearn.linear_model import (
     SGDClassifier as _SKSGDClassifier,
 )
+
+from capymoa.base import SKClassifier
 from capymoa.stream._stream import Schema
 
 
@@ -47,10 +49,10 @@ class SGDClassifier(SKClassifier):
         l1_ratio: float = 0.15,
         fit_intercept: bool = True,
         epsilon: float = 0.1,
-        n_jobs: Optional[int] = None,
+        n_jobs: int | None = None,
         learning_rate: Literal["constant", "optimal", "invscaling"] = "optimal",
         eta0: float = 0.01,
-        random_seed: Optional[int] = None,
+        random_seed: int | None = None,
     ):
         """Construct stochastic gradient descent classifier.
 
@@ -103,4 +105,4 @@ class SGDClassifier(SKClassifier):
         )
 
     def __str__(self):
-        return str("SGDClassifier")
+        return "SGDClassifier"

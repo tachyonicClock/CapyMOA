@@ -1,8 +1,10 @@
-from capymoa.base import MOAClusterer
-import typing
+
 from moa.clusterers.denstream import WithDBSCAN as _MOA_denstream_with_dbscan
-from capymoa.stream import Schema
+
 from capymoa._utils import build_cli_str_from_mapping_and_locals
+from capymoa.base import MOAClusterer
+from capymoa.stream import Schema
+
 # import numpy as np
 
 
@@ -13,7 +15,7 @@ class Denstream_with_dbscan(MOAClusterer):
 
     def __init__(
         self,
-        schema: typing.Union[Schema, None] = None,
+        schema: Schema | None = None,
         horizon: int = 1000,
         epsilon: float = 0.02,
         beta: float = 0.2,
@@ -49,7 +51,7 @@ class Denstream_with_dbscan(MOAClusterer):
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         self.moa_learner = _MOA_denstream_with_dbscan()
-        super(Denstream_with_dbscan, self).__init__(
+        super().__init__(
             schema=schema, CLI=config_str, moa_learner=self.moa_learner
         )
 

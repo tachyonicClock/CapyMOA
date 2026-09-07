@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Type
-from typing_extensions import override
+from typing import Any
+
 from moa.classifiers.core.driftdetection import (
     AbstractChangeDetector as _AbstractChangeDetector,
 )
+from typing_extensions import override
 
 
 class BaseDriftDetector(ABC):
@@ -20,7 +21,7 @@ class BaseDriftDetector(ABC):
         self.idx = 0
 
     @abstractmethod
-    def get_params(self) -> Dict[str, Any]:
+    def get_params(self) -> dict[str, Any]:
         """Get the hyper-parameters of the drift detector."""
 
     def reset(self, clean_history: bool = False) -> None:
@@ -58,12 +59,12 @@ class BaseDriftDetector(ABC):
 class MOADriftDetector(BaseDriftDetector):
     """A MOA (Massive Online Analysis) drift detector for CapyMOA."""
 
-    _moa_detector_type: Type[_AbstractChangeDetector] | None = None
+    _moa_detector_type: type[_AbstractChangeDetector] | None = None
 
     def __init__(
         self,
         cli: str = "",
-        moa_detector_type: Type[_AbstractChangeDetector] | None = None,
+        moa_detector_type: type[_AbstractChangeDetector] | None = None,
     ):
         """Initialize the wrapped MOA drift detector."""
         super().__init__()
@@ -132,7 +133,7 @@ class MOADriftDetector(BaseDriftDetector):
             self.idx = 0
 
     @override
-    def get_params(self) -> Dict[str, Any]:
+    def get_params(self) -> dict[str, Any]:
         options = list(self.moa_detector.getOptions().getOptionArray())
         return {opt.getName(): opt.getValueAsCLIString() for opt in options}
 

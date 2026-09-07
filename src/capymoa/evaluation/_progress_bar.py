@@ -1,7 +1,7 @@
 """A private module that provides support for progress bars."""
 
 from abc import ABC, abstractmethod
-from typing import Union
+
 from tqdm.std import tqdm
 
 
@@ -58,8 +58,8 @@ class TqdmProgressBar(JavaIProgressBar):
 
 
 def resolve_progress_bar(
-    progress_bar: Union[bool, tqdm], description: str
-) -> Union[JavaIProgressBar, None]:
+    progress_bar: bool | tqdm, description: str
+) -> JavaIProgressBar | None:
     """Helper function to turn a ``ProgressBarArg`` type into a ``JavaIProgressBar``."""
     if isinstance(progress_bar, bool) and progress_bar is True:
         return TqdmProgressBar(tqdm(desc=description))

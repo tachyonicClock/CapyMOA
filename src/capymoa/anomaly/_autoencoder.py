@@ -1,8 +1,8 @@
+import torch
+from torch import nn, optim
+
 from capymoa.base import AnomalyDetector
 from capymoa.core import Instance
-import torch
-import torch.nn as nn
-import torch.optim as optim
 
 
 class Autoencoder(AnomalyDetector):

@@ -12,11 +12,9 @@ Each standalone learner should be in its own file, prefixed with `_` to indicate
 For example, to add a new classifier class called `MyNewLearner`, you should implement it in `src/capymoa/classifier/_my_new_learner.py` and add it to the `src/capymoa/classifier/__init__.py` file. The `__init__.py` will look like this:
 ```python
 from ._my_new_learner import MyNewLearner
+
 ...
-__all__ = [
-    'MyNewLearner',
-    ...
-]
+__all__ = ["MyNewLearner", ...]
 ```
 
 The prefix and init files allow users to import all classifiers, regressors, 

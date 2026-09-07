@@ -1,13 +1,14 @@
-from typing import Optional, Sequence, Tuple
+from collections.abc import Sequence
 
 import torch
-
-from ._stream import Stream, Schema
-from capymoa.core import LabeledInstance, RegressionInstance
 from torch.utils.data import Dataset
 
+from capymoa.core import LabeledInstance, RegressionInstance
 
-def _shuffle_dataset(dataset: Dataset, seed: Optional[int] = None) -> Dataset:
+from ._stream import Schema, Stream
+
+
+def _shuffle_dataset(dataset: Dataset, seed: int | None = None) -> Dataset:
     rng = torch.Generator()
     if seed is not None:
         rng.manual_seed(seed)
@@ -75,10 +76,10 @@ class TorchStream(Stream):
 
     @staticmethod
     def from_regression(
-        dataset: Dataset[Tuple[torch.Tensor, torch.Tensor | float]],
+        dataset: Dataset[tuple[torch.Tensor, torch.Tensor | float]],
         dataset_name: str = "TorchStream",
         shuffle: bool = False,
-        shuffle_seed: Optional[int] = None,
+        shuffle_seed: int | None = None,
     ) -> "TorchStream":
         """Construct a stream for regression from a PyTorch Dataset.
 
@@ -107,13 +108,13 @@ class TorchStream(Stream):
 
     @staticmethod
     def from_classification(
-        dataset: Dataset[Tuple[torch.Tensor, torch.Tensor | int]],
+        dataset: Dataset[tuple[torch.Tensor, torch.Tensor | int]],
         num_classes: int,
-        class_names: Optional[Sequence[str]] = None,
+        class_names: Sequence[str] | None = None,
         dataset_name: str = "TorchStream",
-        shape: Optional[Sequence[int]] = None,
+        shape: Sequence[int] | None = None,
         shuffle: bool = False,
-        shuffle_seed: Optional[int] = None,
+        shuffle_seed: int | None = None,
     ) -> "TorchStream":
         """Construct a stream for classification from a PyTorch Dataset.
 

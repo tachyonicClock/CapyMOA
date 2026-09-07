@@ -1,15 +1,16 @@
+import json
 import random
+from typing import Any
+
+from capymoa.automl._utils import (
+    create_capymoa_classifier,
+    generate_parameter_combinations,
+)
 from capymoa.base import (
     Classifier,
 )
-from typing import Dict, Any
-from capymoa.stream import Schema
 from capymoa.evaluation import ClassificationEvaluator
-from capymoa.automl._utils import (
-    generate_parameter_combinations,
-    create_capymoa_classifier,
-)
-import json
+from capymoa.stream import Schema
 
 
 class EpsilonGreedy:
@@ -248,11 +249,11 @@ class BanditClassifier(Classifier):
                                 )
                     except Exception as e:
                         print(
-                            f"Warning: Failed to create model {algorithm_name} with parameters {params}: {str(e)}"
+                            f"Warning: Failed to create model {algorithm_name} with parameters {params}: {e!s}"
                         )
 
         except (json.JSONDecodeError, FileNotFoundError) as e:
-            raise ValueError(f"Error loading configuration file: {str(e)}")
+            raise ValueError(f"Error loading configuration file: {e!s}")
 
     def train(self, instance):
         """Train the selected model(s) on the given instance."""
@@ -332,7 +333,7 @@ class BanditClassifier(Classifier):
         idx = self.policy.get_best_arm_idx(range(len(self.active_models)))
         return self.active_models[idx]
 
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         """
         Get information about the current state of the classifier.
 

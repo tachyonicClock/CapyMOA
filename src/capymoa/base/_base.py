@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from jpype import _jpype
 from moa.core import Utils
 
 from capymoa.base._regressor import MOARegressor, Regressor
-from capymoa.core import Instance
+from capymoa.core import Instance, LabelIndex
 from capymoa.stream._stream import Schema
-from capymoa.core import LabelIndex
 
 ##############################################################
 ######################### REGRESSORS #########################
@@ -63,7 +61,7 @@ class AnomalyDetector(ABC):
         pass
 
     @abstractmethod
-    def predict(self, instance: Instance) -> Optional[LabelIndex]:
+    def predict(self, instance: Instance) -> LabelIndex | None:
         # Returns the predicted label for the instance.
         pass
 

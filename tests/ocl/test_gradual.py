@@ -4,11 +4,11 @@ import pytest
 
 pytestmark = pytest.markskip("torch")
 
-import torch  # noqa: E402
-from torch import BoolTensor, IntTensor  # noqa: E402
-from torch.utils.data import Dataset, TensorDataset  # noqa: E402
+import torch
+from torch import BoolTensor, IntTensor
+from torch.utils.data import Dataset, TensorDataset
 
-from capymoa.ocl.datasets.gradual import (  # noqa: E402
+from capymoa.ocl.datasets.gradual import (
     SigmoidFn,
     TransitionFn,
     _gradual_task_idx,
