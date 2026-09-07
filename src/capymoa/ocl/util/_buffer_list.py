@@ -1,5 +1,5 @@
-from typing import Iterable, MutableSequence, Sequence
 from collections import OrderedDict
+from collections.abc import Iterable, MutableSequence, Sequence
 
 from torch import Tensor
 from torch.nn import Module

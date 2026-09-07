@@ -1,5 +1,6 @@
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Sequence, Tuple, cast
+from typing import Any, cast
 
 import torch
 from torch import Tensor
@@ -135,8 +136,8 @@ class DomainCIFAR100(_TorchVisionDownload, _BuiltInCIScenario):
     #. Krizhevsky, A. (2009). Learning Multiple Layers of Features from Tiny Images.
     """
 
-    _CIFAR100_CLASS_TO_SUPERCLASS: List[int] = [4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 19, 8, 8, 15, 13, 14, 17, 18, 10, 16, 4, 17, 4, 2, 0, 17, 4, 18, 17, 10, 3, 2, 12, 12, 16, 12, 1, 9, 19, 2, 10, 0, 1, 16, 12, 9, 13, 15, 13, 16, 19, 2, 4, 6, 19, 5, 5, 8, 19, 18, 1, 2, 15, 6, 0, 17, 8, 14, 13]  # fmt: skip
-    _CIFAR100_SUPERCLASS_CLASSES: List[List[int]] = [[4, 30, 55, 72, 95], [1, 32, 67, 73, 91], [54, 62, 70, 82, 92], [9, 10, 16, 28, 61], [0, 51, 53, 57, 83], [22, 39, 40, 86, 87], [5, 20, 25, 84, 94], [6, 7, 14, 18, 24], [3, 42, 43, 88, 97], [12, 17, 37, 68, 76], [23, 33, 49, 60, 71], [15, 19, 21, 31, 38], [34, 63, 64, 66, 75], [26, 45, 77, 79, 99], [2, 11, 35, 46, 98], [27, 29, 44, 78, 93], [36, 50, 65, 74, 80], [47, 52, 56, 59, 96], [8, 13, 48, 58, 90], [41, 69, 81, 85, 89]]  # fmt: skip
+    _CIFAR100_CLASS_TO_SUPERCLASS: list[int] = [4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 19, 8, 8, 15, 13, 14, 17, 18, 10, 16, 4, 17, 4, 2, 0, 17, 4, 18, 17, 10, 3, 2, 12, 12, 16, 12, 1, 9, 19, 2, 10, 0, 1, 16, 12, 9, 13, 15, 13, 16, 19, 2, 4, 6, 19, 5, 5, 8, 19, 18, 1, 2, 15, 6, 0, 17, 8, 14, 13]  # fmt: skip
+    _CIFAR100_SUPERCLASS_CLASSES: list[list[int]] = [[4, 30, 55, 72, 95], [1, 32, 67, 73, 91], [54, 62, 70, 82, 92], [9, 10, 16, 28, 61], [0, 51, 53, 57, 83], [22, 39, 40, 86, 87], [5, 20, 25, 84, 94], [6, 7, 14, 18, 24], [3, 42, 43, 88, 97], [12, 17, 37, 68, 76], [23, 33, 49, 60, 71], [15, 19, 21, 31, 38], [34, 63, 64, 66, 75], [26, 45, 77, 79, 99], [2, 11, 35, 46, 98], [27, 29, 44, 78, 93], [36, 50, 65, 74, 80], [47, 52, 56, 59, 96], [8, 13, 48, 58, 90], [41, 69, 81, 85, 89]]  # fmt: skip
     """CIFAR100 superclasses as defined in the original dataset.
     https://www.cs.toronto.edu/~kriz/cifar.html
     """
@@ -178,8 +179,8 @@ class DomainCIFAR100(_TorchVisionDownload, _BuiltInCIScenario):
         seed: int = 0,
         directory: Path = get_download_dir(),
         auto_download: bool = True,
-        train_transform: Optional[Callable[[Any], Tensor]] = None,
-        test_transform: Optional[Callable[[Any], Tensor]] = None,
+        train_transform: Callable[[Any], Tensor] | None = None,
+        test_transform: Callable[[Any], Tensor] | None = None,
         normalize_features: bool = False,
     ):
         """Create the DomainCIFAR100 scenario.
@@ -272,20 +273,20 @@ class DomainCIFAR100(_TorchVisionDownload, _BuiltInCIScenario):
 
     @staticmethod
     def _build_domain_tasks(
-        dataset: Dataset[Tuple[Tensor, Tensor]],
+        dataset: Dataset[tuple[Tensor, Tensor]],
         task_fine_classes: Sequence[Sequence[int]],
         shuffle_data: bool,
         generator: torch.Generator,
-    ) -> List[Dataset[Tuple[Tensor, Tensor]]]:
+    ) -> list[Dataset[tuple[Tensor, Tensor]]]:
         targets = cast(torch.LongTensor, torch.asarray(dataset.targets))  # type: ignore
         grouped_indices = group_indicies(
             targets, task_fine_classes, shuffle=shuffle_data, rng=generator
         )
-        tasks: List[Dataset[Tuple[Tensor, Tensor]]] = []
+        tasks: list[Dataset[tuple[Tensor, Tensor]]] = []
         for indices in grouped_indices:
             tasks.append(
                 cast(
-                    Dataset[Tuple[Tensor, Tensor]],
+                    Dataset[tuple[Tensor, Tensor]],
                     Subset(dataset, indices.tolist()),
                 )
             )

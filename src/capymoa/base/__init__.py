@@ -27,24 +27,24 @@ from capymoa.base._ssl import (
 )
 
 __all__ = [
-    "Classifier",
+    "AnomalyDetector",
     "Batch",
     "BatchClassifier",
-    "MOAClassifier",
-    "SKClassifier",
-    "ClassifierSSL",
-    "MOAClassifierSSL",
-    "Regressor",
     "BatchRegressor",
-    "MOARegressor",
-    "SKRegressor",
-    "AnomalyDetector",
+    "Classifier",
+    "ClassifierSSL",
     "Clusterer",
     "ClusteringResult",
     "MOAAnomalyDetector",
+    "MOAClassifier",
+    "MOAClassifierSSL",
     "MOAClusterer",
     "MOAPredictionIntervalLearner",
+    "MOARegressor",
     "PredictionIntervalLearner",
+    "Regressor",
+    "SKClassifier",
+    "SKRegressor",
 ]
 
 #: Names that need PyTorch. Imported on first access so ``import capymoa`` stays

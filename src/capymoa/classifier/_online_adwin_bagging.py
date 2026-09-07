@@ -1,11 +1,12 @@
+import os
+
+from moa.classifiers.meta import OzaBagAdwin as _MOA_OzaBagAdwin
+from moa.classifiers.meta.minibatch import OzaBagAdwinMB as _MOA_OzaBagAdwinMB
+
 from capymoa.base import (
     MOAClassifier,
 )
 from capymoa.core.moa._cli import cli_str_classifier
-
-from moa.classifiers.meta import OzaBagAdwin as _MOA_OzaBagAdwin
-from moa.classifiers.meta.minibatch import OzaBagAdwinMB as _MOA_OzaBagAdwinMB
-import os
 
 
 class OnlineAdwinBagging(MOAClassifier):

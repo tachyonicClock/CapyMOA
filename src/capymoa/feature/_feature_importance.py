@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Optional
+from typing import Any
 
 from jpype import _jpype
 
@@ -31,7 +31,7 @@ def _moa_learner(classifier: Any) -> Any:
 
 def _coerce_base_learner(
     base_learner: Any,
-    schema: Optional[Schema],
+    schema: Schema | None,
     random_seed: int,
 ) -> Any:
     if base_learner is None:
@@ -86,9 +86,9 @@ class FeatureImportanceClassifier(Classifier):
 
     def __init__(
         self,
-        schema: Optional[Schema] = None,
+        schema: Schema | None = None,
         random_seed: int = 1,
-        window_size: Optional[int] = None,
+        window_size: int | None = None,
     ):
         Classifier.__init__(self, schema=schema, random_seed=random_seed)
 
@@ -97,7 +97,7 @@ class FeatureImportanceClassifier(Classifier):
 
         self.window_size = window_size
         self.instances_seen = 0
-        self.feature_importances_per_window: Optional[list[dict[str, Any]]] = (
+        self.feature_importances_per_window: list[dict[str, Any]] | None = (
             [] if window_size is not None else None
         )
 
@@ -129,7 +129,7 @@ class FeatureImportanceClassifier(Classifier):
         )
         return ranked_features[:k]
 
-    def get_windowed_feature_importances(self) -> Optional[list[dict[str, Any]]]:
+    def get_windowed_feature_importances(self) -> list[dict[str, Any]] | None:
         return self.feature_importances_per_window
 
 
@@ -160,10 +160,10 @@ class MOAFeatureImportanceClassifier(FeatureImportanceClassifier, MOAClassifier)
 
     def __init__(
         self,
-        schema: Optional[Schema] = None,
+        schema: Schema | None = None,
         base_learner: Any = None,
         random_seed: int = 1,
-        window_size: Optional[int] = None,
+        window_size: int | None = None,
     ):
         FeatureImportanceClassifier.__init__(
             self,

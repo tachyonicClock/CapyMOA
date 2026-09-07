@@ -1,8 +1,10 @@
-from capymoa.drift import detectors
-from capymoa.core.moa._cli import cli_str_drift_detector
-from capymoa.drift.base_detector import BaseDriftDetector, MOADriftDetector
 import inspect
+
 import pytest
+
+from capymoa.core.moa._cli import cli_str_drift_detector
+from capymoa.drift import detectors
+from capymoa.drift.base_detector import BaseDriftDetector, MOADriftDetector
 
 
 def test_from_cli():

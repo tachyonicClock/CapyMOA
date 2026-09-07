@@ -1,5 +1,6 @@
-from capymoa.base import MOARegressor
 from moa.classifiers.lazy import kNN as _moa_kNN
+
+from capymoa.base import MOARegressor
 
 
 class KNNRegressor(MOARegressor):

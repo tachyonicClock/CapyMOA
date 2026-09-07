@@ -1,5 +1,6 @@
-import torch
 from abc import ABC, abstractmethod
+
+import torch
 
 
 class Batch(ABC):

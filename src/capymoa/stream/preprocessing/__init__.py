@@ -11,7 +11,7 @@ from .pipeline import (
     RegressorPipelineElement,
     TransformerPipelineElement,
 )
-from .transformer import Transformer, MOATransformer
+from .transformer import MOATransformer, Transformer
 
 __all__ = [
     "BasePipeline",

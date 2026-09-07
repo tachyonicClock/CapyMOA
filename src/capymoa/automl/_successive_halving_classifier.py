@@ -1,15 +1,16 @@
+import json
+import math
+from typing import Any
+
+from capymoa.automl._utils import (
+    create_capymoa_classifier,
+    generate_parameter_combinations,
+)
 from capymoa.base import (
     Classifier,
 )
-from typing import Dict, Any
-from capymoa.stream import Schema
-import math
-import json
 from capymoa.evaluation import ClassificationEvaluator
-from capymoa.automl._utils import (
-    generate_parameter_combinations,
-    create_capymoa_classifier,
-)
+from capymoa.stream import Schema
 
 
 class SuccessiveHalvingClassifier(Classifier):
@@ -192,11 +193,11 @@ class SuccessiveHalvingClassifier(Classifier):
                                 )
                     except Exception as e:
                         print(
-                            f"Warning: Failed to create model {algorithm_name} with parameters {params}: {str(e)}"
+                            f"Warning: Failed to create model {algorithm_name} with parameters {params}: {e!s}"
                         )
 
         except (json.JSONDecodeError, FileNotFoundError) as e:
-            raise ValueError(f"Error loading configuration file: {str(e)}")
+            raise ValueError(f"Error loading configuration file: {e!s}")
 
     def train(self, instance):
         # Train only active models
@@ -303,7 +304,7 @@ class SuccessiveHalvingClassifier(Classifier):
         """Return the current best model."""
         return self.active_models[self._best_model_idx]
 
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         """
         Get information about the current state of the classifier.
 

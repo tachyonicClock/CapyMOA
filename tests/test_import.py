@@ -1,12 +1,14 @@
-import subprocess
-import platform
 import os
-from capymoa._prepare_jpype import _get_java_home
+import platform
+import shutil
+import subprocess
 import tempfile
 from pathlib import Path
-from capymoa.env import capymoa_moa_jar
+
 import pytest
-import shutil
+
+from capymoa._prepare_jpype import _get_java_home
+from capymoa.env import capymoa_moa_jar
 
 PYTHON_EXE = os.sys.executable
 CMD = [PYTHON_EXE, "-c", "import capymoa"]
@@ -43,7 +45,7 @@ def test_bad_java_home(env):
     assert result.returncode != 0
     exception = result.stderr.decode().splitlines()[-1]
     assert exception == (
-        f"capymoa._prepare_jpype.CapymoaImportError: The JAVA_HOME (`{str(notfound)}`) "
+        f"capymoa._prepare_jpype.CapymoaImportError: The JAVA_HOME (`{notfound!s}`) "
         "environment variable is set, but the path does not exist."
     )
 
@@ -55,7 +57,7 @@ def test_capymoa_moa_jar(env):
     assert result.returncode != 0
     exception = result.stderr.decode().splitlines()[-1]
     assert exception == (
-        f"capymoa._prepare_jpype.CapymoaImportError: MOA jar not found at `{str(notfound)}`."
+        f"capymoa._prepare_jpype.CapymoaImportError: MOA jar not found at `{notfound!s}`."
     )
 
 

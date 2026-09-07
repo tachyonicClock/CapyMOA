@@ -1,5 +1,6 @@
-from capymoa.base import MOAClassifier
 from moa.classifiers.lazy import kNN as _moa_kNN
+
+from capymoa.base import MOAClassifier
 
 
 class KNN(MOAClassifier):

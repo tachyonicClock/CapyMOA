@@ -14,7 +14,6 @@ None of these are required, but they can be useful in certain situations.
 
 from os import environ
 from pathlib import Path
-from typing import List
 
 
 def capymoa_datasets_dir() -> Path:
@@ -38,7 +37,7 @@ def capymoa_datasets_dir() -> Path:
     return dataset_dir
 
 
-def capymoa_jvm_args() -> List[str]:
+def capymoa_jvm_args() -> list[str]:
     """Return the ``CAPYMOA_JVM_ARGS`` environment variable or the default value ``-Xmx8g -Xss10M``.
 
     The ``CAPYMOA_JVM_ARGS`` environment variable can be used to specify custom JVM

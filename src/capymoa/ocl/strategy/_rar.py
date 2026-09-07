@@ -1,11 +1,11 @@
+from collections.abc import Callable
+
 import torch
 from torch import Tensor
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.events import Handler, Dispatcher
+from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.util._replay import ReservoirSampler
-
-from typing import Callable
 
 
 class RAR(BatchClassifier, Handler):

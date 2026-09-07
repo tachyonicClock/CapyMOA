@@ -1,11 +1,6 @@
 """Internal functions for generating CLI creation strings for MOA objects."""
 
-from capymoa.base import MOAClassifier, MOARegressor, MOAPredictionIntervalLearner
-from capymoa.drift.base_detector import MOADriftDetector
-from capymoa.stream import MOAStream
 
-from moa.streams import InstanceStream as _InstanceStream
-from moa.options import AbstractOptionHandler as _AbstractOptionHandler
 from moa.classifiers import AbstractClassifier as _AbstractClassifier
 from moa.classifiers import Regressor as _AbstractRegressor
 from moa.classifiers.core.driftdetection import (
@@ -14,10 +9,15 @@ from moa.classifiers.core.driftdetection import (
 from moa.classifiers.predictioninterval import (
     PredictionIntervalLearner as _PredictionIntervalLearner,
 )
-from typing import Type
+from moa.options import AbstractOptionHandler as _AbstractOptionHandler
+from moa.streams import InstanceStream as _InstanceStream
+
+from capymoa.base import MOAClassifier, MOAPredictionIntervalLearner, MOARegressor
+from capymoa.drift.base_detector import MOADriftDetector
+from capymoa.stream import MOAStream
 
 
-def cli_str(object: _AbstractOptionHandler, type_: Type[_AbstractOptionHandler]) -> str:
+def cli_str(object: _AbstractOptionHandler, type_: type[_AbstractOptionHandler]) -> str:
     """Return a CLI string for creating MOA objects.
 
     >>> from moa.classifiers.trees import HoeffdingTree

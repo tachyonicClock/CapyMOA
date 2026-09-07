@@ -1,13 +1,17 @@
-import click
-from jinja2 import Environment, FileSystemLoader
-import capymoa  # Needed to initialize JPype with MOA #noqa: F401
-from typing import Literal, Sequence
-from moa.options import AbstractOptionHandler, ClassOption as MoaClassOption
-from com.github import javacliparser
-import jpype
-from dataclasses import dataclass
 import re
+from collections.abc import Sequence
+from dataclasses import dataclass
 from keyword import iskeyword
+from typing import Literal
+
+import click
+import jpype
+from com.github import javacliparser
+from jinja2 import Environment, FileSystemLoader
+from moa.options import AbstractOptionHandler
+from moa.options import ClassOption as MoaClassOption
+
+import capymoa  # Needed to initialize JPype with MOA #noqa: F401
 
 
 def camel_to_snake(name: str) -> str:

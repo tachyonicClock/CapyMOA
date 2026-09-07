@@ -1,12 +1,27 @@
-from capymoa.base import MOAClassifier
 from contextlib import nullcontext
 from itertools import product
-from capymoa.classifier import NoChange
+
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
+
+from capymoa.anomaly import (
+    HalfSpaceTrees,
+)
+from capymoa.base import MOAClassifier
+from capymoa.classifier import HoeffdingTree, NaiveBayes, NoChange
+from capymoa.datasets import Electricity, ElectricityTiny
+from capymoa.evaluation import (
+    prequential_evaluation,
+    prequential_evaluation_multiple_learners,
+    prequential_ssl_evaluation,
+)
 from capymoa.evaluation.evaluation import (
+    PrequentialResults,
     _is_fast_mode_compilable,
     prequential_evaluation_anomaly,
-    PrequentialResults,
 )
+from capymoa.exception import StreamTypeError
 from capymoa.regressor import KNNRegressor
 from capymoa.stream.generator import (
     SEA,
@@ -14,21 +29,6 @@ from capymoa.stream.generator import (
     RandomTreeGenerator,
     STAGGERGenerator,
 )
-from capymoa.classifier import NaiveBayes, HoeffdingTree
-from capymoa.evaluation import (
-    prequential_evaluation,
-    prequential_evaluation_multiple_learners,
-    prequential_ssl_evaluation,
-)
-from capymoa.datasets import ElectricityTiny
-import pytest
-from capymoa.datasets import Electricity
-from capymoa.anomaly import (
-    HalfSpaceTrees,
-)
-from numpy.testing import assert_array_equal
-import numpy as np
-from capymoa.exception import StreamTypeError
 
 
 def test_prequential_evaluation():

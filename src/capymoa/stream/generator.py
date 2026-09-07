@@ -2,26 +2,28 @@
 
 import copy
 
-from ._stream import MOAStream
-from moa.streams.generators import RandomTreeGenerator as MOA_RandomTreeGenerator
-from moa.streams.generators import SEAGenerator as MOA_SEAGenerator
+from moa.streams.generators import AgrawalGenerator as MOA_AgrawalGenerator
 from moa.streams.generators import HyperplaneGenerator as MOA_HyperplaneGenerator
 from moa.streams.generators import (
     HyperplaneGeneratorForRegression as MOA_HyperplaneGeneratorForRegression,
 )
+from moa.streams.generators import LEDGenerator as MOA_LEDGenerator
+from moa.streams.generators import LEDGeneratorDrift as MOA_LEDGeneratorDrift
+from moa.streams.generators import MixedGenerator as MOA_MixedGenerator
 from moa.streams.generators import RandomRBFGenerator as MOA_RandomRBFGenerator
 from moa.streams.generators import (
     RandomRBFGeneratorDrift as MOA_RandomRBFGeneratorDrift,
 )
-from moa.streams.generators import AgrawalGenerator as MOA_AgrawalGenerator
-from moa.streams.generators import LEDGenerator as MOA_LEDGenerator
-from moa.streams.generators import LEDGeneratorDrift as MOA_LEDGeneratorDrift
+from moa.streams.generators import RandomTreeGenerator as MOA_RandomTreeGenerator
+from moa.streams.generators import SEAGenerator as MOA_SEAGenerator
+from moa.streams.generators import SineGenerator as MOA_SineGenerator
+from moa.streams.generators import STAGGERGenerator as MOA_STAGGERGenerator
 from moa.streams.generators import WaveformGenerator as MOA_WaveformGenerator
 from moa.streams.generators import WaveformGeneratorDrift as MOA_WaveformGeneratorDrift
-from moa.streams.generators import STAGGERGenerator as MOA_STAGGERGenerator
-from moa.streams.generators import SineGenerator as MOA_SineGenerator
-from moa.streams.generators import MixedGenerator as MOA_MixedGenerator
+
 from capymoa._utils import build_cli_str_from_mapping_and_locals
+
+from ._stream import MOAStream
 
 
 class RandomTreeGenerator(MOAStream):

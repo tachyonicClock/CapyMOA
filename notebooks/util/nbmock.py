@@ -5,8 +5,9 @@ from os import environ
 
 def mock_datasets():
     """Mock the datasets to use the tiny versions for testing."""
-    import unittest.mock as mock
-    from capymoa.datasets import ElectricityTiny, CovtypeTiny, FriedTiny
+    from unittest import mock
+
+    from capymoa.datasets import CovtypeTiny, ElectricityTiny, FriedTiny
     from capymoa.ocl.datasets import TinySplitMNIST
 
     mock.patch("capymoa.datasets.Electricity", ElectricityTiny).start()
@@ -20,7 +21,7 @@ def override_prequential_evaluation(max_instances: int = 100):
 
     This is useful for testing purposes to speed up the evaluation.
     """
-    import capymoa.evaluation as evaluation
+    from capymoa import evaluation
     from capymoa.evaluation import prequential_evaluation as _prequential_evaluation
 
     def prequential_evaluation(*args, **kwargs):

@@ -1,14 +1,13 @@
 """Statistics collector used while evaluating OCL learners."""
 
-from typing import Optional
 
 import numpy as np
 import torch
 
-from capymoa.ocl.events import Handler, Dispatcher
+from capymoa.core import LabelIndex
 from capymoa.evaluation.results import PrequentialResults
 from capymoa.ocl.evaluation import events
-from capymoa.core import LabelIndex
+from capymoa.ocl.events import Dispatcher, Handler
 
 from ._metrics import (
     OCLMetrics,
@@ -46,7 +45,7 @@ class _OCLEvaluator(Handler):
         eval_step_id: int,
         test_task_id: int,
         y_true: LabelIndex,
-        y_pred: Optional[LabelIndex],
+        y_pred: LabelIndex | None,
     ):
         """Record a prediction when using holdout evaluation."""
         if y_pred is not None:

@@ -1,22 +1,24 @@
 import os
+from collections.abc import Callable
 from contextlib import nullcontext
 from dataclasses import dataclass
 from functools import partial
 from tempfile import TemporaryDirectory
-from typing import Callable, Optional
 
+import numpy as np
 import pytest
 from java.lang import Exception as JException
 from pytest_subtests import SubTests
 
-from capymoa.core.moa._cli import cli_str_classifier
 from capymoa.base import Classifier, MOAClassifier
 from capymoa.classifier import (
     CSMOTE,
     EFDT,
     KNN,
     LAST,
+    PLASTIC,
     AdaptiveRandomForestClassifier,
+    DynamicEnsembleMemberSelection,
     DynamicWeightedMajority,
     HoeffdingAdaptiveTree,
     HoeffdingTree,
@@ -35,21 +37,20 @@ from capymoa.classifier import (
     StreamingGradientBoostedTrees,
     StreamingRandomPatches,
     WeightedkNN,
-    DynamicEnsembleMemberSelection,
-    PLASTIC,
 )
+from capymoa.core.io import load_model, save_model
+from capymoa.core.moa._cli import cli_str_classifier
+from capymoa.core.moa.splitcriteria import GiniSplitCriterion
 from capymoa.datasets import ElectricityTiny
 from capymoa.evaluation import ClassificationEvaluator, prequential_evaluation
-from capymoa.core.io import load_model, save_model
-from capymoa.core.moa.splitcriteria import GiniSplitCriterion
 from capymoa.stream import Schema, Stream
 from capymoa.stream.generator import RandomTreeGenerator
-import numpy as np
 
 
 def _make_finetune(schema, **kwargs):
     pytest.markskip("torch")
     import torch
+
     from capymoa.classifier import Finetune
     from capymoa.core.torch.ann import Perceptron
 
@@ -71,7 +72,7 @@ class ClassifierTestCase:
     """The expected accuracy of the learner."""
     win_accuracy: float
     """The expected windowed accuracy of the learner."""
-    cli_string: Optional[str] = None
+    cli_string: str | None = None
     """The expected CLI string of the learner."""
     is_serializable: bool = True
     """Whether the learner is serializable."""
@@ -81,7 +82,7 @@ class ClassifierTestCase:
     """Skip checking the prediction before training. If False, the test will fail if the
     learner does not output None before training."""
 
-    skip_reason: Optional[str] = None
+    skip_reason: str | None = None
     """A reason to skip the test. If set, the test will be skipped with this reason."""
 
     needs_torch: bool = False

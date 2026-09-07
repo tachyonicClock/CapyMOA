@@ -1,8 +1,8 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import (
     ADWINChangeDetector as _ADWINChangeDetector,
 )
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class ADWIN(MOADriftDetector):

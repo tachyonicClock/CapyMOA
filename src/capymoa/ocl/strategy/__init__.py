@@ -1,27 +1,27 @@
 """Online Continual Learning (OCL) strategies."""
 
-from ._experience_replay import ExperienceReplay
-from ._slda import SLDA
-from ._ncm import NCM
-from ._gdumb import GDumb
-from ._rar import RAR
 from . import l2p
 from ._ewc import EWC
-from ._si import SI
+from ._experience_replay import ExperienceReplay
+from ._gdumb import GDumb
 from ._lwf import LWF
 from ._mas import MAS
+from ._ncm import NCM
+from ._rar import RAR
 from ._rwalk import RWalk
+from ._si import SI
+from ._slda import SLDA
 
 __all__ = [
-    "ExperienceReplay",
-    "SLDA",
-    "NCM",
-    "GDumb",
-    "RAR",
-    "l2p",
     "EWC",
-    "SI",
     "LWF",
     "MAS",
+    "NCM",
+    "RAR",
+    "SI",
+    "SLDA",
+    "ExperienceReplay",
+    "GDumb",
     "RWalk",
+    "l2p",
 ]

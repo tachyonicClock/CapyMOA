@@ -1,9 +1,9 @@
 import warnings
 from abc import ABC, abstractmethod
+from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Dict, Generic, Iterator, Literal, Optional, Sequence, Union
+from typing import Generic, Literal
 
-from capymoa.exception import StreamTypeError
 import numpy as np
 from com.yahoo.labs.samoa.instances import (
     Attribute,
@@ -19,6 +19,7 @@ from capymoa.core import (
     RegressionInstance,
     _AnyInstance,
 )
+from capymoa.exception import StreamTypeError
 
 
 # Private functions
@@ -75,8 +76,8 @@ class Schema:
         # This is because MOA methods expect the numAttributes to also account for the class/target.
         self._regression = not self._moa_header.outputAttribute(1).isNominal()
         self._shape = (self.get_num_numeric_attributes(),)
-        self._label_values: Optional[Sequence[str]] = None
-        self._label_index_map: Optional[Dict[str, int]] = None
+        self._label_values: Sequence[str] | None = None
+        self._label_index_map: dict[str, int] | None = None
 
         if not self._regression:
             values = self._moa_header.outputAttribute(1).getAttributeValues()
@@ -102,7 +103,7 @@ class Schema:
         self._assert_classification()
         return list(range(self.get_num_classes()))
 
-    def get_value_for_index(self, y_index: Optional[int]) -> Optional[str]:
+    def get_value_for_index(self, y_index: int | None) -> str | None:
         """Return the value for the class label index y_index."""
         self._assert_classification()
         if y_index is None or y_index < 0:
@@ -144,7 +145,7 @@ class Schema:
             and self._moa_header.classIndex() != i
         )
 
-    def get_nominal_attributes(self) -> Dict[str, Sequence[str]]:
+    def get_nominal_attributes(self) -> dict[str, Sequence[str]]:
         """Return a dict of nominal attributes."""
         nominal_attributes = {}
         for i in range(self._moa_header.numAttributes()):
@@ -212,7 +213,7 @@ class Schema:
     def from_custom(
         features: Sequence[str],
         target: str,
-        categories: Optional[Dict[str, Sequence[str]]] = None,
+        categories: dict[str, Sequence[str]] | None = None,
         name: str = "unnamed",
     ):
         """Create a CapyMOA Schema that defines each attribute in the stream.
@@ -333,7 +334,7 @@ class Stream(ABC, Generic[_AnyInstance], Iterator[_AnyInstance]):
     def get_schema(self) -> Schema:
         """Return the schema of the stream."""
 
-    def get_moa_stream(self) -> Optional[InstanceStream]:
+    def get_moa_stream(self) -> InstanceStream | None:
         """Get the MOA stream object if it exists."""
         return None
 
@@ -354,9 +355,9 @@ class MOAStream(Stream[_AnyInstance]):
 
     def __init__(
         self,
-        moa_stream: Optional[InstanceStream] = None,
-        schema: Optional[Schema] = None,
-        CLI: Optional[str] = None,
+        moa_stream: InstanceStream | None = None,
+        schema: Schema | None = None,
+        CLI: str | None = None,
     ):
         """Construct a Stream from a MOA stream object.
 
@@ -433,7 +434,7 @@ class MOAStream(Stream[_AnyInstance]):
         """Return the schema of the stream."""
         return self.schema
 
-    def get_moa_stream(self) -> Optional[InstanceStream]:
+    def get_moa_stream(self) -> InstanceStream | None:
         """Get the MOA stream object if it exists."""
         return self.moa_stream
 
@@ -446,7 +447,7 @@ class ARFFStream(MOAStream[_AnyInstance]):
     """A datastream originating from an ARFF file."""
 
     def __init__(
-        self, path: Union[str, Path], CLI: Optional[str] = None, class_index: int = -1
+        self, path: str | Path, CLI: str | None = None, class_index: int = -1
     ):
         """Construct an ARFFStream object from a file path.
 
@@ -519,7 +520,7 @@ class NumpyStream(Stream[_AnyInstance]):
             target_name = "target"
         features.append(target_name)
 
-        categories: Dict[str, Sequence[str]] = {}
+        categories: dict[str, Sequence[str]] = {}
         if target_type == "categorical":
             n_classes = np.sum(~np.isnan(np.unique(y, equal_nan=True)))
             categories[target_name] = [str(i) for i in range(n_classes)]
@@ -614,7 +615,7 @@ def _new_instances_header(
     relation: str,
     target: str,
     attributes: Sequence[str],
-    nominals: Dict[str, Sequence[str]],
+    nominals: dict[str, Sequence[str]],
 ) -> InstancesHeader:
     attributes_ = FastVector()
     for attribute in attributes:

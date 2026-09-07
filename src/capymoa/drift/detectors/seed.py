@@ -1,8 +1,8 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import (
     SEEDChangeDetector as _SEEDChangeDetector,
 )
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class SEED(MOADriftDetector):

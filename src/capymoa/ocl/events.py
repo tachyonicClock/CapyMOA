@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Type, TypeVar, cast
+from collections.abc import Callable
+from typing import TypeVar, cast
 
 
 class Event:
@@ -26,17 +27,17 @@ class Dispatcher:
 
     def __init__(self) -> None:
         """Initialize an empty mapping of event types to callbacks."""
-        self.subscribers: Dict[Type[Event] | None, list[Callable[[Event], None]]] = {}
+        self.subscribers: dict[type[Event] | None, list[Callable[[Event], None]]] = {}
 
     def subscribe(
-        self, event_type: Type[_E] | None, callable: Callable[[_E], None]
+        self, event_type: type[_E] | None, callable: Callable[[_E], None]
     ) -> None:
         """Register a callback for a specific event class."""
         callable = cast(Callable[[Event], None], callable)
         self.subscribers.setdefault(event_type, []).append(callable)
 
     def unsubscribe(
-        self, event_type: Type[_E] | None, callable: Callable[[_E], None]
+        self, event_type: type[_E] | None, callable: Callable[[_E], None]
     ) -> None:
         """Remove a previously registered callback for an event class."""
         callable = cast(Callable[[Event], None], callable)
@@ -77,4 +78,4 @@ class Handler(ABC):
         return self
 
 
-__all__ = ["Event", "Dispatcher", "Handler"]
+__all__ = ["Dispatcher", "Event", "Handler"]

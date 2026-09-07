@@ -12,8 +12,8 @@ from _pytest.outcomes import Skipped
 
 from capymoa.datasets._source_list import SOURCE_LIST
 from capymoa.datasets._utils import (
-    get_download_dir,
     download_unpacked,
+    get_download_dir,
     is_already_downloaded,
 )
 

@@ -1,9 +1,13 @@
-from pathlib import Path
-from capymoa.core import LabeledInstance, RegressionInstance, _AnyInstance
-from ._stream import Stream, Schema
-from typing import Mapping, TextIO, Sequence, Optional
-from typing_extensions import override
 import csv
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import TextIO
+
+from typing_extensions import override
+
+from capymoa.core import LabeledInstance, RegressionInstance, _AnyInstance
+
+from ._stream import Schema, Stream
 
 
 class CSVStream(Stream[_AnyInstance]):
@@ -72,9 +76,9 @@ class CSVStream(Stream[_AnyInstance]):
         self,
         file: Path | str | TextIO,
         target: str,
-        categories: Optional[Mapping[str, Sequence[str]]] = None,
-        name: Optional[str] = None,
-        length: Optional[int] = None,
+        categories: Mapping[str, Sequence[str]] | None = None,
+        name: str | None = None,
+        length: int | None = None,
     ) -> None:
         """Create a CSV stream.
 
@@ -145,7 +149,7 @@ class CSVStream(Stream[_AnyInstance]):
     @override
     def restart(self) -> None:
         if self._file.seek(0) != 0:
-            raise IOError("Failed to seek to the beginning of the file.")
+            raise OSError("Failed to seek to the beginning of the file.")
         self._reader = csv.reader(self._file, delimiter=",")
         next(self._reader)  # Skip header
         # Buffer a single instance so that we can implement has_more_instances

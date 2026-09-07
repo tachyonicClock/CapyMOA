@@ -1,16 +1,18 @@
 # Library imports
 
-from capymoa.base import MOARegressor
-from capymoa.core.moa._cli import cli_str
-from ._arffimtdd import ARFFIMTDD
-from capymoa.core.moa._cli import (
-    cli_str_drift_detector,
-)
-from capymoa.drift.base_detector import MOADriftDetector
 from moa.classifiers.meta import (
     AdaptiveRandomForestRegressor as _AdaptiveRandomForestRegressor,
 )
 from moa.classifiers.trees import ARFFIMTDD as J_ARFFIMTDD
+
+from capymoa.base import MOARegressor
+from capymoa.core.moa._cli import (
+    cli_str,
+    cli_str_drift_detector,
+)
+from capymoa.drift.base_detector import MOADriftDetector
+
+from ._arffimtdd import ARFFIMTDD
 
 
 class AdaptiveRandomForestRegressor(MOARegressor):

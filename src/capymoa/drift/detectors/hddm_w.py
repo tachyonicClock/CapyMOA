@@ -1,8 +1,8 @@
-from typing import Literal, Optional
-
-from capymoa.drift.base_detector import MOADriftDetector
+from typing import Literal
 
 from moa.classifiers.core.driftdetection import HDDM_W_Test as _HDDM_W_Test
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class HDDMWeighted(MOADriftDetector):
@@ -41,7 +41,7 @@ class HDDMWeighted(MOADriftDetector):
         warning_confidence: float = 0.005,
         lambda_: float = 0.05,
         test_type: Literal["Two-sided", "One-sided"] = "Two-sided",
-        CLI: Optional[str] = None,
+        CLI: str | None = None,
     ):
         """
         :param drift_confidence: Significance level for drift detection (p-value threshold).

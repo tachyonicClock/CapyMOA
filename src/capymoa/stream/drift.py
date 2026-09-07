@@ -8,10 +8,11 @@ import re
 from collections import OrderedDict
 from itertools import cycle
 
-from ._stream import MOAStream, Stream
-from capymoa.core.moa._cli import cli_str_stream
 from moa.streams import ConceptDriftStream as MOA_ConceptDriftStream
 
+from capymoa.core.moa._cli import cli_str_stream
+
+from ._stream import MOAStream, Stream
 
 #: Named transition ramps. Each maps progress through the drift window,
 #: ``0.0`` at the start and ``1.0`` at the end, to the probability that an
@@ -20,8 +21,9 @@ TRANSITION_FUNCTIONS = {
     # Scaled so the transition completes inside the window: 0.01 at the start
     # and 0.99 at the end, rather than MOA's fixed steepness which is only at
     # 0.88 by the time the window closes.
-    "sigmoid": lambda progress: 1.0
-    / (1.0 + math.exp(-2.0 * math.log(99.0) * (progress - 0.5))),
+    "sigmoid": lambda progress: (
+        1.0 / (1.0 + math.exp(-2.0 * math.log(99.0) * (progress - 0.5)))
+    ),
     "linear": lambda progress: progress,
 }
 
@@ -243,7 +245,7 @@ class DriftStream(Stream):
             matches_position = re.findall(pattern_position, CLI)
             matches_width = re.findall(pattern_width, CLI)
 
-            for i in range(0, num_drifts):
+            for i in range(num_drifts):
                 if len(matches_width) == len(matches_position):
                     self.drifts.append(
                         Drift(
@@ -1077,7 +1079,7 @@ def get_recurrent_concept_drift_stream_list(
     # checks
     if not isinstance(transition_type_template, (AbruptDrift, GradualDrift)):
         raise ValueError(
-            f"Unsupported drift transition type: {str(transition_type_template)}"
+            f"Unsupported drift transition type: {transition_type_template!s}"
         )
 
     # variable initializations

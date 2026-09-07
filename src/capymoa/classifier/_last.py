@@ -1,17 +1,16 @@
 from __future__ import annotations
-from typing import Union
 
+import moa.classifiers.trees as moa_trees
+
+from capymoa._utils import _leaf_prediction, build_cli_str_from_mapping_and_locals
 from capymoa.base import MOAClassifier
-from capymoa.drift.base_detector import MOADriftDetector
-from capymoa.drift.detectors import ADWIN
 from capymoa.core.moa.splitcriteria import (
     SplitCriterion,
     _split_criterion_to_cli_str,
 )
+from capymoa.drift.base_detector import MOADriftDetector
+from capymoa.drift.detectors import ADWIN
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals, _leaf_prediction
-
-import moa.classifiers.trees as moa_trees
 
 
 class LAST(MOAClassifier):
@@ -50,7 +49,7 @@ class LAST(MOAClassifier):
         self,
         schema: Schema | None = None,
         random_seed: int = 0,
-        split_criterion: Union[str, SplitCriterion] = "InfoGainSplitCriterion",
+        split_criterion: str | SplitCriterion = "InfoGainSplitCriterion",
         change_detector: MOADriftDetector = ADWIN(),
         monitor_distribution=False,
         leaf_prediction: int = "NaiveBayesAdaptive",
@@ -105,7 +104,7 @@ class LAST(MOAClassifier):
         split_criterion = _split_criterion_to_cli_str(split_criterion)
         leaf_prediction = _leaf_prediction(leaf_prediction)
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
-        super(LAST, self).__init__(
+        super().__init__(
             moa_learner=moa_trees.LAST,
             schema=schema,
             CLI=config_str,

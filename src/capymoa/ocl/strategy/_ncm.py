@@ -1,13 +1,14 @@
+
 import torch
-from typing import Tuple
+from torch import Tensor, nn
+
 from capymoa.base import BatchClassifier
 from capymoa.stream import Schema
-from torch import Tensor, nn
 
 
 def _batch_cumulative_mean(
     batch: Tensor, count: int, mean: Tensor
-) -> Tuple[int, Tensor]:
+) -> tuple[int, Tensor]:
     """Update cumulative mean and count.
 
     :param batch: Current batch of data. Shape (batch_size, num_features).

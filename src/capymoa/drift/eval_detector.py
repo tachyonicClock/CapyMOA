@@ -1,10 +1,11 @@
 import warnings
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import List, Union, Tuple, Dict, Optional, Any, Sequence
+from typing import Any, Union
 
 import numpy as np
 
-_ArrayOrTupleOf = Union[Sequence[int], Sequence[Tuple[int, int]], np.ndarray]
+_ArrayOrTupleOf = Union[Sequence[int], Sequence[tuple[int, int]], np.ndarray]
 
 
 @dataclass
@@ -157,14 +158,14 @@ class EvaluateDriftDetector:
         #: The period used for calculating rates (e.g., per 1000 instances).
         self.rate_period: int = rate_period
         #: Latest calculated performance metrics.
-        self.metrics: Optional[DriftDetectionMetrics] = None
+        self.metrics: DriftDetectionMetrics | None = None
 
     def calc_performance(
         self,
         trues: _ArrayOrTupleOf,
         preds: _ArrayOrTupleOf,
         tot_n_instances: int,
-        drift_episodes: Optional[List[Dict[str, Any]]] = None,
+        drift_episodes: list[dict[str, Any]] | None = None,
     ) -> DriftDetectionMetrics:
         """
         Calculate performance metrics for drift detection.
@@ -232,7 +233,7 @@ class EvaluateDriftDetector:
 
         fp, tp, fn = 0, 0, 0
         etp = 0  # episode true positives
-        detection_times: List[float] = []
+        detection_times: list[float] = []
         n_episodes, n_alarms = 0, 0
 
         for episode in drift_eps:
@@ -302,7 +303,7 @@ class EvaluateDriftDetector:
 
     def _get_drift_episodes(
         self, trues: _ArrayOrTupleOf, preds: _ArrayOrTupleOf
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Process raw drift points and predictions into drift episodes.
 
@@ -413,7 +414,7 @@ class EvaluateDriftDetector:
     @staticmethod
     def _calc_classification_metrics(
         tp: int, fp: int, fn: int
-    ) -> Tuple[float, float, float]:
+    ) -> tuple[float, float, float]:
         """
         Calculate precision, recall, and F1 score with safeguards against division by zero.
 

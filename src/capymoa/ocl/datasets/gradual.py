@@ -7,12 +7,14 @@
 
 """
 
-from torch.utils.data import Dataset, ConcatDataset, Subset
-from typing import Tuple, Sequence, cast
-from torch import BoolTensor, IntTensor
-import torch
-from torch.nn.functional import sigmoid
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from typing import cast
+
+import torch
+from torch import BoolTensor, IntTensor
+from torch.nn.functional import sigmoid
+from torch.utils.data import ConcatDataset, Dataset, Subset
 
 
 class TransitionFn(ABC):
@@ -86,7 +88,7 @@ def _idx_interleave(
     left_idx: IntTensor,
     right_idx: IntTensor,
     mask: BoolTensor,
-) -> Tuple[IntTensor, IntTensor]:
+) -> tuple[IntTensor, IntTensor]:
     """Transition from the left task to the right task by interleaving the indices based
     on the provided mask.
 

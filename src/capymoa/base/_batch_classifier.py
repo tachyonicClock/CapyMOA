@@ -6,13 +6,11 @@ work without PyTorch, so it is exposed lazily from :mod:`capymoa.base`.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import numpy as np
 import torch
 
-from capymoa.core import Instance, LabeledInstance
-from capymoa.core import LabelProbabilities
+from capymoa.core import Instance, LabeledInstance, LabelProbabilities
 
 from ._batch import Batch
 from ._classifier import Classifier
@@ -133,7 +131,7 @@ class BatchClassifier(Classifier, Batch, ABC):
         ).view(1)
         return self.batch_train(x, y)
 
-    def predict_proba(self, instance: Instance) -> Optional[LabelProbabilities]:
+    def predict_proba(self, instance: Instance) -> LabelProbabilities | None:
         """Calls :func:`batch_predict_proba` with a batch of size 1."""
         x = torch.from_numpy(instance.x.reshape(1, -1))
         x = x.to(self.device, self.x_dtype)

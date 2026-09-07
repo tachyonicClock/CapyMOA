@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 from typing import Literal
 
 import numpy as np
+from sklearn.tree import DecisionTreeClassifier
 
 from capymoa.base import Classifier
-from capymoa.stream._stream import Schema
 from capymoa.classifier._shrubs_ensemble import _ShrubEnsembles
-from sklearn.tree import DecisionTreeClassifier
+from capymoa.stream._stream import Schema
 
 
 class ShrubsClassifier(_ShrubEnsembles, Classifier):
@@ -40,7 +41,7 @@ class ShrubsClassifier(_ShrubEnsembles, Classifier):
         loss: Literal["mse", "ce", "h2"] = "ce",
         step_size: float | Literal["adaptive"] = "adaptive",
         ensemble_regularizer: Literal["hard-L0", "L0", "L1", "none"] = "hard-L0",
-        l_ensemble_reg: float | int = 32,
+        l_ensemble_reg: float = 32,
         l_l2_reg: float = 0,
         l_tree_reg: float = 0,
         normalize_weights: bool = True,
@@ -124,7 +125,7 @@ class ShrubsClassifier(_ShrubEnsembles, Classifier):
         )
 
     def __str__(self):
-        return str("ShrubsClassifier")
+        return "ShrubsClassifier"
 
     def _individual_proba(self, X):
         # assert self.estimators_ is not None, "Call fit before calling predict_proba!"

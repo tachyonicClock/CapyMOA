@@ -1,10 +1,10 @@
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
 from com.yahoo.labs.samoa.instances import DenseInstance, InstancesHeader
-from moa.core import InstanceExample
-from typing import Optional, Union, Tuple, Sequence
 from jpype import JArray, JDouble
+from moa.core import InstanceExample
 from numpy import double
 from numpy.typing import NDArray
 
@@ -73,7 +73,7 @@ class Instance:
     """
 
     def __init__(
-        self, schema: "Schema", instance: Union[InstanceExample, FeatureVector]
+        self, schema: "Schema", instance: InstanceExample | FeatureVector
     ) -> None:
         """Creates a new instance.
 
@@ -85,9 +85,9 @@ class Instance:
         :param instance: A vector of features (float values) or a Java instance.
         :raises ValueError: If the given instance type is of an unsupported type.
         """
-        self._schema: "Schema" = schema
-        self._java_instance: Optional[InstanceExample] = None
-        self._x: Optional[FeatureVector] = None
+        self._schema: Schema = schema
+        self._java_instance: InstanceExample | None = None
+        self._x: FeatureVector | None = None
 
         if isinstance(instance, InstanceExample):
             self._java_instance = instance
@@ -296,9 +296,9 @@ class LabeledInstance(Instance):
     def __init__(
         self,
         schema: "Schema",
-        instance: Union[InstanceExample, Tuple[FeatureVector, LabelIndex]],
+        instance: InstanceExample | tuple[FeatureVector, LabelIndex],
     ) -> None:
-        self._y_index: Optional[LabelIndex] = None
+        self._y_index: LabelIndex | None = None
         if isinstance(instance, tuple):
             instance, self._y_index = instance
         super().__init__(schema, instance)
@@ -407,9 +407,9 @@ class RegressionInstance(Instance):
     def __init__(
         self,
         schema: "Schema",
-        instance: Union[InstanceExample, Tuple[FeatureVector, TargetValue]],
+        instance: InstanceExample | tuple[FeatureVector, TargetValue],
     ) -> None:
-        self._y_value: Optional[TargetValue] = None
+        self._y_value: TargetValue | None = None
         if isinstance(instance, tuple):
             instance, self._y_value = instance
         super().__init__(schema, instance)

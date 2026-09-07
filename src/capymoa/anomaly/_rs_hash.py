@@ -4,9 +4,8 @@ import sys
 import numpy as np
 
 from capymoa.base import AnomalyDetector
-from capymoa.core import Instance
+from capymoa.core import Instance, LabelIndex
 from capymoa.stream import Schema
-from capymoa.core import LabelIndex
 
 __all__ = ["RSHash"]
 

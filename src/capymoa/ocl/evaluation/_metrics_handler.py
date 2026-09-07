@@ -1,11 +1,9 @@
 """Default event sink for OCL metrics collection."""
 
-from typing import Optional
 
 import torch
 
 from capymoa.base import Classifier
-from capymoa.ocl.events import Event, Handler, Dispatcher
 from capymoa.evaluation.evaluation import (
     ClassificationEvaluator,
     ClassificationWindowedEvaluator,
@@ -14,11 +12,12 @@ from capymoa.evaluation.evaluation import (
 )
 from capymoa.evaluation.results import PrequentialResults
 from capymoa.ocl.evaluation.events import (
-    TrainEnd,
-    TrainBegin,
     TrainBatchPredict,
+    TrainBegin,
+    TrainEnd,
     TrainTaskEnd,
 )
+from capymoa.ocl.events import Dispatcher, Event, Handler
 
 from ._evaluator import _OCLEvaluator
 from ._metrics import OCLMetrics
@@ -44,8 +43,8 @@ class _OCLMetricsHandler(Handler):
             schema=learner.schema, window_size=eval_window_size
         )
         self._boundary_instances = torch.zeros(task_count + 1)
-        self._start_wallclock_time: Optional[float] = None
-        self._start_cpu_time: Optional[float] = None
+        self._start_wallclock_time: float | None = None
+        self._start_cpu_time: float | None = None
         self._elapsed_wallclock_time: float = 0.0
         self._elapsed_cpu_time: float = 0.0
 

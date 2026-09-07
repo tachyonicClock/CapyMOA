@@ -3,15 +3,15 @@ from collections import OrderedDict
 
 import numpy as np
 
+from capymoa.base import AnomalyDetector
 from capymoa.core import Instance
 from capymoa.stream._stream import Schema
-from capymoa.base import AnomalyDetector
 
 __all__ = ["RobustRandomCutForest"]
 
 
 class RCLeaf:
-    __slots__ = ["depth", "up", "mass", "bbox", "instance"]
+    __slots__ = ["bbox", "depth", "instance", "mass", "up"]
 
     def __init__(self, instance: Instance, side, depth=None, up=None, mass=1):
         self.instance = instance
@@ -26,7 +26,7 @@ class RCLeaf:
 
 
 class RCBranch:
-    __slots__ = ["feature", "split_value", "left", "right", "up", "mass", "bbox"]
+    __slots__ = ["bbox", "feature", "left", "mass", "right", "split_value", "up"]
 
     ROOT = "root"
     LEFT = "left"
@@ -52,9 +52,7 @@ class RCBranch:
         self.bbox = bbox
 
     def __repr__(self):
-        return "Branch(feature={}, split_value={:.2f})".format(
-            self.feature, self.split_value
-        )
+        return f"Branch(feature={self.feature}, split_value={self.split_value:.2f})"
 
 
 class RCTree:

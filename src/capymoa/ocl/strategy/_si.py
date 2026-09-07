@@ -1,12 +1,12 @@
-from typing import Iterable, Iterator, Optional, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 
 import torch
 from torch import Tensor, nn
 from torch.nn.functional import relu
 
 from capymoa.base import BatchClassifier
-from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
+from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.util._buffer_list import BufferList
 from capymoa.ocl.util._optim import reset_optimizer_state
 from capymoa.stream._stream import Schema
@@ -162,7 +162,7 @@ class SI(BatchClassifier, nn.Module, Handler):
         device: torch.device = torch.device("cpu"),
         mask_test: bool = False,
         mask_train: bool = False,
-        task_mask: Optional[Tensor] = None,
+        task_mask: Tensor | None = None,
     ) -> None:
         """Construct an SI learner.
 

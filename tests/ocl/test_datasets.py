@@ -1,13 +1,13 @@
-from typing import Type
+import inspect
+
 import numpy as np
 import pytest
-import inspect
 
 pytestmark = pytest.markskip("torch")
 
-from capymoa.ocl import datasets  # noqa: E402
-from capymoa.stream import Stream  # noqa: E402
-from capymoa.stream._stream import Schema  # noqa: E402
+from capymoa.ocl import datasets
+from capymoa.stream import Stream
+from capymoa.stream._stream import Schema
 
 ALL_OCL_SCENARIO = [
     cls
@@ -20,7 +20,7 @@ ALL_OCL_SCENARIO = [
 
 @pytest.mark.parametrize("scenario_type", ALL_OCL_SCENARIO)
 def test_ocl_split_datamodule_constructors(
-    scenario_type: Type[datasets._BuiltInCIScenario],
+    scenario_type: type[datasets._BuiltInCIScenario],
 ):
     # Skip all except MNIST since downloading datasets can be slow on CI
     tiny_mnist_scenarios = {datasets.TinySplitMNIST, datasets.RotatedTinyMNIST}

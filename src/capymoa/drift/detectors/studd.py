@@ -1,15 +1,14 @@
-from typing import Union, List
-from capymoa.core import LabelIndex
-from typing_extensions import override
+from typing import Union
 
 import numpy as np
+from typing_extensions import override
 
 from capymoa.base import MOAClassifier
-from capymoa.drift.detectors import ADWIN
+from capymoa.core import Instance, LabeledInstance, LabelIndex
 from capymoa.drift.base_detector import BaseDriftDetector, MOADriftDetector
-from capymoa.core import LabeledInstance, Instance
+from capymoa.drift.detectors import ADWIN
 
-ArrayOrList = Union[np.ndarray, List[float]]
+ArrayOrList = Union[np.ndarray, list[float]]
 ArrayOrInstance = Union[ArrayOrList, Instance]
 
 

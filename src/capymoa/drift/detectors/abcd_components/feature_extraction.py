@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol, Any, Tuple
+from typing import Any, Protocol
 
 import numpy as np
 from sklearn.decomposition import PCA, KernelPCA
@@ -15,7 +15,7 @@ class EncoderDecoder(Protocol):
         :return: nothing
         """
 
-    def new_tuple(self, x) -> Tuple[Any, Any, Any]:
+    def new_tuple(self, x) -> tuple[Any, Any, Any]:
         """
         :param x: Input instance
         :return: A new tuple containing, MSE, reconstruction, and original
@@ -26,7 +26,7 @@ class DummyEncoderDecoder(EncoderDecoder):
     def update(self, window, epochs: int):
         pass
 
-    def new_tuple(self, x) -> Tuple[Any, Any, Any]:
+    def new_tuple(self, x) -> tuple[Any, Any, Any]:
         return 0.0, x, x
 
 
@@ -43,7 +43,7 @@ class PCAModel(EncoderDecoder):
         self.pca = PCA(n_components=components, svd_solver="full")
         self.pca.fit(window)
 
-    def new_tuple(self, x) -> Tuple[Any, Any, Any]:
+    def new_tuple(self, x) -> tuple[Any, Any, Any]:
         assert len(x.shape) == 2
         enc = self.pca.transform(x)
         dec = self.pca.inverse_transform(enc)
@@ -65,7 +65,7 @@ class KernelPCAModel(EncoderDecoder):
         )
         self.pca.fit(window)
 
-    def new_tuple(self, x) -> Tuple[Any, Any, Any]:
+    def new_tuple(self, x) -> tuple[Any, Any, Any]:
         assert len(x.shape) == 2
         enc = self.pca.transform(x)
         dec = self.pca.inverse_transform(enc)

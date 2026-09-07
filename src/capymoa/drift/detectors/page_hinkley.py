@@ -1,6 +1,6 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import PageHinkleyDM as _PageHinkleyDM
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class PageHinkley(MOADriftDetector):

@@ -1,28 +1,29 @@
 """Data stream representations and related utilities."""
 
 from capymoa._optional import lazy_torch_attrs
-from ._stream import (
-    Stream,
-    Schema,
-    ARFFStream,
-    NumpyStream,
-    MOAStream,
-)
-from ._csv_stream import CSVStream
-from ._stream_from_file import stream_from_file
+
 from . import drift, generator, preprocessing
+from ._csv_stream import CSVStream
+from ._stream import (
+    ARFFStream,
+    MOAStream,
+    NumpyStream,
+    Schema,
+    Stream,
+)
+from ._stream_from_file import stream_from_file
 
 __all__ = [
-    "Stream",
-    "Schema",
     "ARFFStream",
-    "TorchStream",
     "CSVStream",
+    "MOAStream",
+    "NumpyStream",
+    "Schema",
+    "Stream",
+    "TorchStream",
     "drift",
     "generator",
     "preprocessing",
-    "NumpyStream",
-    "MOAStream",
     "stream_from_file",
 ]
 

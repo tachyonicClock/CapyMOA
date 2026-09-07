@@ -1,19 +1,19 @@
 import gzip
-from pathlib import Path
-from typing import Optional, Tuple
-from urllib.request import urlretrieve
-from shutil import copyfileobj
-from capymoa.env import capymoa_datasets_dir
-import numpy as np
-from urllib.parse import urlparse
 from os.path import basename
-from shutil import unpack_archive, get_unpack_formats, move
+from pathlib import Path
+from shutil import copyfileobj, get_unpack_formats, move, unpack_archive
+from urllib.parse import urlparse
+from urllib.request import urlretrieve
+
+import numpy as np
 from tqdm import tqdm
+
+from capymoa.env import capymoa_datasets_dir
 
 _GZIP_SUFFIX = [".gz", ".gzip"]
 
 
-def _unpacked_format(filename: str) -> Tuple[str | None, str]:
+def _unpacked_format(filename: str) -> tuple[str | None, str]:
     for format, extensions, _ in get_unpack_formats():
         for ext in extensions:
             if filename.endswith(ext):
@@ -73,9 +73,8 @@ def download_unpacked(url: str, downloads: Path | str) -> Path:
 
     # Unpack, decompress, or simply move to the path
     if format == "gzip":
-        with gzip.open(tmpfile, "rb") as fin:
-            with open(path, "xb") as fdst:
-                copyfileobj(fin, fdst)
+        with gzip.open(tmpfile, "rb") as fin, open(path, "xb") as fdst:
+            copyfileobj(fin, fdst)
     elif format is not None:
         # Python 3.14 makes ``filter="data"`` the default for tar archives and
         # warns until then. Ask for it explicitly: it rejects members that would
@@ -87,7 +86,7 @@ def download_unpacked(url: str, downloads: Path | str) -> Path:
     return path
 
 
-def get_download_dir(download_dir: Optional[str] = None) -> Path:
+def get_download_dir(download_dir: str | None = None) -> Path:
     """Get a directory where datasets should be downloaded to.
 
     The download directory is determined by the following steps:
@@ -113,9 +112,9 @@ def download_numpy_dataset(
     url: str,
     auto_download: bool = True,
     downloads: Path | str = capymoa_datasets_dir(),
-) -> Tuple[
-    Tuple[np.ndarray, np.ndarray],
-    Tuple[np.ndarray, np.ndarray],
+) -> tuple[
+    tuple[np.ndarray, np.ndarray],
+    tuple[np.ndarray, np.ndarray],
 ]:
     """Download, extract, and load a numpy dataset.
 

@@ -1,19 +1,20 @@
 """Tests to ensure progress bars work correctly."""
 
-from typing import Optional
+
+import pytest
 from pytest import CaptureFixture
-from capymoa.stream.generator import WaveformGenerator
-from capymoa.datasets import ElectricityTiny
-from capymoa.classifier import NoChange
+from tqdm import tqdm
+
 from capymoa.anomaly import HalfSpaceTrees
+from capymoa.classifier import NoChange
+from capymoa.datasets import ElectricityTiny
 from capymoa.evaluation import (
     prequential_evaluation,
-    prequential_ssl_evaluation,
     prequential_evaluation_anomaly,
     prequential_evaluation_multiple_learners,
+    prequential_ssl_evaluation,
 )
-import pytest
-from tqdm import tqdm
+from capymoa.stream.generator import WaveformGenerator
 
 
 def assert_pbar(capfd: CaptureFixture, startswith: str):
@@ -31,7 +32,7 @@ def assert_pbar(capfd: CaptureFixture, startswith: str):
     ],
 )
 def test_default(
-    max_instances: Optional[int], instances: int, capfd: CaptureFixture
+    max_instances: int | None, instances: int, capfd: CaptureFixture
 ) -> None:
     stream = ElectricityTiny()
     classifier = NoChange(schema=stream.get_schema())

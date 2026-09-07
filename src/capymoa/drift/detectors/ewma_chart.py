@@ -1,6 +1,6 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import EWMAChartDM as _EWMAChartDM
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class EWMAChart(MOADriftDetector):

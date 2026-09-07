@@ -1,15 +1,15 @@
 from __future__ import annotations
+
 from typing import Literal
 
 import numpy as np
+from sklearn.tree import DecisionTreeRegressor
 
 from capymoa.base import (
     Regressor,
 )
-
-from capymoa.stream._stream import Schema
 from capymoa.classifier._shrubs_ensemble import _ShrubEnsembles
-from sklearn.tree import DecisionTreeRegressor
+from capymoa.stream._stream import Schema
 
 
 class ShrubsRegressor(_ShrubEnsembles, Regressor):
@@ -44,7 +44,7 @@ class ShrubsRegressor(_ShrubEnsembles, Regressor):
         schema: Schema,
         step_size: float | Literal["adaptive"] = "adaptive",
         ensemble_regularizer: Literal["hard-L0", "L0", "L1", "none"] = "hard-L0",
-        l_ensemble_reg: float | int = 32,
+        l_ensemble_reg: float = 32,
         l_l2_reg: float = 0,
         l_tree_reg: float = 0,
         normalize_weights: bool = True,
@@ -122,7 +122,7 @@ class ShrubsRegressor(_ShrubEnsembles, Regressor):
         )
 
     def __str__(self):
-        return str("ShrubsRegressor")
+        return "ShrubsRegressor"
 
     def _individual_proba(self, X):
         if len(X.shape) < 2:

@@ -1,4 +1,5 @@
 import itertools
+
 from capymoa import classifier as capymoa_classifier_module
 
 """

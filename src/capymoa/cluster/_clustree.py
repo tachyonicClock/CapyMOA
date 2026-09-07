@@ -1,8 +1,10 @@
-from capymoa.base import MOAClusterer
-import typing
+
 from moa.clusterers.clustree import ClusTree as _MOA_ClusTree
-from capymoa.stream import Schema
+
 from capymoa._utils import build_cli_str_from_mapping_and_locals
+from capymoa.base import MOAClusterer
+from capymoa.stream import Schema
+
 # import numpy as np
 
 
@@ -13,7 +15,7 @@ class ClusTree(MOAClusterer):
 
     def __init__(
         self,
-        schema: typing.Union[Schema, None] = None,
+        schema: Schema | None = None,
         horizon: int = 1000,
         max_height: int = 8,
         breadth_first_strategy: bool = False,
@@ -30,7 +32,7 @@ class ClusTree(MOAClusterer):
 
         config_str = build_cli_str_from_mapping_and_locals(mapping, locals())
         self.moa_learner = _MOA_ClusTree()
-        super(ClusTree, self).__init__(
+        super().__init__(
             schema=schema, CLI=config_str, moa_learner=self.moa_learner
         )
 

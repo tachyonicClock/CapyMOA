@@ -1,8 +1,10 @@
 from typing import Literal
-from capymoa.base import SKRegressor
+
 from sklearn.linear_model import (
     SGDRegressor as _SKSGDRegressor,
 )
+
+from capymoa.base import SKRegressor
 from capymoa.stream._stream import Schema
 
 # Maps the passive aggressive loss onto the equivalent scikit-learn learning
@@ -101,4 +103,4 @@ class PassiveAggressiveRegressor(SKRegressor):
         )
 
     def __str__(self):
-        return str("PassiveAggressiveRegressor")
+        return "PassiveAggressiveRegressor"

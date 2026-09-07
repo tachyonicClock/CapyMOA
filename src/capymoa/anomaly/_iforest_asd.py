@@ -6,9 +6,8 @@ import typing
 from itertools import count
 
 from capymoa.base import AnomalyDetector
-from capymoa.core import Instance
+from capymoa.core import Instance, LabelIndex
 from capymoa.stream._stream import Schema
-from capymoa.core import LabelIndex
 
 __all__ = ["IForestASD"]
 
@@ -31,24 +30,24 @@ class Branch:
         self.feature = feature
         self.split_value = split_value
 
-    def walk(self, instance: Instance) -> typing.Iterable[typing.Union[Branch, Leaf]]:
+    def walk(self, instance: Instance) -> typing.Iterable[Branch | Leaf]:
         """Iterate over the nodes of the path induced by instance."""
         yield self
         yield from self.next(instance).walk(instance)
 
     @property
-    def left(self) -> typing.Union[Branch, Leaf]:
+    def left(self) -> Branch | Leaf:
         return self.children[0]
 
     @property
-    def right(self) -> typing.Union[Branch, Leaf]:
+    def right(self) -> Branch | Leaf:
         return self.children[1]
 
     @property
     def mass(self):
         return self.left.mass + self.right.mass
 
-    def next(self, instance: Instance) -> typing.Union[Branch, Leaf]:
+    def next(self, instance: Instance) -> Branch | Leaf:
         try:
             value = instance.x[self.feature]
         except (KeyError, TypeError, IndexError) as e:
@@ -245,7 +244,7 @@ class IForestASD(AnomalyDetector):
 
         self.instances = []
 
-    def predict(self, instance) -> typing.Optional[LabelIndex]:
+    def predict(self, instance) -> LabelIndex | None:
         """Predict is not implemented for anomaly detection.
 
         :param instance: The instance to predict.

@@ -1,35 +1,34 @@
-from dataclasses import dataclass, asdict
-from functools import partial
-from typing import Callable, List, Type
 import os
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from functools import partial
 
 import numpy as np
 import pytest
 
 pytestmark = pytest.markskip("torch")
 
-from capymoa.core.torch.ann import Perceptron  # noqa: E402
-from capymoa.base import Classifier  # noqa: E402
-from capymoa.classifier import Finetune, HoeffdingTree  # noqa: E402
-from capymoa.ocl.datasets import TinySplitMNIST  # noqa: E402
-from capymoa.ocl.evaluation import ocl_train_eval_loop  # noqa: E402
+import torch
+from torch import nn
 
-from capymoa.ocl.strategy import (  # noqa: E402
-    ExperienceReplay,
-    SLDA,
-    NCM,
-    GDumb,
-    RAR,
+from capymoa.base import Classifier
+from capymoa.classifier import Finetune, HoeffdingTree
+from capymoa.core.torch.ann import Perceptron
+from capymoa.ocl.datasets import TinySplitMNIST
+from capymoa.ocl.evaluation import ocl_train_eval_loop
+from capymoa.ocl.strategy import (
     EWC,
-    SI,
     LWF,
     MAS,
+    NCM,
+    RAR,
+    SI,
+    SLDA,
+    ExperienceReplay,
+    GDumb,
     RWalk,
 )
-from capymoa.stream import Schema  # noqa: E402
-
-import torch  # noqa: E402
-from torch import nn  # noqa: E402
+from capymoa.stream import Schema
 
 # PyTorch is notorious for non-deterministic behavior between versions and platforms.
 # Here we set a fixed absolute tolerance of +-1.5 for percentage-based metrics.
@@ -64,9 +63,9 @@ def pre_processor() -> nn.Module:
 
 
 def new_constructor(
-    learner: Type[Classifier],
+    learner: type[Classifier],
     lr: float,
-    optimiser_type: Type[torch.optim.Optimizer] = torch.optim.SGD,
+    optimiser_type: type[torch.optim.Optimizer] = torch.optim.SGD,
     **kwargs,
 ) -> Callable[[Schema], Classifier]:
     """Create a new learner instance with the given hyperparameters."""
@@ -100,7 +99,7 @@ Add new test cases here.
 Use the `partial` function to create a new function with hyperparameters already
 set.
 """
-TEST_CASES: List[Case] = [
+TEST_CASES: list[Case] = [
     # These improved when `MOAClassifier.predict_proba` stopped discarding
     # predictions whose unnormalised vote total was below 1e-2. HoeffdingTree
     # uses Naive Bayes at its leaves, whose likelihood products fall below that

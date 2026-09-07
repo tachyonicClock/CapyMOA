@@ -6,10 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
+import re
 import sys
 from pathlib import Path
-from typing import Optional
-import re
+
 from capymoa.__about__ import __version__
 from docs.util.github_link import make_linkcode_resolve
 from docs.util.sphinx_llm import fix_markdown_image, fix_nbsphinx
@@ -202,7 +202,7 @@ autodoc_skip_member_patterns = [
 ]
 
 
-def autodoc_skip_member(app, obj_type, name, obj, skip, options) -> Optional[bool]:
+def autodoc_skip_member(app, obj_type, name, obj, skip, options) -> bool | None:
     if skip:
         return None
     if not hasattr(obj, "__module__") or not hasattr(obj, "__qualname__"):

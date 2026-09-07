@@ -8,11 +8,12 @@ import pytest
 
 pytestmark = pytest.markskip("torch")
 
-from capymoa.ocl.strategy.l2p import L2P, L2PViT  # noqa: E402
-from capymoa.ocl.datasets import TinySplitMNIST  # noqa: E402
-from capymoa.ocl.evaluation import ocl_train_eval_loop  # noqa: E402
-from torch import Tensor, nn  # noqa: E402
-import torch  # noqa: E402
+import torch
+from torch import Tensor, nn
+
+from capymoa.ocl.datasets import TinySplitMNIST
+from capymoa.ocl.evaluation import ocl_train_eval_loop
+from capymoa.ocl.strategy.l2p import L2P, L2PViT
 
 
 class DummyViT(L2PViT, nn.Module):

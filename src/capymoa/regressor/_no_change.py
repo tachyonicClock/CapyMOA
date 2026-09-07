@@ -1,6 +1,5 @@
 from capymoa.base import Regressor
-from capymoa.core import RegressionInstance
-from capymoa.core import TargetValue
+from capymoa.core import RegressionInstance, TargetValue
 
 
 class NoChange(Regressor):

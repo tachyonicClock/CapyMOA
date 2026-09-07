@@ -6,16 +6,16 @@ To execute a task, you can run the `invoke` command followed by the task name.
 For example, to build the project, you can run `invoke build`.
 """
 
+import os
+from os import environ
+from pathlib import Path
+from subprocess import run
+
+import wget
 from invoke import task
 from invoke.collection import Collection
 from invoke.context import Context
 from invoke.exceptions import UnexpectedExit
-from pathlib import Path
-from typing import List, Optional
-from subprocess import run
-import wget
-from os import environ
-import os
 
 IS_CI = environ.get("CI", "false").lower() == "true"
 COVERAGE_DEFAULT = False
@@ -31,7 +31,7 @@ PYTEST_TIMEOUT = int(90 * PYTEST_TIMEOUT_FACTOR)
 NOTEBOOK_FAST_TIMEOUT = int(60 * 3 * PYTEST_TIMEOUT_FACTOR)
 
 
-def python_exe(profile: Optional[str] = None) -> str:
+def python_exe(profile: str | None = None) -> str:
     if profile:
         return f"python -m cProfile -o {profile}"
     else:
@@ -52,7 +52,7 @@ def divider(text: str):
     print(text.center(88, "-"))
 
 
-def all_exist(files: List[str] = None, directories: List[str] = None) -> bool:
+def all_exist(files: list[str] = None, directories: list[str] = None) -> bool:
     """Check if all files and directories exist."""
     if files:
         for file in files:
@@ -71,7 +71,7 @@ def all_exist(files: List[str] = None, directories: List[str] = None) -> bool:
 def docs_build(ctx: Context, ignore_warnings: bool = False):
     """Build the documentation using Sphinx."""
     cmd = []
-    cmd += "python -m sphinx build".split()
+    cmd += ["python", "-m", "sphinx", "build"]
     cmd += ["--color"]  # color output
     cmd += ["-b", "html"]  # generate html
     if not ignore_warnings:
@@ -223,7 +223,7 @@ def notebooks(
     ctx: Context,
     parallel: bool = False,
     overwrite: bool = False,
-    k_pattern: Optional[str] = None,
+    k_pattern: str | None = None,
     slow: bool = False,
     no_skip: bool = False,
 ):
@@ -289,7 +289,7 @@ def pytest(
     ctx: Context,
     parallel: bool = False,
     coverage: bool = COVERAGE_DEFAULT,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ):
     """Run the tests using pytest.
 
@@ -323,7 +323,7 @@ def doctest(
     ctx: Context,
     parallel: bool = True,
     coverage: bool = COVERAGE_DEFAULT,
-    profile: Optional[str] = None,
+    profile: str | None = None,
 ):
     """Run tests defined in docstrings using pytest.
 

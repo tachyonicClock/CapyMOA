@@ -415,7 +415,7 @@ def plot_regression_results(
             if predictions_type == "line":
                 plt.plot(
                     instance_numbers,
-                    predictions[i],
+                    prediction,
                     label=results[i]["learner"] + " predictions",
                     color=color_predictions[i]
                     if color_predictions is not None
@@ -427,7 +427,7 @@ def plot_regression_results(
             elif predictions_type == "dots":
                 plt.scatter(
                     instance_numbers,
-                    predictions[i],
+                    prediction,
                     label=results[i]["learner"] + " predictions",
                     color=color_predictions[i]
                     if color_predictions is not None
@@ -460,7 +460,7 @@ def plot_regression_results(
         for i, residual in enumerate(residuals):
             plt.bar(
                 instance_numbers,
-                residuals[i] if not absolute_residuals else absolute_values[i],
+                residual if not absolute_residuals else absolute_values[i],
                 label=results[i]["learner"] + " residuals"
                 if not absolute_residuals
                 else " absolute residuals",
@@ -914,7 +914,7 @@ def plot_prediction_interval(
                 # find the switch point
                 larger = True
                 switch_points = [0]
-                for i in range(0, len(l_first)):
+                for i in range(len(l_first)):
                     if larger:
                         if l_first[i] < l_second[i]:
                             switch_points.append(i)
@@ -1117,8 +1117,7 @@ def _plot_clustering_state(
         # keep the largest radius for the plot
         if ma_radii is not None:
             for (x, y), radius in zip(ma_centers, ma_radii):
-                if radius > max_radius:
-                    max_radius = radius
+                max_radius = max(max_radius, radius)
                 circle = plt.Circle((x, y), radius, color="red", fill=False, lw=0.4)
                 ax.add_patch(circle)
 
@@ -1165,8 +1164,7 @@ def _plot_clustering_state(
             cbar.set_label("Micro cluster Weights")
         # Add circles representing the radius of each center
         for (x, y), radius in zip(mi_centers, mi_radii):
-            if radius > max_radius:
-                max_radius = radius
+            max_radius = max(max_radius, radius)
             circle = plt.Circle((x, y), radius, color="blue", fill=False, lw=0.2)
             ax.add_patch(circle)
         # # Annotate the centers with cluster IDs
@@ -1265,7 +1263,7 @@ def plot_clustering_evolution(
     os.makedirs(gif_path, exist_ok=True)
     figs = []
     # calculate the number of trailing zeroes needed for the image names
-    num_images = len(macros) if len(macros) > len(micros) else len(micros)
+    num_images = max(len(micros), len(macros))
     num_digits = len(str(num_images))
     maxx, maxy, minx, miny = -np.inf, -np.inf, np.inf, np.inf
     for i, (macro, micro) in enumerate(
@@ -1283,14 +1281,10 @@ def plot_clustering_evolution(
             save_fig=True,
             make_gif=True,
         )
-        if e_minx < minx:
-            minx = e_minx
-        if e_maxx > maxx:
-            maxx = e_maxx
-        if e_miny < miny:
-            miny = e_miny
-        if e_maxy > maxy:
-            maxy = e_maxy
+        minx = min(minx, e_minx)
+        maxx = max(maxx, e_maxx)
+        miny = min(miny, e_miny)
+        maxy = max(maxy, e_maxy)
         figs.append(fig)
 
     # make the images with shared x and y lim

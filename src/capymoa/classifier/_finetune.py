@@ -1,4 +1,4 @@
-from typing import Callable, Iterator, Union
+from collections.abc import Callable, Iterator
 
 import torch
 from torch import Tensor, device, nn, optim
@@ -47,12 +47,10 @@ class Finetune(BatchClassifier):
     def __init__(
         self,
         schema: Schema,
-        model: Union[nn.Module, Callable[[Schema], nn.Module]],
-        optimizer: Union[
-            Optimizer, Callable[[Iterator[Tensor]], Optimizer]
-        ] = optim.Adam,
+        model: nn.Module | Callable[[Schema], nn.Module],
+        optimizer: Optimizer | Callable[[Iterator[Tensor]], Optimizer] = optim.Adam,
         criterion: nn.Module = nn.CrossEntropyLoss(),
-        device: Union[device, str] = "cpu",
+        device: device | str = "cpu",
         random_seed: int = 0,
     ) -> None:
         """Construct a learner to finetune a neural network.

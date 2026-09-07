@@ -12,6 +12,6 @@ from ._successive_halving_classifier import SuccessiveHalvingClassifier
 __all__ = [
     "AutoClass",
     "BanditClassifier",
-    "SuccessiveHalvingClassifier",
     "EpsilonGreedy",
+    "SuccessiveHalvingClassifier",
 ]

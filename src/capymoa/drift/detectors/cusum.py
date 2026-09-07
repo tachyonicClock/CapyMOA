@@ -1,6 +1,6 @@
-from capymoa.drift.base_detector import MOADriftDetector
-
 from moa.classifiers.core.driftdetection import CusumDM as _CusumDM
+
+from capymoa.drift.base_detector import MOADriftDetector
 
 
 class CUSUM(MOADriftDetector):

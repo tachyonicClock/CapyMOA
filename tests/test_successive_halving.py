@@ -2,8 +2,8 @@ import json
 import tempfile
 
 from capymoa.automl import SuccessiveHalvingClassifier
-from capymoa.stream.generator import SEA
 from capymoa.core.moa._cli import cli_str_classifier
+from capymoa.stream.generator import SEA
 
 
 def test_successive_halving_parameter_initialization():

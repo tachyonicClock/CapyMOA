@@ -1,13 +1,15 @@
-from typing import Iterable, Iterator, Optional, Sequence, Tuple, Callable
-from capymoa.stream._stream import Schema
-from torch import Tensor, nn
+from collections.abc import Callable, Iterable, Iterator, Sequence
+
 import torch
+from torch import Tensor, nn
+from torch.utils.data import DataLoader
+
 from capymoa.base import BatchClassifier
-from capymoa.ocl.events import Handler, Dispatcher
 from capymoa.ocl.evaluation.events import TestTaskBegin, TrainTaskBegin
+from capymoa.ocl.events import Dispatcher, Handler
 from capymoa.ocl.util._buffer_list import BufferList
 from capymoa.ocl.util._replay import SlidingWindow
-from torch.utils.data import DataLoader
+from capymoa.stream._stream import Schema
 
 
 def weighted_l2_reg(
@@ -45,7 +47,7 @@ def fd_init(model: torch.nn.Module) -> Sequence[Tensor]:
 def fd_accumulate(
     fisher_diagonals: Sequence[Tensor],
     parameters: Iterator[Tensor],
-    alpha: Optional[float] = None,
+    alpha: float | None = None,
 ) -> Sequence[Tensor]:
     """Accumulates the squared gradients into the Fisher diagonal estimates.
 
@@ -73,7 +75,7 @@ def fd_accumulate(
 def fd_compute(
     model: torch.nn.Module,
     forward_fn: Callable[[Tensor], Tensor],
-    dataloader: DataLoader[Tuple[Tensor, Tensor]],
+    dataloader: DataLoader[tuple[Tensor, Tensor]],
     device: torch.device,
     criterion: torch.nn.Module,
 ) -> Sequence[Tensor]:
@@ -143,7 +145,7 @@ class EWC(BatchClassifier, nn.Module, Handler):
         mask_test: bool = False,
         mask_train: bool = False,
         gamma: float = 1.0,
-        task_mask: Optional[Tensor] = None,
+        task_mask: Tensor | None = None,
     ) -> None:
         """Construct an EWC learner.
 

@@ -1,9 +1,10 @@
 """Contains private utility functions used throughout the library."""
 
-from typing import Dict, Any, Iterator, Tuple, TypeVar
-from itertools import islice
-import sys
 import re
+import sys
+from collections.abc import Iterator
+from itertools import islice
+from typing import Any, TypeVar
 
 # Create a single mapping dictionary
 _metrics_name_mapping = {
@@ -66,7 +67,7 @@ def _translate_metric_name(metric_name, to="capymoa"):
         raise ValueError("Invalid translation direction. Use 'moa' or 'capymoa'.")
 
 
-def build_cli_str_from_mapping_and_locals(mapping: Dict[str, str], lcs: Dict[str, Any]):
+def build_cli_str_from_mapping_and_locals(mapping: dict[str, str], lcs: dict[str, Any]):
     """Builds a CLI string based on a provided mapping and the current scope's local variables.
 
     >>> max_byte_size = 33554433
@@ -129,7 +130,7 @@ def _leaf_prediction(leaf_prediction):
 T = TypeVar("T")
 
 
-def batched(iterable: Iterator[T], n: int = 1) -> Iterator[Tuple[T, ...]]:
+def batched(iterable: Iterator[T], n: int = 1) -> Iterator[tuple[T, ...]]:
     """Yield successive n-sized chunks from an iterable.
 
     Will be removed in a future release, use the built-in ``itertools.batched``

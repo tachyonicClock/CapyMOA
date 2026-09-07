@@ -1,9 +1,9 @@
-from typing import Tuple
-from typing_extensions import override
+from abc import ABC, abstractmethod
+
+import torch
 from torch import Tensor, nn
 from torch.utils.data import TensorDataset
-from abc import abstractmethod, ABC
-import torch
+from typing_extensions import override
 
 
 class ReplayBuffer(ABC, nn.Module):
@@ -16,7 +16,7 @@ class ReplayBuffer(ABC, nn.Module):
         """
         ...
 
-    def sample(self, n: int) -> Tuple[Tensor, Tensor]:
+    def sample(self, n: int) -> tuple[Tensor, Tensor]:
         """Sample ``n`` examples from the replay buffer.
 
         :param n: Number of examples to sample
@@ -26,7 +26,7 @@ class ReplayBuffer(ABC, nn.Module):
         indices = torch.randint(0, self.count, (n,))
         return self._buffer_x[indices], self._buffer_y[indices]
 
-    def array(self) -> Tuple[Tensor, Tensor]:
+    def array(self) -> tuple[Tensor, Tensor]:
         """Return the replay buffer as a tuple of (x, y) tensors."""
         return self._buffer_x[: self._count], self._buffer_y[: self._count]
 

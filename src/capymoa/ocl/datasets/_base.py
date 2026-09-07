@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Sequence, Set, Tuple, Type, cast
+from typing import Any, cast
 
 import torch
 from torch import Tensor
@@ -8,8 +9,8 @@ from torch.utils.data import ConcatDataset, DataLoader, Dataset, TensorDataset
 from torchvision.transforms import Compose, Lambda, Normalize, ToTensor
 from torchvision.transforms.functional import rotate
 
-from capymoa.datasets import get_download_dir
 from capymoa.core import LabeledInstance
+from capymoa.datasets import get_download_dir
 from capymoa.ocl.util.data import (
     class_incremental_schedule,
     class_schedule_to_task_mask,
@@ -21,11 +22,11 @@ from capymoa.stream._stream import Schema
 
 
 class _PreloadedDataset(TensorDataset):
-    def __getitems__(self, indices: Sequence[int]) -> Tuple[Tensor, ...]:
+    def __getitems__(self, indices: Sequence[int]) -> tuple[Tensor, ...]:
         """Get items from the preloaded dataset."""
         return tuple(tensor[indices] for tensor in self.tensors)
 
-    def collate_fn(self, batch: Tuple[Tensor, Tensor]) -> Tuple[Tensor, Tensor]:
+    def collate_fn(self, batch: tuple[Tensor, Tensor]) -> tuple[Tensor, Tensor]:
         """Collate function for PyTorch ``DataLoader``.
 
         Is the identity function, since the data is already preloaded
@@ -41,7 +42,7 @@ class _BuiltInCIScenario(ABC):
     learning datasets.
     """
 
-    task_schedule: Sequence[Set[int]]
+    task_schedule: Sequence[set[int]]
     """A sequence of sets containing the classes for each task.
 
     In online continual learning your learner may not have access to this
@@ -54,16 +55,16 @@ class _BuiltInCIScenario(ABC):
     default_task_count: int
     """The default number of tasks in the dataset."""
 
-    mean: Optional[Sequence[float]]
+    mean: Sequence[float] | None
     """The mean of the features in the dataset used for normalization."""
 
-    std: Optional[Sequence[float]]
+    std: Sequence[float] | None
     """The standard deviation of the features in the dataset used for normalization."""
 
-    default_train_transform: Optional[Callable[[Any], Tensor]] = ToTensor()
+    default_train_transform: Callable[[Any], Tensor] | None = ToTensor()
     """The default transform to apply to the dataset."""
 
-    default_test_transform: Optional[Callable[[Any], Tensor]] = ToTensor()
+    default_test_transform: Callable[[Any], Tensor] | None = ToTensor()
     """The default transform to apply to the dataset."""
 
     schema: Schema
@@ -80,14 +81,14 @@ class _BuiltInCIScenario(ABC):
 
     def __init__(
         self,
-        num_tasks: Optional[int] = None,
+        num_tasks: int | None = None,
         shuffle_tasks: bool = True,
         shuffle_data: bool = True,
         seed: int = 0,
         directory: Path = get_download_dir(),
         auto_download: bool = True,
-        train_transform: Optional[Callable[[Any], Tensor]] = None,
-        test_transform: Optional[Callable[[Any], Tensor]] = None,
+        train_transform: Callable[[Any], Tensor] | None = None,
+        test_transform: Callable[[Any], Tensor] | None = None,
         normalize_features: bool = False,
         preload_test: bool = True,
         preload_train: bool = False,
@@ -187,7 +188,7 @@ class _BuiltInCIScenario(ABC):
 
     @staticmethod
     def _preload_datasets(
-        datasets: Sequence[Dataset[Tuple[Tensor, Tensor]]],
+        datasets: Sequence[Dataset[tuple[Tensor, Tensor]]],
     ) -> Sequence[TensorDataset]:
         """Preload a sequence of datasets into memory.
 
@@ -197,7 +198,7 @@ class _BuiltInCIScenario(ABC):
         return [_BuiltInCIScenario._preload_dataset(dataset) for dataset in datasets]
 
     @staticmethod
-    def _preload_dataset(dataset: Dataset[Tuple[Tensor, Tensor]]) -> TensorDataset:
+    def _preload_dataset(dataset: Dataset[tuple[Tensor, Tensor]]) -> TensorDataset:
         """Preload the dataset into memory.
 
         :param dataset: The dataset to preload.
@@ -213,9 +214,9 @@ class _BuiltInCIScenario(ABC):
         train: bool,
         directory: Path,
         auto_download: bool,
-        transform: Optional[Any],
-        target_transform: Optional[Callable[[Any], Any]] = None,
-    ) -> Dataset[Tuple[Tensor, Tensor]]:
+        transform: Any | None,
+        target_transform: Callable[[Any], Any] | None = None,
+    ) -> Dataset[tuple[Tensor, Tensor]]:
         pass
 
     def __str__(self) -> str:
@@ -226,7 +227,7 @@ class _BuiltInCIScenario(ABC):
         batch_size: int,
         shuffle: bool = False,
         **kwargs: Any,
-    ) -> Sequence[DataLoader[Tuple[Tensor, Tensor]]]:
+    ) -> Sequence[DataLoader[tuple[Tensor, Tensor]]]:
         """Get the training streams for the scenario.
 
         * The order of the tasks is fixed and does not change between iterations.
@@ -239,7 +240,7 @@ class _BuiltInCIScenario(ABC):
         :return: A data loader for each task.
         """
         return cast(
-            List[DataLoader[Tuple[Tensor, Tensor]]],
+            list[DataLoader[tuple[Tensor, Tensor]]],
             [
                 DataLoader(
                     task,
@@ -256,7 +257,7 @@ class _BuiltInCIScenario(ABC):
         self,
         batch_size: int,
         **kwargs: Any,
-    ) -> Sequence[DataLoader[Tuple[Tensor, Tensor]]]:
+    ) -> Sequence[DataLoader[tuple[Tensor, Tensor]]]:
         """Get the training streams for the scenario.
 
         :param batch_size: Collects vectors in batches of this size.
@@ -264,7 +265,7 @@ class _BuiltInCIScenario(ABC):
         :return: A data loader for each task.
         """
         return cast(
-            List[DataLoader[Tuple[Tensor, Tensor]]],
+            list[DataLoader[tuple[Tensor, Tensor]]],
             [
                 DataLoader(
                     task,
@@ -281,7 +282,7 @@ class _BuiltInCIScenario(ABC):
 class _TorchVisionDownload:
     """Shared torchvision dataset downloader for classification scenarios."""
 
-    dataset_type: Type[Dataset]
+    dataset_type: type[Dataset]
 
     @classmethod
     def _download_dataset(
@@ -289,9 +290,9 @@ class _TorchVisionDownload:
         train: bool,
         directory: Path,
         auto_download: bool,
-        transform: Optional[Any],
-        target_transform: Optional[Callable[[Any], Any]] = None,
-    ) -> Dataset[Tuple[Tensor, Tensor]]:
+        transform: Any | None,
+        target_transform: Callable[[Any], Any] | None = None,
+    ) -> Dataset[tuple[Tensor, Tensor]]:
         dataset_type = cast(Any, cls.dataset_type)
         return dataset_type(
             directory,
@@ -309,14 +310,14 @@ class _BuiltInRotatedDomainScenario(_BuiltInCIScenario):
 
     def __init__(
         self,
-        num_tasks: Optional[int] = None,
-        rotations: Optional[Sequence[float]] = None,
+        num_tasks: int | None = None,
+        rotations: Sequence[float] | None = None,
         shuffle_data: bool = True,
         seed: int = 0,
         directory: Path = get_download_dir(),
         auto_download: bool = True,
-        train_transform: Optional[Callable[[Any], Tensor]] = None,
-        test_transform: Optional[Callable[[Any], Tensor]] = None,
+        train_transform: Callable[[Any], Tensor] | None = None,
+        test_transform: Callable[[Any], Tensor] | None = None,
         normalize_features: bool = False,
         preload_test: bool = True,
         preload_train: bool = False,
@@ -393,8 +394,8 @@ class _BuiltInRotatedDomainScenario(_BuiltInCIScenario):
     @staticmethod
     def _task_transform(
         angle: float,
-        base_transform: Optional[Callable[[Any], Tensor]],
-        normalize: Optional[Normalize],
+        base_transform: Callable[[Any], Tensor] | None,
+        normalize: Normalize | None,
     ) -> Callable[[Any], Tensor]:
         transforms: list[Callable[[Any], Any]] = []
         if base_transform is not None:
@@ -406,9 +407,9 @@ class _BuiltInRotatedDomainScenario(_BuiltInCIScenario):
 
     @staticmethod
     def _shuffle_dataset(
-        dataset: Dataset[Tuple[Tensor, Tensor]],
+        dataset: Dataset[tuple[Tensor, Tensor]],
         generator: torch.Generator,
-    ) -> Dataset[Tuple[Tensor, Tensor]]:
+    ) -> Dataset[tuple[Tensor, Tensor]]:
         targets = get_targets(dataset)
         indices = torch.randperm(len(targets), generator=generator)
         subset = torch.utils.data.Subset(dataset, cast(Sequence[int], indices))

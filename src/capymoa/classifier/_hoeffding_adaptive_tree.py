@@ -1,5 +1,8 @@
 from __future__ import annotations
-from typing import Union
+
+import moa.classifiers.trees as moa_trees
+
+from capymoa._utils import _leaf_prediction, build_cli_str_from_mapping_and_locals
 
 # from capymoa.base import MOAClassifier
 from capymoa.classifier import HoeffdingTree
@@ -8,9 +11,6 @@ from capymoa.core.moa.splitcriteria import (
     _split_criterion_to_cli_str,
 )
 from capymoa.stream import Schema
-from capymoa._utils import build_cli_str_from_mapping_and_locals, _leaf_prediction
-
-import moa.classifiers.trees as moa_trees
 
 
 class HoeffdingAdaptiveTree(HoeffdingTree):
@@ -42,10 +42,10 @@ class HoeffdingAdaptiveTree(HoeffdingTree):
         schema: Schema,
         random_seed: int = 0,
         grace_period: int = 200,
-        split_criterion: Union[str, SplitCriterion] = "InfoGainSplitCriterion",
+        split_criterion: str | SplitCriterion = "InfoGainSplitCriterion",
         confidence: float = 1e-3,
         tie_threshold: float = 0.05,
-        leaf_prediction: Union[str, int] = "NaiveBayesAdaptive",
+        leaf_prediction: str | int = "NaiveBayesAdaptive",
         nb_threshold: int = 0,
         numeric_attribute_observer: str = "GaussianNumericAttributeClassObserver",
         binary_split: bool = False,
