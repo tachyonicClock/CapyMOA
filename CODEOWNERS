@@ -10,6 +10,6 @@
 /src/capymoa/drift/     @vcerqueira
 /src/capymoa/feature/   @hmgomes
 /src/capymoa/ocl/       @tachyonicClock @nuwangunasekara
-/src/capymoa/interval/  @YibinSun
+/src/capymoa/uncertainty/  @YibinSun
 /src/capymoa/regressor/ @YibinSun @nuwangunasekara
 /src/capymoa/ssl/       @tachyonicClock
