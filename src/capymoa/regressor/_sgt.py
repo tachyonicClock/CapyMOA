@@ -2,12 +2,12 @@ from typing import Literal
 
 from moa.classifiers.trees import StochasticGradientTree as _StochasticGradientTree
 
-from capymoa.base import MOAClassifier
+from capymoa.base import MOARegressor
 from capymoa.stream import Schema
 
 
-class StochasticGradientTree(MOAClassifier):
-    """Stochastic Gradient Tree classifier.
+class StochasticGradientTree(MOARegressor):
+    """Stochastic Gradient Tree regressor.
 
     Stochastic Gradient Tree (SGT) [#f1]_ is an incremental decision tree that learns
     using stochastic gradient information as its source of supervision, rather than
@@ -19,15 +19,15 @@ class StochasticGradientTree(MOAClassifier):
     can be applied to classification, regression, or multi-instance learning simply
     by changing the loss function.
 
-    >>> from capymoa.classifier import StochasticGradientTree
-    >>> from capymoa.datasets import ElectricityTiny
+    >>> from capymoa.regressor import StochasticGradientTree
+    >>> from capymoa.datasets import Fried
     >>> from capymoa.evaluation import prequential_evaluation
     >>>
-    >>> stream = ElectricityTiny()
-    >>> classifier = StochasticGradientTree(stream.get_schema())
-    >>> results = prequential_evaluation(stream, classifier, max_instances=1000)
-    >>> print(f"{results['cumulative'].accuracy():.1f}")
-    50.6
+    >>> stream = Fried()
+    >>> learner = StochasticGradientTree(stream.get_schema())
+    >>> results = prequential_evaluation(stream, learner, max_instances=1000)
+    >>> round(results["cumulative"].rmse(), 2)
+    15.49
 
     .. [#f1] Gouk, Henry, Bernhard Pfahringer, and Eibe Frank. "Stochastic Gradient
              Trees." Proceedings of The 11th Asian Conference on Machine Learning
@@ -44,7 +44,7 @@ class StochasticGradientTree(MOAClassifier):
         split_test: Literal["TTest"] = "TTest",
         disable_resplits: bool = False,
     ) -> None:
-        """Construct StochasticGradientTree classifier.
+        """Construct StochasticGradientTree regressor.
 
         :param grace_period: The number of instances a leaf should observe between
             split attempts.
@@ -68,5 +68,5 @@ class StochasticGradientTree(MOAClassifier):
         cli += ["-R"] if disable_resplits else []
 
         super().__init__(
-            moa_learner=_StochasticGradientTree, schema=schema, CLI=" ".join(cli)
+            moa_learner=_StochasticGradientTree(), schema=schema, CLI=" ".join(cli)
         )
