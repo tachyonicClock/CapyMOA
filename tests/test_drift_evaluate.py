@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from capymoa.drift.eval_detector import EvaluateDriftDetector
+from capymoa.drift.evaluate import EvaluateDriftDetector
 
 
 def test_trailing_predictions_after_last_drift_window_are_false_positives():
@@ -124,3 +124,56 @@ def test_ndt_averages_over_detected_drifts_only():
     assert metrics.fn == 1
     assert metrics.mdt == pytest.approx(50.0)  # mean of 20 and 80, not of 20, 0 and 80
     assert metrics.ndt == pytest.approx(0.5)
+
+
+def test_evaluate_drift_scores_detector_on_values():
+    from capymoa.drift import evaluate_drift
+    from capymoa.drift.detectors import ADWIN
+
+    rng = np.random.default_rng(4)
+    values = rng.integers(2, size=2000)
+    for i in range(999, 2000):
+        values[i] = rng.integers(4, high=8)
+    results = evaluate_drift(values, ADWIN(delta=0.001), drifts=[1000], max_delay=50)
+
+    assert results["instances"] == 2000
+    assert results["learner"] == "ADWIN"
+    assert results["cumulative"]["tp"] == 1
+    assert results["cumulative"]["f1"] == pytest.approx(1.0)
+
+
+def test_evaluate_drift_missed_drift_counts_as_false_negative():
+    from capymoa.drift import evaluate_drift
+
+    class Silent:
+        def __init__(self) -> None:
+            self.detection_index: list[int] = []
+
+        def reset(self, clean_history: bool = False) -> None:
+            pass
+
+        def add_element(self, element: float) -> None:
+            pass
+
+    results = evaluate_drift(np.zeros(500), Silent(), drifts=[200], max_delay=20)  # type: ignore[arg-type]
+    assert results["cumulative"]["fn"] == 1
+    assert results["cumulative"]["recall"] == 0.0
+    assert results["detections"] == []
+
+
+def test_evaluate_drift_rejects_empty_drifts():
+    from capymoa.drift import evaluate_drift
+    from capymoa.drift.detectors import ADWIN
+
+    with pytest.raises(ValueError):
+        evaluate_drift(np.zeros(10), ADWIN(), drifts=[], max_delay=5)
+
+
+def test_eval_detector_is_deprecated():
+    import importlib
+    import sys
+
+    sys.modules.pop("capymoa.drift.eval_detector", None)
+    with pytest.warns(DeprecationWarning):
+        module = importlib.import_module("capymoa.drift.eval_detector")
+    assert module.EvaluateDriftDetector is EvaluateDriftDetector

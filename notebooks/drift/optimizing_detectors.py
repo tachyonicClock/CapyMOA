@@ -52,7 +52,7 @@ from sklearn.model_selection import ParameterSampler  # for random search
 
 from capymoa.classifier import HoeffdingTree
 from capymoa.drift.detectors import SEED
-from capymoa.drift.eval_detector import EvaluateDriftDetector
+from capymoa.drift.evaluate import EvaluateDriftDetector
 from capymoa.classifier import evaluate_classifier
 from capymoa.stream.drift import AbruptDrift, Concept, DriftStream
 from capymoa.stream.generator import (

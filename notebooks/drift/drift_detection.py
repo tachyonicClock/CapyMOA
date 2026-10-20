@@ -152,7 +152,7 @@ pd.DataFrame(results).T
 # **Reference:** Cerqueira, V., Gomes, H. M., Heyden, M., Pfahringer, B., & Bifet, A. (2026). *A Framework for Evaluating and Benchmarking Concept Drift Detection Methods.* ACM SIGKDD Conference on Knowledge Discovery and Data Mining.
 
 # %%
-from capymoa.drift.eval_detector import EvaluateDriftDetector
+from capymoa.drift.evaluate import EvaluateDriftDetector
 
 drift_eval = EvaluateDriftDetector(max_delay=200)
 
