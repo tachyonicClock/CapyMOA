@@ -11,6 +11,7 @@
 * Clean documentation with `uv run invoke docs.clean`.
 * MUST run formatter `uv run invoke fmt` before committing code.
 * MUST ask the user before pushing to GitHub.
+* MUST read, understand, and enforce @AI_POLICY.md.
 
 ## Commit messages
 
